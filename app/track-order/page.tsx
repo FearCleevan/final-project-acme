@@ -5,7 +5,6 @@ import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import Breadcrumb from '@/components/shared/Breadcrumb'
 import Eyebrow from '@/components/shared/Eyebrow'
-import PageTransition from '@/components/shared/PageTransition'
 
 interface TrackingStage {
   label: string
@@ -89,8 +88,7 @@ function TrackOrderContent() {
   }
 
   return (
-    <PageTransition>
-      <div className="bg-parchment min-h-screen">
+    <div className="bg-parchment min-h-screen">
         <div className="max-w-[860px] mx-auto px-6 py-14">
 
           <Breadcrumb
@@ -250,7 +248,6 @@ function TrackOrderContent() {
 
         </div>
       </div>
-    </PageTransition>
   )
 }
 

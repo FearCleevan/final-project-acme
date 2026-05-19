@@ -4,7 +4,6 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { BiCopy, BiCheck } from 'react-icons/bi'
 import Eyebrow from '@/components/shared/Eyebrow'
-import PageTransition from '@/components/shared/PageTransition'
 
 function generateOrderNumber() {
   const n = Math.floor(1000 + Math.random() * 9000)
@@ -24,7 +23,6 @@ export default function OrderConfirmedPage() {
   }
 
   return (
-    <PageTransition>
     <div className="min-h-screen flex flex-col">
 
       {/* Dark canvas hero */}
@@ -118,6 +116,5 @@ export default function OrderConfirmedPage() {
       </div>
 
     </div>
-    </PageTransition>
   )
 }

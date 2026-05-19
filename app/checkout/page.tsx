@@ -10,7 +10,6 @@ import CheckoutSteps from '@/components/checkout/CheckoutSteps'
 import ContactShippingForm from '@/components/checkout/ContactShippingForm'
 import PaymentForm from '@/components/checkout/PaymentForm'
 import OrderSummary from '@/components/checkout/OrderSummary'
-import PageTransition from '@/components/shared/PageTransition'
 
 type Step = 1 | 2 | 3
 
@@ -91,7 +90,6 @@ export default function CheckoutPage() {
   }
 
   return (
-    <PageTransition>
     <div className="bg-parchment min-h-screen">
       <div className="max-w-[1280px] mx-auto px-6 py-12">
 
@@ -165,6 +163,5 @@ export default function CheckoutPage() {
         </div>
       </div>
     </div>
-    </PageTransition>
   )
 }

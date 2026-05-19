@@ -9,7 +9,6 @@ import Eyebrow from '@/components/shared/Eyebrow'
 import CrateItem from '@/components/crate/CrateItem'
 import Button from '@/components/shared/Button'
 import PlateImage from '@/components/shared/PlateImage'
-import PageTransition from '@/components/shared/PageTransition'
 
 const FREIGHT_THRESHOLD = 150
 
@@ -30,7 +29,6 @@ export default function CratePage() {
 
   if (items.length === 0) {
     return (
-      <PageTransition>
       <div className="bg-parchment min-h-screen px-6 py-20">
         <div className="max-w-[680px] mx-auto text-center">
           <div className="w-20 h-20 rounded-full border-2 border-ink-rule flex items-center justify-center mx-auto mb-8">
@@ -45,12 +43,10 @@ export default function CratePage() {
           <Button href="/catalog" variant="primary">Walk the catalog →</Button>
         </div>
       </div>
-      </PageTransition>
     )
   }
 
   return (
-    <PageTransition>
     <div className="bg-parchment min-h-screen">
       <div className="max-w-[1280px] mx-auto px-6 py-12">
 
@@ -217,7 +213,6 @@ export default function CratePage() {
         </div>
       </div>
     </div>
-    </PageTransition>
   )
 }
 

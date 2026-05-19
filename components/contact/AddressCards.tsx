@@ -1,7 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Eyebrow from '@/components/shared/Eyebrow'
+
+const DEMO_REFS = ['ACME-2614-SP', 'ACME-2591-SP', 'ACME-2540-SP']
 
 const cards = [
   {
@@ -23,7 +26,20 @@ const cards = [
 ]
 
 export default function AddressCards() {
+  const router = useRouter()
   const [trackingNo, setTrackingNo] = useState('')
+  const [error, setError] = useState('')
+
+  function handleTrack(e: React.FormEvent) {
+    e.preventDefault()
+    const ref = trackingNo.trim().toUpperCase()
+    if (!ref) {
+      setError('Please enter your order reference number.')
+      return
+    }
+    setError('')
+    router.push(`/track-order?ref=${encodeURIComponent(ref)}`)
+  }
 
   return (
     <div className="space-y-5">
@@ -49,19 +65,15 @@ export default function AddressCards() {
             <div className="space-y-1 pt-1">
               <p className="text-[11px] font-mono uppercase tracking-eyebrow text-ink-soft">
                 Phone:{' '}
-                <a
-                  href={`tel:${card.phone.replace(/\s/g, '')}`}
-                  className="text-brass-deep hover:text-brass transition-colors normal-case tracking-normal text-[13px] font-sans"
-                >
+                <a href={`tel:${card.phone.replace(/\s/g, '')}`}
+                  className="text-brass-deep hover:text-brass transition-colors normal-case tracking-normal text-[13px] font-sans">
                   {card.phone}
                 </a>
               </p>
               <p className="text-[11px] font-mono uppercase tracking-eyebrow text-ink-soft">
                 Email:{' '}
-                <a
-                  href={`mailto:${card.email}`}
-                  className="text-brass-deep hover:text-brass transition-colors normal-case tracking-normal text-[13px] font-sans"
-                >
+                <a href={`mailto:${card.email}`}
+                  className="text-brass-deep hover:text-brass transition-colors normal-case tracking-normal text-[13px] font-sans">
                   {card.email}
                 </a>
               </p>
@@ -80,28 +92,53 @@ export default function AddressCards() {
           Already placed an order?
         </p>
         <p className="font-sans text-[14px] text-canvas-muted mb-5 leading-relaxed">
-          Use the tracking number from your invoice to skip the queue.
+          Use the tracking number from your invoice to check your order status.
         </p>
-        <form
-          onSubmit={e => e.preventDefault()}
-          className="flex gap-2"
-        >
-          <input
-            type="text"
-            value={trackingNo}
-            onChange={e => setTrackingNo(e.target.value)}
-            placeholder="ACME-0014-XXXX"
-            className="flex-1 h-[48px] px-4 bg-white/10 border border-white/20 rounded-sm text-[14px] font-mono text-canvas-heading placeholder:text-canvas-dim focus:outline-none focus:border-brass/60 transition-colors"
-            aria-label="Order tracking number"
-          />
-          <button
-            type="submit"
-            className="h-[48px] px-5 bg-brass text-ink-charcoal rounded-sm font-mono text-[13px] font-medium hover:bg-brass-deep hover:text-canvas-heading transition-colors shrink-0"
-            aria-label="Track order"
-          >
-            →
-          </button>
+
+        <form onSubmit={handleTrack} className="space-y-3">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={trackingNo}
+              onChange={e => { setTrackingNo(e.target.value); setError('') }}
+              placeholder="ACME-2614-SP"
+              className={`flex-1 h-12 px-4 bg-white/10 border rounded-sm text-[14px] font-mono text-canvas-heading placeholder:text-canvas-dim focus:outline-none transition-colors ${
+                error ? 'border-error/70' : 'border-white/20 focus:border-brass/60'
+              }`}
+              aria-label="Order reference number"
+            />
+            <button
+              type="submit"
+              className="h-12 px-5 bg-brass text-ink-charcoal rounded-sm font-mono text-[13px] font-medium hover:bg-brass-deep hover:text-canvas-heading transition-colors shrink-0"
+              aria-label="Track order"
+            >
+              →
+            </button>
+          </div>
+
+          {error && (
+            <p className="text-[12px] font-sans text-error/90">{error}</p>
+          )}
         </form>
+
+        {/* Demo ref chips */}
+        <div className="mt-5 pt-5 border-t border-white/10">
+          <p className="text-[9px] font-mono uppercase tracking-eyebrow text-canvas-dim mb-2">
+            Demo references
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {DEMO_REFS.map(ref => (
+              <button
+                key={ref}
+                type="button"
+                onClick={() => setTrackingNo(ref)}
+                className="px-3 py-1 rounded-pill border border-white/15 text-[11px] font-mono text-canvas-muted hover:border-brass/40 hover:text-brass transition-colors"
+              >
+                {ref}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   )
