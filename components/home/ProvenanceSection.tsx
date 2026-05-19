@@ -1,0 +1,93 @@
+import PlateImage from '@/components/shared/PlateImage'
+import Eyebrow from '@/components/shared/Eyebrow'
+
+const proofPoints = [
+  {
+    num: '01.',
+    title: 'Pressed on original dies',
+    body: 'Eight of our nine brass parts come off tooling first cut between 1901 and 1908.',
+  },
+  {
+    num: '02.',
+    title: 'Tested for the night burn',
+    body: 'Every lamp runs an 8-hour bench test on No. 2 wick before it earns its tag.',
+  },
+  {
+    num: '03.',
+    title: 'Plain paper invoice',
+    body: 'A real receipt, a real return address, and a real person at the other end of the phone.',
+  },
+]
+
+export default function ProvenanceSection() {
+  return (
+    <section className="canvas-dark px-6 py-24">
+      <div className="max-w-[1280px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+
+        {/* Left — two plates arranged side-by-side with the second pushed down */}
+        <div
+          className="grid gap-4"
+          style={{ gridTemplateColumns: '3fr 2fr', alignItems: 'start' }}
+        >
+          {/* Large plate — full left column height */}
+          <PlateImage
+            alt="Pune brass furnaces at the lathe, 1940s"
+            aspectRatio="3/5"
+            dark
+            label="Workshop Interior · Pune, 1940s"
+          />
+          {/* Smaller plate — pushed down to create visual offset */}
+          <div className="pt-12">
+            <PlateImage
+              alt="Office furnace before, Pune workshop"
+              aspectRatio="4/5"
+              dark
+              label="Office Furnace · Press Shop 4"
+            />
+          </div>
+        </div>
+
+        {/* Right — editorial copy */}
+        <div>
+          <Eyebrow light className="mb-5">
+            A catalog 125 years in the making
+          </Eyebrow>
+          <h2
+            className="font-serif font-medium text-canvas-heading leading-tight mb-6"
+            style={{ fontSize: 'clamp(28px, 3.5vw, 48px)' }}
+          >
+            Spun in Pune. Shipped from Adelaide. Wired for a longer century.
+          </h2>
+          <p className="font-sans text-[17px] text-canvas-body leading-relaxed mb-4">
+            The press shop in Pune has been running the same dies since the Patel family bought it
+            in 1898 — for ₹140 and a promise that the method wouldn't change. It hasn't. Every
+            brass fitting in this crate was pressed on original tooling, hand-fitted, and bench-tested
+            before it left the floor.
+          </p>
+          <p className="font-sans text-[17px] text-canvas-body leading-relaxed mb-12">
+            Distribution moved to Adelaide in 2003. The containers cross the Indian Ocean in 26 days.
+            The parts arrive in the same condition they left the bench — straw-packed, numbered, and
+            ready for a century of use.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+            {proofPoints.map(p => (
+              <div key={p.num}>
+                <p className="font-mono text-[11px] uppercase tracking-eyebrow text-brass mb-2">
+                  {p.num}
+                </p>
+                <p className="font-serif text-[16px] font-medium text-canvas-heading mb-1">
+                  {p.title}
+                </p>
+                <p className="font-sans text-[13px] text-canvas-muted leading-relaxed">
+                  {p.body}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </div>
+    </section>
+  )
+}

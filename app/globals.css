@@ -1,26 +1,165 @@
 @import "tailwindcss";
 
+@theme {
+  /* Colors */
+  --color-parchment: #FAF5EC;
+  --color-parchment-2: #F2EBDB;
+  --color-parchment-3: #E8DEC5;
+
+  --color-ink-charcoal: #1E2022;
+  --color-ink-iron: #2D2F31;
+  --color-ink-soft: #4A4D50;
+  --color-ink-rule: rgba(45, 47, 49, 0.18);
+
+  --color-brass: #C29B47;
+  --color-brass-deep: #9C7A2E;
+
+  --color-green-brand: #2E4A3F;
+  --color-green-deep: #233830;
+
+  --color-canvas-body: #E8E2D3;
+  --color-canvas-muted: #B7B0A0;
+  --color-canvas-dim: #82796A;
+  --color-canvas-heading: #F5EFE0;
+
+  --color-error: #8C2A1C;
+
+  /* Fonts */
+  --font-serif: "Playfair Display", "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --font-sans: "Inter", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Border radius */
+  --radius-btn: 2px;
+  --radius-pill: 100px;
+
+  /* Shadows */
+  --shadow-cta-hover: 0 8px 24px -10px rgba(46, 74, 63, 0.5);
+  --shadow-card-hover: 0 18px 40px -22px rgba(30, 32, 34, 0.4);
+  --shadow-search-overlay: 0 30px 60px -30px rgba(30, 32, 34, 0.35);
+  --shadow-focus-brass: 0 0 0 3px rgba(194, 155, 71, 0.18);
+
+  /* Max widths */
+  --container-max-w: 1280px;
+  --container-wide: 1440px;
+
+  /* Letter spacing */
+  --tracking-eyebrow: 0.22em;
+  --tracking-eyebrow-wide: 0.3em;
+}
+
+/* CSS custom properties for non-Tailwind usage */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --parchment:   #FAF5EC;
+  --parchment-2: #F2EBDB;
+  --parchment-3: #E8DEC5;
+  --charcoal:    #1E2022;
+  --iron:        #2D2F31;
+  --iron-soft:   #4A4D50;
+  --brass:       #C29B47;
+  --brass-deep:  #9C7A2E;
+  --green:       #2E4A3F;
+  --green-deep:  #233830;
+  --ink-rule:    rgba(45, 47, 49, 0.18);
+
+  --serif: "Playfair Display", "Cormorant Garamond", Georgia, serif;
+  --sans:  "Inter", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --mono:  "JetBrains Mono", "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  body {
+    background-color: var(--parchment);
+    color: var(--iron);
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Plate image placeholder pattern */
+  .plate {
+    background-color: var(--parchment-2);
+    background-image: repeating-linear-gradient(
+      45deg,
+      rgba(45, 47, 49, 0.04) 0px,
+      rgba(45, 47, 49, 0.04) 1px,
+      transparent 1px,
+      transparent 8px
+    );
+    position: relative;
+    overflow: hidden;
+  }
+
+  .plate--dark {
+    background-color: #2A2C2E;
+    background-image: repeating-linear-gradient(
+      45deg,
+      rgba(194, 155, 71, 0.06) 0px,
+      rgba(194, 155, 71, 0.06) 1px,
+      transparent 1px,
+      transparent 8px
+    );
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+
+  .canvas-dark {
+    background-color: var(--charcoal);
+    color: #E8E2D3;
+  }
+
+  .canvas-dark h1,
+  .canvas-dark h2,
+  .canvas-dark h3 {
+    color: #F5EFE0;
+  }
+
+  .canvas-dark .eyebrow {
+    color: var(--brass);
+  }
+
+  /* Provenance marquee animation */
+  @keyframes scroll-x {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  .marquee-track {
+    display: flex;
+    width: max-content;
+    animation: scroll-x 28s linear infinite;
+  }
+
+  /* Skip-to-content accessibility link */
+  .skip-to-content {
+    position: absolute;
+    left: -9999px;
+    top: 1rem;
+    z-index: 9999;
+    padding: 0.5rem 1rem;
+    background: var(--charcoal);
+    color: var(--parchment);
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+
+  .skip-to-content:focus {
+    left: 1rem;
+  }
 }
