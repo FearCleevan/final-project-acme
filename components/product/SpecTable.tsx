@@ -6,7 +6,7 @@ interface SpecTableProps {
 }
 
 export default function SpecTable({ product }: SpecTableProps) {
-  const rows: { label: string; value: string | number | undefined }[] = [
+  const rows: { label: string; value: string | number | null | undefined }[] = [
     { label: 'Catalog Number',       value: product.sku },
     { label: 'Burner Size',          value: product.burnerSize },
     { label: 'Workshop',             value: product.workshop },
@@ -15,7 +15,7 @@ export default function SpecTable({ product }: SpecTableProps) {
     { label: 'Primary Material',     value: product.material },
     { label: 'Net Weight',           value: product.netWeight },
     { label: 'Edition',              value: product.edition },
-  ].filter(r => r.value !== undefined && r.value !== '')
+  ].filter(r => r.value !== undefined && r.value !== null && r.value !== '')
 
   return (
     <section>

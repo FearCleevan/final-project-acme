@@ -70,14 +70,14 @@ export default async function ProductPage({ params }: Props) {
           </section>
         )}
 
-        {/* Customer reviews */}
-        <section id="reviews" className="border-t border-ink-rule pt-16 mb-16">
-          <CustomerReviews product={product} />
-        </section>
-
         {/* Spec table */}
         <section className="border-t border-ink-rule pt-16 mb-16">
           <SpecTable product={product} />
+        </section>
+
+        {/* Customer reviews */}
+        <section id="reviews" className="border-t border-ink-rule pt-16 mb-16">
+          <CustomerReviews product={product} />
         </section>
 
         {/* Related products */}

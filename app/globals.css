@@ -162,4 +162,42 @@
   .skip-to-content:focus {
     left: 1rem;
   }
+
+  /* Hide scrollbar but keep scroll functionality */
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Smooth touch scrolling on iOS */
+  .touch-scroll {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+
+  /* Prevent layout shift during transitions */
+  .will-change-opacity {
+    will-change: opacity, transform;
+  }
+
+  /* Tap highlight removal for interactive elements */
+  button, a, [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Ensure images don't overflow on small screens */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Respect reduced motion for marquee */
+  @media (prefers-reduced-motion: reduce) {
+    .marquee-track {
+      animation: none;
+    }
+  }
 }

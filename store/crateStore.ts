@@ -40,7 +40,6 @@ export const useCrateStore = create<CrateStore>()(
             ],
           })
         }
-        set({ isOpen: true })
       },
       removeItem: (productId) =>
         set({ items: get().items.filter(i => i.product.id !== productId) }),

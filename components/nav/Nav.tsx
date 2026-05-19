@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { BiMenu } from 'react-icons/bi'
 import NavLinks from './NavLinks'
@@ -13,37 +13,48 @@ interface NavProps {
 
 export default function Nav({ onSearchOpen }: NavProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 4)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   return (
     <>
-      <header className="sticky top-0 z-30 bg-parchment/92 backdrop-blur-sm border-b border-ink-rule">
-        <div
-          className="max-w-[1280px] mx-auto px-6 h-16 grid items-center gap-4"
-          style={{ gridTemplateColumns: 'auto 1fr auto' }}
-        >
+      <header
+        className={[
+          'sticky top-0 z-30 border-b transition-all duration-200',
+          scrolled
+            ? 'bg-parchment border-ink-rule shadow-[0_1px_12px_-4px_rgba(30,32,34,0.12)]'
+            : 'bg-parchment border-transparent',
+        ].join(' ')}
+      >
+        <div className="max-w-[1280px] mx-auto px-6 h-16 flex items-center justify-between">
           {/* Brand mark */}
-          <Link href="/" className="flex flex-col leading-none group" aria-label="Acme Lamp & Sign — Home">
-            <span className="font-serif text-[24px] font-medium text-ink-charcoal group-hover:text-brass-deep transition-colors">
+          <Link href="/" className="flex flex-col leading-none group shrink-0" aria-label="Acme Lamp & Sign — Home">
+            <span className="font-serif text-[18px] sm:text-[22px] lg:text-[24px] font-medium text-ink-charcoal group-hover:text-brass-deep transition-colors whitespace-nowrap">
               Acme Lamp<em className="italic text-brass-deep">&amp;</em> Sign
             </span>
-            <span className="text-[10px] font-mono uppercase tracking-eyebrow-wide text-ink-soft mt-0.5">
+            <span className="hidden sm:block text-[10px] font-mono uppercase tracking-eyebrow-wide text-ink-soft mt-0.5">
               Est. for the long burn
             </span>
           </Link>
 
-          {/* Desktop nav links — centered */}
+          {/* Desktop nav links — centered, only takes space when visible */}
           <nav
-            className="hidden lg:flex items-center justify-center gap-8"
+            className="hidden lg:flex flex-1 items-center justify-center gap-8"
             aria-label="Main navigation"
           >
             <NavLinks />
           </nav>
 
-          {/* Actions */}
-          <div className="flex items-center gap-1">
+          {/* Actions — always pinned to the right */}
+          <div className="flex items-center gap-1 shrink-0">
             <NavActions onSearchOpen={onSearchOpen} />
 
-            {/* Hamburger — mobile only */}
+            {/* Hamburger — below lg only */}
             <button
               onClick={() => setMobileOpen(true)}
               className="lg:hidden w-12 h-12 flex items-center justify-center rounded-full text-ink-iron hover:bg-parchment-2 transition-colors ml-1"

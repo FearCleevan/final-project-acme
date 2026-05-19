@@ -34,7 +34,7 @@ export default function CrateSummary({ onClose }: CrateSummaryProps) {
       <Button variant="primary" size="block" href="/checkout" onClick={onClose}>
         Proceed to checkout →
       </Button>
-      <Button variant="ghost" size="block" href="/catalog" onClick={onClose}>
+      <Button variant="ghost" size="block" href="/crate" onClick={onClose}>
         View full crate →
       </Button>
       <button

@@ -22,7 +22,7 @@ const workshopLinks = [
 ]
 
 const serviceLinks = [
-  { label: 'Track your order', href: '/track' },
+  { label: 'Track your order', href: '/track-order' },
   { label: 'Contact a person', href: '/contact' },
   { label: 'Shipping & Freight', href: '/shipping' },
   { label: '30-Day Returns', href: '/returns' },
