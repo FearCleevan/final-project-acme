@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Dark badge background -->
+  <rect width="32" height="32" rx="7" fill="#1E2022"/>
+  <!-- Flame -->
+  <path d="M16 5c0 0 3.2 4.2 2 7.5-.4 1.1-1.1 1.5-2 1.5s-1.6-.4-2-1.5C12.8 9.2 16 5 16 5z" fill="#C29B47"/>
+  <!-- Collar band -->
+  <rect x="13" y="13" width="6" height="2" rx=".5" fill="#9C7A2E"/>
+  <!-- Lamp body (trapezoid) -->
+  <path d="M11 26.5 L13.2 15 L18.8 15 L21 26.5Z" fill="#C29B47"/>
+  <!-- Foot -->
+  <rect x="10" y="26.5" width="12" height="2" rx="1" fill="#9C7A2E"/>
+  <!-- Wick glow highlight -->
+  <ellipse cx="16" cy="13" rx="2" ry=".8" fill="#FAF5EC" opacity=".25"/>
+</svg>
