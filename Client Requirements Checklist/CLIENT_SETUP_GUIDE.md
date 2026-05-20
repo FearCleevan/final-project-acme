@@ -261,6 +261,121 @@ Costs may increase as the store grows (more Mailchimp contacts, Vercel Pro for m
 
 ---
 
+## Live Website Preview
+
+Your store design is already built and live at the link below. You can open this at any time on your phone or computer to see exactly how the store looks and feels before the real product data is added.
+
+**Live Preview:** https://acmelampandsign.vercel.app/
+
+### What you can review on the live site
+- Overall look and feel — layout, fonts, and spacing
+- Color palette — the warm parchment background, brass gold tones, and dark ink text
+- How the catalog, product pages, and cart work
+- Mobile experience — try it on your phone
+
+### Requesting design changes
+If you would like to adjust anything — color palette, fonts, button styles, section layout, wording — simply note it down and send it to me. Be as specific as you can, for example:
+- *"The gold color feels too dark, can it be lighter?"*
+- *"I'd prefer the product cards to show the price more prominently."*
+- *"The homepage hero text feels too small on mobile."*
+
+Changes to colors, typography, and layout can be made quickly at this stage — it is much easier to revise design before real data is loaded than after.
+
+---
+
+## Real Content — What I Need from You
+
+Once the accounts above are set up, I will need you to provide the real product data to replace the sample content currently on the site. Please prepare the following for **each product** you want to list in the store.
+
+### For Every Product
+
+| Field | Description | Example |
+|-------|-------------|---------|
+| **Product Name** | The full display name | Cattaraugus Brass Center-Draft Lamp |
+| **SKU / Item Code** | Your internal reference number | OL-1873-CB |
+| **Short Description** | 1–2 sentences, what makes this piece special | Precision-cast from an 1873 Cattaraugus County original. No. 2 burner, center-draft mechanism, original brass finish. |
+| **Full Description** | 3–5 sentences covering history, materials, and use | A longer paragraph about provenance, construction details, workshop notes, etc. |
+| **Price (USD)** | Selling price | $248.00 |
+| **Category** | One of: Lighting Fixtures · Glass & Chimneys · Burners & Wicks · Reproduction Signs | Lighting Fixtures |
+| **Burner Size** | If applicable: No. 1 · No. 2 · No. 3 · Universal | No. 2 |
+| **Material** | Primary material(s) | Brass, cast iron base |
+| **Finish Options** | Available finishes if the buyer can choose | Antique Brass, Polished Nickel |
+| **Fits / Compatibility** | What it works with (for parts/chimneys) | Fits No. 2 center-draft burners |
+| **Stock Quantity** | How many units you currently have | 4 |
+| **In Stock?** | Yes or No | Yes |
+| **Collection / Series** | If it belongs to a named group | Spring Release 2025 |
+| **Edition** | e.g. First Edition, Limited Run | Limited — 4 pieces |
+| **Net Weight** | Shipping/display weight | 1.4 kg |
+| **Workshop** | Where it was made or restored | Pune Workshop, India |
+| **Bench Tester** | Person who tested/verified it | Your name or technician's name |
+| **Bench Test Date** | Date of last quality check | March 2025 |
+| **Featured?** | Should it appear on the homepage? | Yes / No |
+| **Patent / Certificate** | Any patent number or certification mark | Pat. 1873 |
+
+---
+
+### Product Images
+
+For each product, please provide **at least 3 photos**, ideally 5. Images should be:
+
+- **Format:** JPG or PNG (WebP also accepted)
+- **Size:** At least 1200 × 1200 px — larger is better
+- **Background:** Clean, neutral background (white, light grey, or natural surface like wood/linen)
+- **Angles to include:**
+  1. Front-facing full product shot
+  2. 3/4 angle to show depth
+  3. Close-up of detail (burner, chimney, hardware, or label)
+  4. Top-down flat lay (optional but great for signs and parts)
+  5. Product in use / styled context shot (optional)
+
+> You can send images as a shared Google Drive folder, Dropbox link, or WeTransfer. I will resize and optimise everything for the website.
+
+---
+
+### Signs & Reproduction Products — Extra Fields
+
+If a product is a **Reproduction Sign**, also provide:
+
+| Field | Description |
+|-------|-------------|
+| **Original Year** | Year the original sign design is from |
+| **Original Manufacturer** | The company that originally made it |
+| **Reproduction Method** | e.g. Screen-printed on porcelain, lithograph |
+| **Dimensions** | Width × Height in cm or inches |
+| **Mounting** | How it hangs or mounts |
+
+---
+
+### Store-Level Content (One-Time)
+
+In addition to product data, I will also need the following from you once:
+
+| Item | Details |
+|------|---------|
+| **Business legal name** | Full registered name for receipts and terms |
+| **Business address** | For legal pages and returns |
+| **Phone number** | Contact number shown on site |
+| **Business email** | The address from your Google Workspace (e.g. hello@acmelamp.co) |
+| **Return policy** | How many days, conditions |
+| **Shipping policy** | Regions you ship to, estimated times, flat rate or calculated |
+| **About / Story** | 2–3 paragraphs about you and the business — who you are, why you do this, what makes your pieces different |
+| **Newsletter intro text** | 1–2 sentences shown on the signup form |
+| **Social media handles** | Instagram, Facebook, etc. if you have them |
+| **Logo file** | If you have a logo (SVG or high-res PNG preferred) |
+
+---
+
+### How to Deliver the Content
+
+The easiest method:
+1. Copy the product table above into a Google Sheet (one row per product, one column per field).
+2. Create a shared Google Drive folder and upload all product images into subfolders named by SKU (e.g. `/OL-1873-CB/`).
+3. Share both the Google Sheet and Drive folder with `jonathan.mauring17@gmail.com`.
+
+Alternatively, you can send me an Excel file and a WeTransfer link for the images — whichever is easiest for you.
+
+---
+
 *Guide prepared for client handoff — Acme Lamp & Sign Co.*
 *Developer contact: Peter Paul Lazan - Web Developer
 jonathan.mauring17@gmail.com*
