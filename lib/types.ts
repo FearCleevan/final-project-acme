@@ -8,6 +8,7 @@ export interface Product {
   fullDescription: string
   price: number
   category: 'lighting' | 'glass-chimneys' | 'hardware' | 'signs'
+  // Phase B: migrate to string[] to support multi-fit products (e.g. ['No. 2', 'No. 3'])
   burnerSize: 'No. 1' | 'No. 2' | 'No. 3' | 'Universal' | null
   material: string
   finish: string[]

@@ -614,7 +614,7 @@ export const mockProducts: Product[] = [
     fullDescription: 'The desk-lamp shade is green for a reason — the chrome-oxide colouring filters blue-spectrum light and reduces visual fatigue during long reading sessions. This is a genuine cased-glass piece: the green layer is blown over a clear inner gather. Not coated, not tinted. Fits 12-inch shade fitters on No. 2 and No. 3 parlour and student lamps.',
     price: 88,
     category: 'glass-chimneys',
-    burnerSize: 'No. 3',
+    burnerSize: 'Universal', // fits No. 2 and No. 3 — Phase B: replace with ['No. 2', 'No. 3']
     material: 'Cased Glass',
     finish: ['Chrome-Oxide Green'],
     fits: '12-inch shade fitter — No. 2/3 student and parlour lamps',
