@@ -10,7 +10,7 @@ export default function HeroSection() {
   const { ref, y } = useParallax(0.4)
 
   return (
-    <section className="relative min-h-[90vh] flex items-center bg-parchment px-6 py-20 overflow-hidden">
+    <section className="relative min-h-[90vh] flex items-center bg-parchment px-4 sm:px-6 py-12 sm:py-20 overflow-hidden">
       <div className="max-w-[1280px] mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
 
         {/* Left — editorial text */}

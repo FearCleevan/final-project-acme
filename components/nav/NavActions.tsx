@@ -24,7 +24,7 @@ export default function NavActions({ onSearchOpen }: NavActionsProps) {
   const initial = userName ? userName[0].toUpperCase() : ''
 
   const iconBtn =
-    'relative w-12 h-12 flex items-center justify-center rounded-full text-ink-iron hover:bg-parchment-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass'
+    'relative w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-full text-ink-iron hover:bg-parchment-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass'
 
   return (
     <div className="flex items-center gap-1">

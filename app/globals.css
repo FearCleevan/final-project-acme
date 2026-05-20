@@ -69,7 +69,7 @@
 
 @layer base {
   html {
-    scroll-behavior: smooth;
+    scroll-padding-top: 4rem; /* offset fixed nav on anchor jumps */
   }
 
   body {
@@ -172,9 +172,8 @@
     display: none;
   }
 
-  /* Smooth touch scrolling on iOS */
+  /* Contain horizontal overscroll on touch devices */
   .touch-scroll {
-    -webkit-overflow-scrolling: touch;
     overscroll-behavior-x: contain;
   }
 

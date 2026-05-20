@@ -25,13 +25,11 @@ export default function Nav({ onSearchOpen }: NavProps) {
     <>
       <header
         className={[
-          'sticky top-0 z-30 border-b transition-all duration-200',
-          scrolled
-            ? 'bg-parchment border-ink-rule shadow-[0_1px_12px_-4px_rgba(30,32,34,0.12)]'
-            : 'bg-parchment border-transparent',
+          'fixed top-0 left-0 right-0 z-30 bg-parchment border-b border-ink-rule transition-shadow duration-200',
+          scrolled ? 'shadow-[0_1px_12px_-4px_rgba(30,32,34,0.12)]' : 'shadow-none',
         ].join(' ')}
       >
-        <div className="max-w-[1280px] mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           {/* Brand mark */}
           <Link href="/" className="flex flex-col leading-none group shrink-0" aria-label="Acme Lamp & Sign — Home">
             <span className="font-serif text-[18px] sm:text-[22px] lg:text-[24px] font-medium text-ink-charcoal group-hover:text-brass-deep transition-colors whitespace-nowrap">
@@ -57,7 +55,7 @@ export default function Nav({ onSearchOpen }: NavProps) {
             {/* Hamburger — below lg only */}
             <button
               onClick={() => setMobileOpen(true)}
-              className="lg:hidden w-12 h-12 flex items-center justify-center rounded-full text-ink-iron hover:bg-parchment-2 transition-colors ml-1"
+              className="lg:hidden w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-full text-ink-iron hover:bg-parchment-2 transition-colors ml-1"
               aria-label="Open navigation menu"
             >
               <BiMenu size={22} />

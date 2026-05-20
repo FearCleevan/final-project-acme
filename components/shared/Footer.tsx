@@ -49,7 +49,7 @@ export default function Footer() {
           </div>
           <form
             onSubmit={e => { e.preventDefault(); setEmail('') }}
-            className="flex gap-3 w-full md:w-auto"
+            className="flex gap-0 w-auto md:w-auto self-center md:self-auto"
           >
             <label htmlFor="footer-email" className="sr-only">Email address</label>
             <input
@@ -59,9 +59,9 @@ export default function Footer() {
               onChange={e => setEmail(e.target.value)}
               placeholder="your@email.com"
               required
-              className="flex-1 md:w-56 h-[52px] px-4 bg-parchment border border-ink-rule rounded-btn text-[15px] text-ink-iron placeholder:text-ink-soft/60 focus:outline-none focus:border-brass-deep transition-colors"
+              className="flex-1 md:w-56 h-13 px-4 bg-parchment border border-ink-rule rounded-btn text-[15px] text-ink-iron placeholder:text-ink-soft/60 focus:outline-none focus:border-brass-deep transition-colors"
             />
-            <Button variant="brass" type="submit">Subscribe →</Button>
+            <Button variant="brass" type="submit">Subscribe</Button>
           </form>
         </div>
       </div>

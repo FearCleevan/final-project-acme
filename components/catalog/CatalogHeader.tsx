@@ -3,7 +3,7 @@ import Eyebrow from '@/components/shared/Eyebrow'
 
 export default function CatalogHeader() {
   return (
-    <div className="max-w-[1280px] mx-auto px-6 pt-12 pb-10 border-b border-ink-rule">
+    <div className="max-w-[1280px] mx-auto px-4 sm:px-6 pt-10 sm:pt-12 pb-8 sm:pb-10 border-b border-ink-rule">
       <Breadcrumb
         crumbs={[{ label: 'Storefront', href: '/' }, { label: 'Catalog' }]}
         className="mb-6"

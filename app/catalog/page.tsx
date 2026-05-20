@@ -55,7 +55,7 @@ export default function CatalogPage() {
   }
 
   return (
-    <>
+    <div className="min-h-screen">
       <CatalogHeader />
 
       <FilterBar
@@ -65,7 +65,7 @@ export default function CatalogPage() {
         onRefineOpen={() => setSidebarOpen(true)}
       />
 
-      <div className="max-w-[1280px] mx-auto px-6 py-10">
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-8 sm:py-10">
         <ProductGrid products={filteredProducts} />
       </div>
 
@@ -78,6 +78,6 @@ export default function CatalogPage() {
         }}
         count={filteredProducts.length}
       />
-    </>
+    </div>
   )
 }

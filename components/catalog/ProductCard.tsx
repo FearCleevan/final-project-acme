@@ -41,7 +41,7 @@ const ProductCard = memo(function ProductCard({
       {/* ── Image ─────────────────────────────────────────────── */}
       <Link
         href={`/catalog/${product.slug}`}
-        className="relative block overflow-hidden mb-0 rounded-sm"
+        className="relative block overflow-hidden rounded-sm aspect-square sm:aspect-auto"
         tabIndex={-1}
         aria-hidden="true"
       >
@@ -64,9 +64,9 @@ const ProductCard = memo(function ProductCard({
       </Link>
 
       {/* ── Meta ──────────────────────────────────────────────── */}
-      <div className="flex flex-col flex-1 pt-3">
-        {/* SKU row */}
-        <div className="flex items-center justify-between mb-2">
+      <div className="flex flex-col flex-1 pt-2 sm:pt-3">
+        {/* SKU row — hidden on mobile to save vertical space */}
+        <div className="hidden sm:flex items-center justify-between mb-2">
           <span className="text-[10px] font-mono uppercase tracking-eyebrow text-brass-deep">
             {product.sku}
           </span>
@@ -78,39 +78,52 @@ const ProductCard = memo(function ProductCard({
         {/* Product name */}
         <Link href={`/catalog/${product.slug}`}>
           <h3
-            className={`font-serif font-medium text-ink-iron group-hover:text-brass-deep transition-colors leading-snug mb-2 ${
-              large ? 'text-[22px]' : 'text-[18px]'
+            className={`font-serif font-medium text-ink-iron group-hover:text-brass-deep transition-colors leading-snug mb-1 sm:mb-2 ${
+              large ? 'text-[14px] sm:text-[22px]' : 'text-[12px] sm:text-[18px]'
             }`}
           >
             {product.name}
           </h3>
         </Link>
 
-        {/* Short description — italic with left border */}
-        <p className="font-sans text-[13px] text-ink-soft italic leading-snug mb-3 border-l-2 border-ink-rule pl-3 line-clamp-2">
+        {/* Short description — hidden on mobile */}
+        <p className="hidden sm:block font-sans text-[13px] text-ink-soft italic leading-snug mb-3 border-l-2 border-ink-rule pl-3 line-clamp-2">
           {product.shortDescription.split('—')[0].trim()}
         </p>
 
         {/* Divider */}
-        <div className="border-t border-ink-rule mt-auto pt-3" />
+        <div className="border-t border-ink-rule mt-auto pt-2 sm:pt-3" />
 
-        {/* Price + View details */}
-        <div className="flex items-center justify-between mb-2">
-          <span className="font-serif text-[22px] text-brass-deep leading-none">
+        {/* Price + action */}
+        <div className="flex items-center justify-between mb-1 sm:mb-2">
+          <span className="font-serif text-[14px] sm:text-[22px] text-brass-deep leading-none">
             {formatPrice(product.price)}
           </span>
+
+          {/* Desktop: navigate to product */}
           <Link
             href={`/catalog/${product.slug}`}
-            className="h-[36px] px-4 flex items-center justify-center bg-green-brand text-[#F5F1E6] rounded-btn font-sans text-[13px] font-semibold hover:bg-green-deep hover:shadow-cta-hover transition-all duration-200"
+            className="hidden sm:flex h-9 px-4 items-center justify-center bg-green-brand text-[#F5F1E6] rounded-btn font-sans text-[13px] font-semibold hover:bg-green-deep hover:shadow-cta-hover transition-all duration-200"
           >
             View details →
           </Link>
+
+          {/* Mobile: add to crate inline */}
+          <button
+            type="button"
+            onClick={handleAddToCrate}
+            className="sm:hidden h-6.5 px-2.5 flex items-center gap-1 border border-ink-rule rounded-btn font-sans text-[10px] font-semibold uppercase tracking-[0.04em] text-ink-iron hover:border-green-brand hover:bg-green-brand hover:text-[#F5F1E6] active:bg-green-brand active:text-[#F5F1E6] transition-all duration-150"
+            aria-label={`Add ${product.name} to crate`}
+          >
+            <BiPackage size={11} />
+            {added ? '✓' : '+ Crate'}
+          </button>
         </div>
 
-        {/* Add to Crate */}
+        {/* Add to Crate — desktop full button */}
         <button
           onClick={handleAddToCrate}
-          className="w-full h-[40px] flex items-center justify-center gap-2 border border-ink-rule rounded-btn font-sans text-[12px] font-semibold uppercase tracking-[0.06em] text-ink-iron hover:border-green-brand hover:bg-green-brand hover:text-[#F5F1E6] transition-all duration-200 mt-1"
+          className="hidden sm:flex w-full h-10 items-center justify-center gap-2 border border-ink-rule rounded-btn font-sans text-[12px] font-semibold uppercase tracking-[0.06em] text-ink-iron hover:border-green-brand hover:bg-green-brand hover:text-[#F5F1E6] transition-all duration-200 mt-1"
           aria-label={`Add ${product.name} to crate`}
         >
           <BiPackage size={15} />

@@ -25,7 +25,7 @@ export default function FilterBar({ filters, onFiltersChange, count, onRefineOpe
   const set = (patch: Partial<FilterState>) => onFiltersChange({ ...filters, ...patch })
 
   return (
-    <div className="max-w-[1280px] mx-auto px-4 sm:px-6">
+    <div className="max-w-[1280px] mx-auto px-6">
       {/* Category pills — horizontal scroll on mobile with fade-edge hint */}
       <div className="relative py-4 sm:py-5">
         <div
@@ -60,9 +60,9 @@ export default function FilterBar({ filters, onFiltersChange, count, onRefineOpe
 
       {/* Dropdowns row — stack on mobile, row on sm+ */}
       <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 sm:gap-3 pb-4 sm:pb-5 border-b border-ink-rule">
-        <div className="grid grid-cols-2 sm:contents gap-2">
+        <div className="grid grid-cols-2 sm:contents gap-2 w-full sm:w-auto">
           {/* Burner size */}
-          <div className="relative">
+          <div className="relative min-w-0">
             <label htmlFor="filter-burner" className="sr-only">Burner size</label>
             <select
               id="filter-burner"
@@ -80,7 +80,7 @@ export default function FilterBar({ filters, onFiltersChange, count, onRefineOpe
           </div>
 
           {/* Material */}
-          <div className="relative">
+          <div className="relative min-w-0">
             <label htmlFor="filter-material" className="sr-only">Material</label>
             <select
               id="filter-material"
@@ -100,7 +100,7 @@ export default function FilterBar({ filters, onFiltersChange, count, onRefineOpe
         </div>
 
         {/* Sort — full width on mobile */}
-        <div className="relative sm:w-auto">
+        <div className="relative w-full sm:w-auto">
           <label htmlFor="filter-sort" className="sr-only">Sort by</label>
           <select
             id="filter-sort"
@@ -117,7 +117,7 @@ export default function FilterBar({ filters, onFiltersChange, count, onRefineOpe
         </div>
 
         {/* Count + Refine — row on mobile, ml-auto on sm+ */}
-        <div className="flex items-center gap-3 sm:ml-auto">
+        <div className="flex items-center gap-3 w-full sm:w-auto sm:ml-auto">
           <span className="text-[11px] font-mono uppercase tracking-eyebrow text-brass-deep">
             {count} {count === 1 ? 'piece' : 'pieces'}
           </span>

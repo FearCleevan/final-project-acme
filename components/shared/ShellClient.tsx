@@ -27,7 +27,7 @@ export default function ShellClient({ children }: ShellClientProps) {
 
       <CrateDrawer />
 
-      <main id="main-content" className="flex-1 flex flex-col">
+      <main id="main-content" className="flex-1 flex flex-col pt-16">
         <PageAnimator>{children}</PageAnimator>
       </main>
 
