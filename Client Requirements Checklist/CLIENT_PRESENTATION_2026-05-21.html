@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Acme Lamp & Sign — Project Briefing · May 2026</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink:        #1E2022;
+      --ink-soft:   #4A4D50;
+      --ink-muted:  #7A7D80;
+      --brass:      #C29B47;
+      --brass-deep: #9C7A2E;
+      --parchment:  #FAF5EC;
+      --parchment2: #F2EBDB;
+      --rule:       #D8D0C0;
+      --canvas:     #1A1C1E;
+      --white:      #FFFFFF;
+    }
+
+    html { font-size: 15px; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--white);
+      color: var(--ink);
+      line-height: 1.6;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 48px 40px;
+    }
+
+    /* ── Typography ── */
+    .serif  { font-family: 'Playfair Display', Georgia, serif; }
+    .mono   { font-family: 'JetBrains Mono', 'Courier New', monospace; }
+    .eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--brass-deep);
+    }
+
+    h1 { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 500; line-height: 1.1; color: var(--ink); }
+    h2 { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 500; color: var(--ink); margin-bottom: 16px; }
+    h3 { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 8px; letter-spacing: 0.01em; }
+    p  { color: var(--ink-soft); font-size: 14px; line-height: 1.7; }
+
+    /* ── Layout ── */
+    .divider { border: none; border-top: 1px solid var(--rule); margin: 40px 0; }
+    .section { margin-bottom: 48px; }
+
+    /* ── Cover ── */
+    .cover {
+      background: var(--canvas);
+      color: var(--white);
+      border-radius: 8px;
+      padding: 48px 48px 40px;
+      margin-bottom: 48px;
+      position: relative;
+      overflow: hidden;
+    }
+    .cover::before {
+      content: '';
+      position: absolute;
+      top: 0; right: 0;
+      width: 200px; height: 200px;
+      background: radial-gradient(circle at top right, rgba(194,155,71,0.15), transparent 70%);
+    }
+    .cover .eyebrow { color: var(--brass); margin-bottom: 16px; display: block; }
+    .cover h1 { color: var(--white); font-size: 40px; margin-bottom: 12px; }
+    .cover h1 em { color: var(--brass); font-style: italic; }
+    .cover .subtitle { font-size: 15px; color: rgba(255,255,255,0.55); max-width: 52ch; margin-bottom: 32px; }
+    .cover-meta {
+      display: flex;
+      gap: 32px;
+      flex-wrap: wrap;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .cover-meta-item .label { font-family: 'JetBrains Mono', monospace; font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.35); display: block; margin-bottom: 4px; }
+    .cover-meta-item .value { font-size: 13px; color: rgba(255,255,255,0.75); }
+
+    /* ── Section Headers ── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .section-number {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      color: var(--brass);
+      line-height: 1;
+      min-width: 32px;
+    }
+
+    /* ── Tables ── */
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+      text-align: left;
+      padding: 8px 12px;
+      border-bottom: 2px solid var(--rule);
+    }
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--rule);
+      color: var(--ink-soft);
+      vertical-align: top;
+    }
+    tr:last-child td { border-bottom: none; }
+    td strong { color: var(--ink); font-weight: 600; }
+    td .tag-required {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      background: #FEF3C7;
+      color: #92400E;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+    td .tag-free {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      background: #D1FAE5;
+      color: #065F46;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+    .total-row td { background: var(--parchment2); font-weight: 600; color: var(--ink); }
+
+    /* ── Architecture Box ── */
+    .arch-box {
+      background: var(--canvas);
+      border-radius: 8px;
+      padding: 32px;
+      color: white;
+      margin: 16px 0 24px;
+    }
+    .arch-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+    .arch-top {
+      background: rgba(194,155,71,0.12);
+      border: 1px solid rgba(194,155,71,0.3);
+      border-radius: 6px;
+      padding: 16px 20px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .arch-top .label { font-family: 'JetBrains Mono', monospace; font-size: 8px; letter-spacing: 0.13em; text-transform: uppercase; color: var(--brass); display: block; margin-bottom: 4px; }
+    .arch-top .name { font-family: 'Playfair Display', serif; font-size: 17px; color: white; }
+    .arch-top .desc { font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 4px; }
+    .arch-arrow {
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: rgba(255,255,255,0.2);
+      letter-spacing: 0.1em;
+      padding: 4px 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      padding: 0 60px 8px;
+    }
+    .arch-bottom {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .arch-service {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px;
+      padding: 16px 18px;
+    }
+    .arch-service .s-label { font-family: 'JetBrains Mono', monospace; font-size: 8px; letter-spacing: 0.13em; text-transform: uppercase; color: var(--brass); display: block; margin-bottom: 6px; }
+    .arch-service .s-name { font-family: 'Playfair Display', serif; font-size: 16px; color: white; margin-bottom: 8px; }
+    .arch-service ul { list-style: none; padding: 0; }
+    .arch-service ul li { font-size: 11px; color: rgba(255,255,255,0.45); padding: 2px 0; }
+    .arch-service ul li::before { content: '·  '; color: var(--brass); }
+
+    /* ── Prototype Pages Grid ── */
+    .pages-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin: 16px 0;
+    }
+    .page-chip {
+      background: var(--parchment);
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 8px 12px;
+    }
+    .page-chip .url { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--brass-deep); display: block; margin-bottom: 2px; }
+    .page-chip .name { font-size: 11px; color: var(--ink-soft); }
+
+    /* ── Checklist ── */
+    .checklist { list-style: none; padding: 0; }
+    .checklist li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--rule);
+      font-size: 13px;
+      color: var(--ink-soft);
+    }
+    .checklist li:last-child { border-bottom: none; }
+    .check-box {
+      width: 16px;
+      height: 16px;
+      border: 1.5px solid var(--rule);
+      border-radius: 3px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .checklist li strong { color: var(--ink); font-weight: 600; }
+
+    /* ── Timeline ── */
+    .timeline { position: relative; padding-left: 28px; }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 6px; top: 8px; bottom: 8px;
+      width: 1px;
+      background: var(--rule);
+    }
+    .timeline-item { position: relative; margin-bottom: 20px; }
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -22px; top: 6px;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      border: 2px solid var(--brass);
+      background: var(--white);
+    }
+    .timeline-item .tl-label { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--brass-deep); margin-bottom: 3px; }
+    .timeline-item .tl-title { font-weight: 600; font-size: 13px; color: var(--ink); margin-bottom: 2px; }
+    .timeline-item .tl-body { font-size: 13px; color: var(--ink-muted); }
+
+    /* ── Cost Highlight ── */
+    .cost-highlight {
+      background: var(--parchment);
+      border: 1px solid var(--rule);
+      border-left: 3px solid var(--brass);
+      border-radius: 0 6px 6px 0;
+      padding: 16px 20px;
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .cost-highlight .ch-label { font-size: 13px; color: var(--ink-soft); }
+    .cost-highlight .ch-amount { font-family: 'Playfair Display', serif; font-size: 26px; color: var(--ink); white-space: nowrap; }
+    .cost-highlight .ch-note { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-muted); display: block; margin-top: 2px; }
+
+    /* ── Placeholder Notice ── */
+    .notice {
+      background: #FFFBEB;
+      border: 1px solid #FDE68A;
+      border-radius: 6px;
+      padding: 14px 18px;
+      font-size: 13px;
+      color: #78350F;
+      margin-bottom: 24px;
+    }
+    .notice strong { color: #92400E; }
+
+    /* ── Next Steps ── */
+    .next-steps {
+      background: var(--canvas);
+      border-radius: 8px;
+      padding: 32px 36px;
+      color: white;
+    }
+    .next-steps .eyebrow { color: var(--brass); margin-bottom: 12px; }
+    .next-steps h2 { color: white; font-size: 24px; margin-bottom: 20px; }
+    .priority-list { list-style: none; padding: 0; counter-reset: priority; }
+    .priority-list li {
+      counter-increment: priority;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      font-size: 13px;
+      color: rgba(255,255,255,0.65);
+    }
+    .priority-list li:last-child { border-bottom: none; }
+    .priority-list li::before {
+      content: counter(priority);
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      color: var(--brass);
+      line-height: 1;
+      min-width: 20px;
+    }
+    .priority-list li strong { color: white; display: block; margin-bottom: 2px; }
+
+    /* ── Footer ── */
+    .doc-footer {
+      margin-top: 48px;
+      padding-top: 20px;
+      border-top: 1px solid var(--rule);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .doc-footer p { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-muted); }
+
+    /* ── Print ── */
+    @media print {
+      body { padding: 24px 28px; font-size: 13px; }
+      .cover { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .arch-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .next-steps { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .cost-highlight { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .notice { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .pages-grid { grid-template-columns: repeat(4, 1fr); }
+      @page { margin: 16mm; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── COVER ── -->
+  <div class="cover">
+    <span class="eyebrow">Project Briefing · May 21, 2026</span>
+    <h1 class="serif">Acme Lamp &amp; <em>Sign</em></h1>
+    <p class="subtitle">E-Commerce Storefront — Prototype Presentation, Tech Stack Overview &amp; Client Action Items</p>
+    <div class="cover-meta">
+      <div class="cover-meta-item">
+        <span class="label">Client</span>
+        <span class="value">Scott — Nova Scotia, Canada</span>
+      </div>
+      <div class="cover-meta-item">
+        <span class="label">Developer</span>
+        <span class="value">Peter Paul Lazan</span>
+      </div>
+      <div class="cover-meta-item">
+        <span class="label">Project Phase</span>
+        <span class="value">Prototype Complete · Backend Integration Next</span>
+      </div>
+      <div class="cover-meta-item">
+        <span class="label">Product Count</span>
+        <span class="value">50 Items · Spring Release</span>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ── 01 WHAT WAS BUILT ── -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-number serif">01.</span>
+      <div>
+        <span class="eyebrow">Prototype</span>
+        <h2 class="serif" style="margin-bottom:0">What was built</h2>
+      </div>
+    </div>
+
+    <p style="margin-bottom:20px">A fully functional e-commerce storefront prototype built on <strong>Next.js 16</strong> — not a mockup, not a wireframe. Every page is live, every user flow works end to end. Three prototype designs were produced; the recommended design was selected based on the client's brief: vintage, premium, non-template.</p>
+
+    <div class="notice">
+      <strong>Note on prototype content:</strong> All product names, descriptions, pricing, addresses, photography, and copy visible in the prototype are developer-created placeholders — written to demonstrate the layout and functionality. None of it is final. All content will be replaced with real client-provided information before launch.
+    </div>
+
+    <h3>All pages built and functional</h3>
+    <div class="pages-grid">
+      <div class="page-chip"><span class="url">/</span><span class="name">Homepage</span></div>
+      <div class="page-chip"><span class="url">/catalog</span><span class="name">Full Catalog + Filters</span></div>
+      <div class="page-chip"><span class="url">/catalog/[item]</span><span class="name">Product Detail</span></div>
+      <div class="page-chip"><span class="url">/crate</span><span class="name">Shopping Cart</span></div>
+      <div class="page-chip"><span class="url">/checkout</span><span class="name">3-Step Checkout</span></div>
+      <div class="page-chip"><span class="url">/checkout/confirmed</span><span class="name">Order Confirmation</span></div>
+      <div class="page-chip"><span class="url">/track-order</span><span class="name">Order Tracking</span></div>
+      <div class="page-chip"><span class="url">/account</span><span class="name">Customer Account</span></div>
+      <div class="page-chip"><span class="url">/our-story</span><span class="name">Our Story</span></div>
+      <div class="page-chip"><span class="url">/heritage</span><span class="name">Heritage Timeline</span></div>
+      <div class="page-chip"><span class="url">/journal</span><span class="name">Bench Notes</span></div>
+      <div class="page-chip"><span class="url">/guides</span><span class="name">Lamp-Lighting Guide</span></div>
+      <div class="page-chip"><span class="url">/restoration</span><span class="name">Restoration Services</span></div>
+      <div class="page-chip"><span class="url">/contact</span><span class="name">Contact</span></div>
+      <div class="page-chip"><span class="url">/faq · /shipping · /returns</span><span class="name">Support Pages</span></div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+
+  <!-- ── 02 TECH STACK ── -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-number serif">02.</span>
+      <div>
+        <span class="eyebrow">Architecture</span>
+        <h2 class="serif" style="margin-bottom:0">How the site works — three services, three jobs</h2>
+      </div>
+    </div>
+
+    <p style="margin-bottom:20px">The storefront runs on three platforms that each handle a distinct role. Think of it like a physical store: the building, the cash register, and the signage.</p>
+
+    <div class="arch-box">
+      <div class="arch-top">
+        <span class="label">The Website · What customers see</span>
+        <div class="name serif">Next.js Storefront</div>
+        <div class="desc">Hosted on Vercel · Delivers every page instantly · Handles security &amp; uptime</div>
+      </div>
+      <div class="arch-arrow">
+        <span>↓  Transactional data</span>
+        <span>↓  Editorial content</span>
+      </div>
+      <div class="arch-bottom">
+        <div class="arch-service">
+          <span class="s-label">The Cash Register</span>
+          <div class="s-name serif">Shopify</div>
+          <ul>
+            <li>All 50 products &amp; stock levels</li>
+            <li>Cart &amp; checkout</li>
+            <li>Payment processing</li>
+            <li>Customer accounts</li>
+            <li>Orders &amp; shipping</li>
+          </ul>
+        </div>
+        <div class="arch-service">
+          <span class="s-label">The Signage &amp; Displays</span>
+          <div class="s-name serif">Sanity CMS</div>
+          <ul>
+            <li>Journal / Bench Notes articles</li>
+            <li>Heritage timeline</li>
+            <li>Our Story copy</li>
+            <li>Testimonials</li>
+            <li>Editable by you — no developer needed</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <p><strong>Sanity</strong> is a browser-based content editor. Once live, you can write and publish Journal articles, update the Heritage page, and change site copy yourself — without touching any code, the same way you'd write an email.</p>
+  </div>
+
+  <hr class="divider" />
+
+
+  <!-- ── 03 YOUR ACTION ITEMS ── -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-number serif">03.</span>
+      <div>
+        <span class="eyebrow">Client Obligations</span>
+        <h2 class="serif" style="margin-bottom:0">What we need from you</h2>
+      </div>
+    </div>
+
+    <p style="margin-bottom:24px">The prototype is complete. Backend integration begins as soon as the items below are in place. Most account setups take under 15 minutes each.</p>
+
+    <!-- Accounts -->
+    <h3 style="margin-bottom:12px">Accounts to create</h3>
+    <table style="margin-bottom:28px">
+      <thead>
+        <tr>
+          <th>Platform</th>
+          <th>Where</th>
+          <th>Cost</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Shopify</strong> — store engine</td><td>shopify.com</td><td>$29 USD/month</td><td><span class="tag-required">Required</span></td></tr>
+        <tr><td><strong>Vercel</strong> — hosting (Pro plan)</td><td>vercel.com</td><td>$20 USD/month</td><td><span class="tag-required">Required</span></td></tr>
+        <tr><td><strong>Sanity CMS</strong> — content editor</td><td>sanity.io</td><td><span class="tag-free">Free</span></td><td><span class="tag-required">Required</span></td></tr>
+        <tr><td><strong>Domain name</strong> — your web address</td><td>namecheap.com</td><td>~$20/year</td><td><span class="tag-required">Required</span></td></tr>
+        <tr><td><strong>Google Workspace</strong> — business email</td><td>workspace.google.com</td><td>$7 USD/month</td><td><span class="tag-required">Required</span></td></tr>
+        <tr><td><strong>Google Analytics 4</strong></td><td>analytics.google.com</td><td><span class="tag-free">Free</span></td><td><span class="tag-required">Required</span></td></tr>
+        <tr><td><strong>Google Search Console</strong></td><td>search.google.com/search-console</td><td><span class="tag-free">Free</span></td><td><span class="tag-required">Required</span></td></tr>
+        <tr><td><strong>Mailchimp</strong> — newsletter</td><td>mailchimp.com</td><td><span class="tag-free">Free to start</span></td><td><span class="tag-required">Required</span></td></tr>
+      </tbody>
+    </table>
+
+    <!-- Business Details -->
+    <h3 style="margin-bottom:12px">Business details to confirm</h3>
+    <table style="margin-bottom:28px">
+      <thead>
+        <tr><th>What I need</th><th>Why</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Final registered business name</strong></td><td>Domain purchase, Shopify account, invoices</td></tr>
+        <tr><td><strong>Canadian Business Number (BN)</strong></td><td>Shopify Payments setup, tax compliance</td></tr>
+        <tr><td><strong>Physical address (Nova Scotia)</strong></td><td>Contact page, footer, Shopify legal documents</td></tr>
+        <tr><td><strong>Business phone number</strong></td><td>Contact page — customers will call this</td></tr>
+        <tr><td><strong>Business hours</strong></td><td>Contact page customer service hours</td></tr>
+        <tr><td><strong>HST registration status</strong></td><td>Nova Scotia HST 15% — Shopify tax configuration</td></tr>
+      </tbody>
+    </table>
+
+    <!-- Content -->
+    <h3 style="margin-bottom:12px">Content &amp; assets to provide</h3>
+    <table style="margin-bottom:28px">
+      <thead>
+        <tr><th>Item</th><th>Format</th><th>Priority</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Product photography — 50 items</strong></td><td>JPEG/PNG · min 2000px · warm neutral background · 2–3 angles per item</td><td><span class="tag-required">Critical path</span></td></tr>
+        <tr><td><strong>Hero photograph</strong></td><td>One editorial lamp shot · warm atmospheric light</td><td><span class="tag-required">Critical</span></td></tr>
+        <tr><td><strong>Inventory count per item</strong></td><td>Simple list: item name → quantity on hand</td><td><span class="tag-required">Required</span></td></tr>
+        <tr><td><strong>Prices for all 50 items</strong></td><td>Review the live catalog and confirm each price</td><td><span class="tag-required">Required</span></td></tr>
+        <tr><td><strong>eBay store link + competitor links</strong></td><td>URLs — used to research real product descriptions</td><td><span class="tag-required">Required</span></td></tr>
+        <tr><td><strong>Product weight per item</strong></td><td>Approximate grams per item — for shipping calculations</td><td><span class="tag-required">Required</span></td></tr>
+        <tr><td><strong>3–6 Journal / Bench Notes articles</strong></td><td>Title + 300–600 words each + author name</td><td>Before launch</td></tr>
+        <tr><td><strong>Heritage timeline — confirm dates</strong></td><td>Review <code>/heritage</code> and confirm or correct milestones</td><td>Before launch</td></tr>
+        <tr><td><strong>Our Story copy — review &amp; approve</strong></td><td>Review <code>/our-story</code> and amend personal details</td><td>Before launch</td></tr>
+        <tr><td><strong>Policy pages — review &amp; approve</strong></td><td>Returns, Shipping, FAQ — confirm policies are accurate</td><td>Before launch</td></tr>
+      </tbody>
+    </table>
+
+    <!-- Decisions -->
+    <h3 style="margin-bottom:12px">Decisions to make</h3>
+    <table>
+      <thead>
+        <tr><th>Decision</th><th>Options</th><th>Recommendation</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Final business name</strong></td><td>TBD</td><td>Decide before domain purchase</td></tr>
+        <tr><td><strong>Domain extension</strong></td><td>.com / .ca / both</td><td>.com for North American reach</td></tr>
+        <tr><td><strong>Pricing currency</strong></td><td>USD / CAD / both</td><td>USD — standard for North America</td></tr>
+        <tr><td><strong>Shipping regions</strong></td><td>Canada only / Canada + USA / International</td><td>Start Canada + USA, expand later</td></tr>
+        <tr><td><strong>Free shipping threshold</strong></td><td>Currently $150 placeholder</td><td>Confirm based on your real shipping cost</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr class="divider" />
+
+
+  <!-- ── 04 COST SUMMARY ── -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-number serif">04.</span>
+      <div>
+        <span class="eyebrow">Investment</span>
+        <h2 class="serif" style="margin-bottom:0">Monthly running costs</h2>
+      </div>
+    </div>
+
+    <table style="margin-bottom:0">
+      <thead>
+        <tr><th>Service</th><th>Role</th><th>Monthly Cost</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Shopify Basic</strong></td><td>Store engine — products, cart, checkout, orders</td><td>$29 USD</td></tr>
+        <tr><td><strong>Vercel Pro</strong></td><td>Hosting — website delivery, security, uptime</td><td>$20 USD</td></tr>
+        <tr><td><strong>Google Workspace</strong></td><td>Professional business email</td><td>$7 USD</td></tr>
+        <tr><td><strong>Sanity CMS</strong></td><td>Content editing — journal, heritage, copy</td><td><span class="tag-free">Free</span></td></tr>
+        <tr><td><strong>Google Analytics + Search Console</strong></td><td>Traffic, search ranking, conversion tracking</td><td><span class="tag-free">Free</span></td></tr>
+        <tr><td><strong>Mailchimp</strong></td><td>Newsletter — up to 500 subscribers</td><td><span class="tag-free">Free</span></td></tr>
+        <tr class="total-row"><td><strong>Total ongoing</strong></td><td></td><td><strong>~$56 USD/month</strong></td></tr>
+      </tbody>
+    </table>
+
+    <div class="cost-highlight">
+      <div>
+        <p class="ch-label">Domain name — one time per year</p>
+        <span class="ch-note">Purchase once at Namecheap or Cloudflare — you own it independently</span>
+      </div>
+      <div class="ch-amount serif">~$20 <span style="font-size:14px;color:#7A7D80">USD/yr</span></div>
+    </div>
+
+    <p style="margin-top:16px;font-size:13px;color:var(--ink-muted)">Shopify also charges a <strong style="color:var(--ink-soft)">2.9% + 30¢ per transaction</strong> payment processing fee — standard for Canadian e-commerce. This only applies when sales are made.</p>
+  </div>
+
+  <hr class="divider" />
+
+
+  <!-- ── 05 TIMELINE ── -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-number serif">05.</span>
+      <div>
+        <span class="eyebrow">Schedule</span>
+        <h2 class="serif" style="margin-bottom:0">Projected go-live timeline</h2>
+      </div>
+    </div>
+
+    <p style="margin-bottom:24px">The prototype is complete. The critical path to launch is <strong>product photography</strong> — everything else can run in parallel while photos are being prepared.</p>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="tl-label">Now — This Week</div>
+        <div class="tl-title">Client completes accounts &amp; gathers assets</div>
+        <div class="tl-body">Finalise business name · Purchase domain · Create Shopify + Vercel + Sanity accounts · Photograph inventory · Provide inventory counts</div>
+      </div>
+      <div class="timeline-item">
+        <div class="tl-label">Week 1 – 2</div>
+        <div class="tl-title">Photography delivery + accounts confirmed</div>
+        <div class="tl-body">Product photos delivered · Developer invited to Shopify as Staff · Backend integration begins</div>
+      </div>
+      <div class="timeline-item">
+        <div class="tl-label">Week 2 – 3</div>
+        <div class="tl-title">Shopify backend connected</div>
+        <div class="tl-body">Real products replace placeholder data · Cart connects to Shopify checkout · Customer accounts go live</div>
+      </div>
+      <div class="timeline-item">
+        <div class="tl-label">Week 3</div>
+        <div class="tl-title">Sanity CMS connected</div>
+        <div class="tl-body">Journal, Heritage, Testimonials, and Our Story all pull from the content editor · You can start writing and publishing immediately</div>
+      </div>
+      <div class="timeline-item">
+        <div class="tl-label">Week 3 – 4</div>
+        <div class="tl-title">Real photos and copy in the store</div>
+        <div class="tl-body">All placeholder images and text replaced with real product photography and confirmed copy</div>
+      </div>
+      <div class="timeline-item">
+        <div class="tl-label">Week 4</div>
+        <div class="tl-title">Full client review &amp; approval (UAT)</div>
+        <div class="tl-body">Scott reviews every page and approves — catalog, checkout, policy pages, email confirmations, mobile layout</div>
+      </div>
+      <div class="timeline-item">
+        <div class="tl-label">Week 4 – 5</div>
+        <div class="tl-title">Domain live · Store open</div>
+        <div class="tl-body">Domain pointed to Vercel · SSL active · Store accepting real orders · Shopify webhooks updated for production</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+
+  <!-- ── NEXT STEPS ── -->
+  <div class="next-steps">
+    <span class="eyebrow">Next Steps</span>
+    <h2 class="serif">Three things to do first</h2>
+    <ol class="priority-list">
+      <li>
+        <div>
+          <strong>Finalise the business name</strong>
+          Everything else — domain, Shopify account, business email, Google Analytics — flows from the name. Take the time to get it right.
+        </div>
+      </li>
+      <li>
+        <div>
+          <strong>Create Shopify account &amp; send developer Staff invite</strong>
+          Basic plan · Enable Shopify Payments with your bank account and Canadian Business Number · Invite developer with full permissions.
+        </div>
+      </li>
+      <li>
+        <div>
+          <strong>Photograph the inventory &amp; send the eBay store link</strong>
+          Product photography is the only item that directly controls the launch date. Warm light, neutral background, 2–3 angles per item. Smartphone photos in good light are a solid starting point.
+        </div>
+      </li>
+    </ol>
+  </div>
+
+
+  <!-- ── FOOTER ── -->
+  <div class="doc-footer">
+    <p>Acme Lamp &amp; Sign Co. · Project Briefing · May 21, 2026</p>
+    <p>Developer: Peter Paul Lazan · Prototype Phase Complete</p>
+  </div>
+
+</body>
+</html>

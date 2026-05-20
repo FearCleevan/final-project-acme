@@ -80,7 +80,7 @@ export default function RestorationPage() {
           <Eyebrow className="mb-4">How it works</Eyebrow>
           <ol className="space-y-4">
             {[
-              'Pack your lamp carefully and post it to Adelaide House with a note describing what is wrong.',
+              'Pack your lamp carefully and post it to our Nova Scotia workshop with a note describing what is wrong.',
               'We inspect it on arrival and send you a written quote within two working days.',
               'You approve the quote. We do the work. No surprises added after the fact.',
               'We post it back, insured, straw-packed. You receive a bench test record with the lamp.',

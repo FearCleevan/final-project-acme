@@ -24,7 +24,7 @@ const entries = [
   {
     year: '2003',
     title: 'Australian distribution begins',
-    body: 'The first containers cross the Indian Ocean. The pieces find their first Western collectors through partners in Adelaide.',
+    body: 'The first containers cross the Indian Ocean. The pieces find their first Western collectors through partners in Australia.',
   },
   {
     year: '2026',
