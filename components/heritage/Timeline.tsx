@@ -23,13 +23,13 @@ const entries = [
   },
   {
     year: '2003',
-    title: 'Adelaide distribution opens',
-    body: 'The first containers cross the Indian Ocean, ending up on Pirie Street.',
+    title: 'Australian distribution begins',
+    body: 'The first containers cross the Indian Ocean. The pieces find their first Western collectors through partners in Adelaide.',
   },
   {
     year: '2026',
-    title: 'Spring liquidation',
-    body: 'Fifty surplus pieces. This is the website you are reading. No catalog will repeat exactly.',
+    title: 'North American launch',
+    body: 'Fifty pieces cross into North America for the first time. This is the website you are reading. No catalog will repeat exactly.',
   },
 ]
 

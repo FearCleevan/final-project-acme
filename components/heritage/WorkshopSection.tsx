@@ -53,7 +53,7 @@ export default function WorkshopSection() {
               className="font-serif font-medium text-canvas-heading leading-tight mb-7"
               style={{ fontSize: 'clamp(24px, 3vw, 40px)' }}
             >
-              Spun in Pune. Shipped from Adelaide. Wired for a longer century.
+              Spun in Pune. Shipped through Adelaide. Now available in North America.
             </h2>
             <p className="font-sans text-[17px] text-canvas-body leading-relaxed mb-5">
               The Patel family has operated the Pune press shop since 1898, when the British Indian Lamp Co. closed
@@ -61,8 +61,9 @@ export default function WorkshopSection() {
               and a promise.
             </p>
             <p className="font-sans text-[17px] text-canvas-body leading-relaxed mb-12">
-              Distribution moved to Adelaide in 2003. The workshop did not. Every piece still leaves Press Shop 4
-              with the same brass alloy, the same finish process, and the same hand-numbered tag.
+              For over two decades, these pieces reached collectors through our partners in Australia. Now, for the
+              first time, the same catalog — same brass alloy, same bench test, same hand-numbered tag — is
+              available here in North America.
             </p>
 
             {/* Proof points */}

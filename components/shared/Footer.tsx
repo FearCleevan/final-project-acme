@@ -126,19 +126,18 @@ export default function Footer() {
                 Acme Lamp<em className="italic text-brass-deep">&amp;</em> Sign
               </p>
               <p className="text-[13px] text-canvas-muted leading-relaxed mb-5">
-                Fifty pieces from the Pune workshop, shipped out of Adelaide.
                 Precision-reproduced antique oil lamp parts, hand-blown glass, and
-                triple-fired porcelain signs.
+                triple-fired porcelain signs — crafted in Pune, now available
+                across North America for the first time.
               </p>
-              <Eyebrow light className="mb-2">Adelaide House</Eyebrow>
+              <Eyebrow light className="mb-2">North America · Distribution</Eyebrow>
               <address className="not-italic text-[13px] text-canvas-muted leading-relaxed">
-                14 Pirie Street, Crate Row 14<br />
-                Adelaide, SA 5000 — Australia<br />
+                Nova Scotia, Canada<br />
                 <a
-                  href="tel:+61870001873"
+                  href="tel:+19025551873"
                   className="text-brass hover:text-brass-deep transition-colors"
                 >
-                  +61 8 7000 1873
+                  +1 (902) 555-1873
                 </a>
               </address>
             </div>

@@ -59,18 +59,18 @@ export default function ProvenanceSection() {
             className="font-serif font-medium text-canvas-heading leading-tight mb-6"
             style={{ fontSize: 'clamp(28px, 3.5vw, 48px)' }}
           >
-            Spun in Pune. Shipped from Adelaide. Wired for a longer century.
+            Spun in Pune. Shipped through Adelaide. Now landing in North America.
           </h2>
           <p className="font-sans text-[17px] text-canvas-body leading-relaxed mb-4">
             The press shop in Pune has been running the same dies since the Patel family bought it
             in 1898 — for ₹140 and a promise that the method wouldn&apos;t change. It hasn&apos;t. Every
-            brass fitting in this crate was pressed on original tooling, hand-fitted, and bench-tested
+            brass fitting in this catalog was pressed on original tooling, hand-fitted, and bench-tested
             before it left the floor.
           </p>
           <p className="font-sans text-[17px] text-canvas-body leading-relaxed mb-12">
-            Distribution moved to Adelaide in 2003. The containers cross the Indian Ocean in 26 days.
-            The parts arrive in the same condition they left the bench — straw-packed, numbered, and
-            ready for a century of use.
+            These pieces have long been available through our Australian partners — but this is the
+            first time they have crossed into North America. Straw-packed, hand-numbered, and
+            offered here as a single release. When the crate is empty, that&apos;s the run.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">

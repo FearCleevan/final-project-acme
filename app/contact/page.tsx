@@ -37,8 +37,8 @@ export default function ContactPage() {
             <div>
               <p className="font-sans text-[18px] text-ink-soft leading-relaxed max-w-[50ch]">
                 We don't do support tickets. We do conversations. If your chimney cracked, your burner
-                won't draw, or you can't tell a No. 1 from a No. 2 — call us, write us, or come down
-                to Pirie Street.
+                won't draw, or you can't tell a No. 1 from a No. 2 — call us or write us.
+                A real person picks up.
               </p>
             </div>
 

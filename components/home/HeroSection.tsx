@@ -26,9 +26,9 @@ export default function HeroSection() {
           </h1>
 
           <p className="font-sans text-[19px] text-ink-soft leading-relaxed mb-10 max-w-[56ch]">
-            Fifty crates of precision-reproduced antique oil lamp parts, hand-blown chimneys,
-            and porcelain advertising signs — sourced from a 4-cycle vulcan workshop,
-            distributed out of Adelaide, and offered here for the first time.
+            Fifty pieces of precision-reproduced antique oil lamp parts, hand-blown chimneys,
+            and porcelain advertising signs — crafted at a Pune press shop running original dies
+            since 1898, and now available in North America for the first time.
           </p>
 
           <div className="flex flex-wrap gap-4 mb-10">
@@ -39,9 +39,9 @@ export default function HeroSection() {
           {/* Stats row */}
           <div className="flex flex-wrap items-center gap-0 border-t border-ink-rule pt-6">
             {[
-              '50 In Suits',
-              '101 (98+1/1)',
-              'Pune → Adelaide',
+              '50 Pieces · First Release',
+              'Bench-Tested · Numbered',
+              'Pune → North America',
             ].map((stat, i) => (
               <span key={stat} className="flex items-center">
                 {i > 0 && (
@@ -59,7 +59,7 @@ export default function HeroSection() {
         <div ref={ref} className="relative order-1 lg:order-2 overflow-hidden flex justify-center lg:justify-end">
           <motion.div 
             style={{ y, willChange: 'transform' }} 
-            className="w-full max-w-[600px]" // Constraint ensures it sits exactly right on desktop
+            className="w-full max-w-150" // Constraint ensures it sits exactly right on desktop
           >
             <PlateImage
               src="/assets/HeroSampleImage.webp" // Set the static public path

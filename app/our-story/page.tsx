@@ -49,10 +49,10 @@ export default function OurStoryPage() {
           {/* Right plate */}
           <div className="relative">
             <PlateImage
-              alt="Workshop exterior, Adelaide House"
+              alt="Workshop exterior, Pune press shop"
               aspectRatio="4/5"
               dark={false}
-              label="EST. 1898 / PUNE · ADELAIDE"
+              label="EST. 1898 / PUNE · NOW IN NORTH AMERICA"
               priority
               className="rounded-sm"
             />
@@ -79,8 +79,9 @@ export default function OurStoryPage() {
               reduced to four.
             </p>
             <p className="font-sans text-[16px] text-ink-soft leading-relaxed">
-              We moved distribution to Adelaide in 2003 because it was closer to the people who wanted
-              these pieces. The workshop stayed exactly where it was. It always will.
+              These pieces have been distributed through our partners in Australia for over two decades.
+              Now, for the first time, they are available here — in North America. The workshop in Pune
+              stays exactly where it was. It always will.
             </p>
           </div>
         </div>
@@ -120,7 +121,7 @@ export default function OurStoryPage() {
             We are. The next hundred is paid for.
           </blockquote>
           <footer className="font-mono text-[11px] uppercase tracking-eyebrow text-canvas-dim">
-            R.K. Patel &nbsp;/&nbsp; Third-generation press operator · Pune Workshop
+            R.K. Patel &nbsp;/&nbsp; Third-generation press operator · Pune, India
           </footer>
         </div>
       </section>

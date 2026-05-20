@@ -9,11 +9,11 @@ const DEMO_REFS = ['ACME-2614-SP', 'ACME-2591-SP', 'ACME-2540-SP']
 const cards = [
   {
     n: '01',
-    eyebrow: 'Adelaide House · Distribution',
-    address: ['14 Pirie Street, Crate Row 14', 'Adelaide, SA 5000 — Australia'],
-    phone: '+61 8 7000 1873',
+    eyebrow: 'North America · Distribution',
+    address: ['[Your Address — To Be Confirmed]', 'Nova Scotia, Canada'],
+    phone: '+1 (902) 555-1873',
     email: 'hello@acmelamp.co',
-    hours: 'Mon–Fri · 9:00–17:00 ACST',
+    hours: 'Mon–Fri · 9:00–17:00 AST',
   },
   {
     n: '02',

@@ -21,7 +21,7 @@ const TILTS       = [-2, 1.5, -1, 2.5, -1.5]
 const testimonials = [
   {
     name:   'T. Aldridge',
-    role:   'Lamp Collector · Victoria',
+    role:   'Lamp Collector · Vermont',
     quote:  "The Cattaraugus reproduction holds an extra flame — the bench test others won't run.",
     accent: '#2E4A3F',
     light:  true,
@@ -29,15 +29,15 @@ const testimonials = [
   },
   {
     name:   'W. Hooper',
-    role:   'Restoration Workshop · Tasmania',
-    quote:  "Acme Lamp & Sign's chimneys are the only ones we still recommend without an asterisk.",
+    role:   'Restoration Workshop · Nova Scotia',
+    quote:  "These are the only chimneys we still recommend without an asterisk.",
     accent: '#9C7A2E',
     light:  true,
     image:  '/assets/SampleImage2.webp'
   },
   {
     name:   'B. Santos',
-    role:   'Interior Architect · Sydney',
+    role:   'Interior Designer · New York',
     quote:  'The kind of shop that ships a hand-written invoice and means it.',
     accent: '#C29B47',
     light:  false,
@@ -45,7 +45,7 @@ const testimonials = [
   },
   {
     name:   'R. Blackwood',
-    role:   'Antique Dealer · Melbourne',
+    role:   'Antique Dealer · Pennsylvania',
     quote:  'Every piece arrived straw-packed and hand-tagged. This is how the trade should work.',
     accent: '#4A4D50',
     light:  true,
@@ -53,7 +53,7 @@ const testimonials = [
   },
   {
     name:   'M. Perrin',
-    role:   'Heritage Architect · Adelaide',
+    role:   'Heritage Architect · Ontario',
     quote:  "Finally — a supplier who knows a No. 2 chimney is not the same as a No. 3.",
     accent: '#233830',
     light:  true,

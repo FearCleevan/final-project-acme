@@ -5,7 +5,7 @@ import PickedOffTheBench from '@/components/home/PickedOffTheBench'
 import TestimonialsCarousel from '@/components/home/TestimonialsCarousel'
 
 const MARQUEE_TEXT =
-  'Cattaraugus Patent 1873 · Tested for the Night Burn · Bench-Numbered · Hand-Finished · Pune Workshop · Pressed on Original Dies · Plain Paper Invoice · '
+  'Cattaraugus Patent 1873 · Tested for the Night Burn · Bench-Numbered · Hand-Finished · Pune Workshop · Now Available in North America · Pressed on Original Dies · Plain Paper Invoice · '
 
 export default function Home() {
   return (
