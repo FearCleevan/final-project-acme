@@ -11,7 +11,10 @@ const categories = [
     label: 'Complete Lighting Fixtures',
     href: '/catalog?category=lighting',
     description: 'Center-draft, flat-wick, mantle, and hanging lamps — reproduced on original dies.',
-    aspectRatio: '5/4' as const,
+    src: '/assets/HeroSampleImage3.webp',
+    width: 411,
+    height: 1385,
+    aspectRatio: '3/5' as const, // Tweaked to standard tall profile to fit 410x1384 canvas bounds cleanly
     dark: false,
     span: 'lg:col-span-1 lg:row-span-2',
   },
@@ -19,6 +22,9 @@ const categories = [
     label: 'Replacement Glass Shades & Chimneys',
     href: '/catalog?category=glass-chimneys',
     description: 'Mouth-blown borosilicate chimneys and hand-pressed shades for every burner pattern.',
+    src: '/assets/HeroSampleImage4.webp',
+    width: 411,
+    height: 684,
     aspectRatio: '3/5' as const,
     dark: false,
     span: 'lg:col-span-1',
@@ -27,7 +33,10 @@ const categories = [
     label: 'Burners, Wicks & Operational Hardware',
     href: '/catalog?category=hardware',
     description: 'Replacement burners, cotton wicks, font caps, and trimming tools.',
-    aspectRatio: '5/4' as const,
+    src: '/assets/HeroSampleImage5.webp',
+    width: 411,
+    height: 684,
+    aspectRatio: '3/5' as const, // Adjusted to match the exact vertical proportions generated (410x684)
     dark: false,
     span: 'lg:col-span-1',
   },
@@ -35,7 +44,10 @@ const categories = [
     label: 'Vintage Reproduction Advertising Signs',
     href: '/catalog?category=signs',
     description: 'Triple-fired porcelain signs from the 1873–1967 petroleum and lamp trade.',
-    aspectRatio: '5/4' as const,
+    src: '/assets/HeroSampleImage6.webp',
+    width: 845,
+    height: 676,
+    aspectRatio: '5/4' as const, // Wide presentation layout matching 845x676 layout bounds
     dark: true,
     span: 'lg:col-span-2',
   },
@@ -71,17 +83,18 @@ export default function CategoryGrid() {
               <Link
                 key={cat.href}
                 href={cat.href}
-                className={`group relative overflow-hidden rounded-sm transition-all duration-300 hover:-translate-y-[3px] hover:shadow-card-hover ${cat.span}`}
+                className={`group relative overflow-hidden rounded-sm transition-all duration-300 hover:-translate-y-0.75 hover:shadow-card-hover ${cat.span}`}
               >
                 <PlateImage
+                  src={cat.src}
                   alt={cat.label}
                   aspectRatio={cat.aspectRatio}
                   dark={cat.dark}
-                  className="w-full"
+                  className="w-full h-full object-cover"
                 />
 
                 {/* Overlay caption */}
-                <div className="absolute inset-0 flex flex-col justify-end p-5 bg-gradient-to-t from-ink-charcoal/60 to-transparent">
+                <div className="absolute inset-0 flex flex-col justify-end p-5 bg-linear-to-t from-ink-charcoal/80 via-ink-charcoal/30 to-transparent">
                   <h3 className="font-serif text-[20px] font-medium text-canvas-heading leading-tight mb-1">
                     {cat.label}
                   </h3>

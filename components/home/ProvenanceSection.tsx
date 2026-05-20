@@ -29,16 +29,19 @@ export default function ProvenanceSection() {
           className="grid gap-4"
           style={{ gridTemplateColumns: '3fr 2fr', alignItems: 'start' }}
         >
-          {/* Large plate — full left column height */}
+          {/* Large plate — Workshop Interior 1940s (355x592 dimension profile) */}
           <PlateImage
+            src="/assets/HeroSampleImage1.webp"
             alt="Pune brass furnaces at the lathe, 1940s"
             aspectRatio="3/5"
             dark
             label="Workshop Interior · Pune, 1940s"
           />
-          {/* Smaller plate — pushed down to create visual offset */}
+          
+          {/* Smaller plate — Office Furnace Press Shop (237x296 dimension profile) */}
           <div className="pt-12">
             <PlateImage
+              src="/assets/HeroSampleImage2.webp"
               alt="Office furnace before, Pune workshop"
               aspectRatio="4/5"
               dark
@@ -60,7 +63,7 @@ export default function ProvenanceSection() {
           </h2>
           <p className="font-sans text-[17px] text-canvas-body leading-relaxed mb-4">
             The press shop in Pune has been running the same dies since the Patel family bought it
-            in 1898 — for ₹140 and a promise that the method wouldn't change. It hasn't. Every
+            in 1898 — for ₹140 and a promise that the method wouldn&apos;t change. It hasn&apos;t. Every
             brass fitting in this crate was pressed on original tooling, hand-fitted, and bench-tested
             before it left the floor.
           </p>

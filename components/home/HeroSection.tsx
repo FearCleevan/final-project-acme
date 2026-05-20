@@ -55,16 +55,20 @@ export default function HeroSection() {
           </div>
         </div>
 
-        {/* Right — parallax image plate */}
-        <div ref={ref} className="relative order-1 lg:order-2 overflow-hidden">
-          <motion.div style={{ y, willChange: 'transform' }}>
+        {/* Right — parallax image plate containing the dynamic new asset */}
+        <div ref={ref} className="relative order-1 lg:order-2 overflow-hidden flex justify-center lg:justify-end">
+          <motion.div 
+            style={{ y, willChange: 'transform' }} 
+            className="w-full max-w-[600px]" // Constraint ensures it sits exactly right on desktop
+          >
             <PlateImage
-              alt="Archive photo — original 1898 die set, Pune press shop"
-              aspectRatio="4/5"
-              dark
-              label="Archive Photo · Original 1898 Die Set, Pune Press Shop"
-              className="w-full"
-              priority
+              src="/assets/HeroSampleImage.webp" // Set the static public path
+              alt="An authentic, realistic reproduction antique brass oil lamp with a hand-blown glass chimney."
+              aspectRatio="4/5" // Maintains standard plate geometry
+              dark={false} // Switch to light mode vignette to match the brass/parchment tone
+              label="Standard Issue Brass Lamp No. 2 · Precision Reproduction"
+              className="w-full h-auto object-contain"
+              priority // High-priority load for LCP
             />
           </motion.div>
         </div>

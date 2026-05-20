@@ -58,7 +58,7 @@ export default function CrateDrawer() {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ duration: 0.32, ease: [0.32, 0, 0.08, 1] }}
-            className="fixed right-0 top-0 bottom-0 z-50 w-full sm:w-[360px] bg-parchment shadow-search-overlay flex flex-col"
+            className="fixed right-0 top-0 bottom-0 z-50 w-full sm:w-90 bg-parchment shadow-search-overlay flex flex-col"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-ink-rule">

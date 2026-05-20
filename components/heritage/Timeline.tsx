@@ -36,7 +36,7 @@ const entries = [
 export default function Timeline() {
   return (
     <section className="bg-parchment px-6 py-24">
-      <div className="max-w-[860px] mx-auto">
+      <div className="max-w-215 mx-auto">
 
         <Eyebrow className="mb-4">A working timeline</Eyebrow>
         <h2
@@ -49,7 +49,7 @@ export default function Timeline() {
         <div className="relative">
           {/* Vertical rule */}
           <div
-            className="absolute left-[calc(6rem+12px)] top-3 bottom-3 w-px bg-ink-rule hidden sm:block"
+            className="absolute left-27 top-3 bottom-3 w-px bg-ink-rule hidden sm:block"
             aria-hidden="true"
           />
 

@@ -57,13 +57,13 @@ export default function BenchNotesCTA() {
               placeholder={status === 'success' ? "Thank you!" : "your@email.com"}
               required
               disabled={status === 'loading' || status === 'success'}
-              className="flex-1 md:w-64 h-[52px] px-4 bg-parchment-2 border border-ink-rule rounded-btn text-[15px] font-sans text-ink-iron placeholder:text-ink-soft/60 focus:outline-none focus:border-brass-deep focus:ring-1 focus:ring-brass/20 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              className="flex-1 md:w-64 h-13 px-4 bg-parchment-2 border border-ink-rule rounded-btn text-[15px] font-sans text-ink-iron placeholder:text-ink-soft/60 focus:outline-none focus:border-brass-deep focus:ring-1 focus:ring-brass/20 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             />
             <Button 
               variant="brass" 
               type="submit"
               disabled={status === 'loading' || status === 'success'}
-              className="min-w-[140px] h-[52px] relative flex items-center justify-center transition-all"
+              className="min-w-35 h-13 relative flex items-center justify-center transition-all"
             >
               {status === 'loading' && (
                 <span className="inline-block w-4 h-4 border-2 border-parchment border-t-transparent rounded-full animate-spin mr-2" />

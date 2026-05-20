@@ -115,7 +115,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, hint }: AuthModa
               role="dialog"
               aria-modal="true"
               aria-label="Sign in or create account"
-              className="w-full max-w-[400px] bg-parchment border border-ink-rule rounded-sm shadow-search-overlay pointer-events-auto"
+              className="w-full max-w-100 bg-parchment border border-ink-rule rounded-sm shadow-search-overlay pointer-events-auto"
             >
               {/* Close button */}
               <div className="flex items-center justify-between px-5 pt-5 pb-0">
@@ -163,7 +163,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, hint }: AuthModa
                     </div>
 
                     <button type="submit"
-                      className="w-full min-h-[48px] bg-green-brand text-[#F5F1E6] rounded-btn font-sans text-[15px] font-semibold hover:bg-green-deep hover:shadow-cta-hover transition-all duration-200">
+                      className="w-full min-h-12 bg-green-brand text-[#F5F1E6] rounded-btn font-sans text-[15px] font-semibold hover:bg-green-deep hover:shadow-cta-hover transition-all duration-200">
                       Sign in
                     </button>
 
@@ -205,7 +205,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, hint }: AuthModa
                     </div>
 
                     <button type="submit"
-                      className="w-full min-h-[48px] bg-green-brand text-[#F5F1E6] rounded-btn font-sans text-[15px] font-semibold hover:bg-green-deep hover:shadow-cta-hover transition-all duration-200">
+                      className="w-full min-h-12 bg-green-brand text-[#F5F1E6] rounded-btn font-sans text-[15px] font-semibold hover:bg-green-deep hover:shadow-cta-hover transition-all duration-200">
                       Create account
                     </button>
                   </form>

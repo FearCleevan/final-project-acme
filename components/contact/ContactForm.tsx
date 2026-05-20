@@ -76,7 +76,7 @@ export default function ContactForm() {
           <h3 className="font-serif text-[20px] text-ink-charcoal font-medium mb-2">Note received.</h3>
           <p className="font-sans text-[15px] text-ink-soft leading-relaxed max-w-[48ch]">
             We read every message ourselves and usually reply within one business day. No autoresponder will
-            contact you. If it's urgent, call the Adelaide line directly.
+            contact you. If it&apos;s urgent, call the Adelaide line directly.
           </p>
         </div>
       </div>
@@ -133,7 +133,7 @@ export default function ContactForm() {
         {/* Subject */}
         <div>
           <label htmlFor="contact-subject" className="block text-[11px] font-mono uppercase tracking-eyebrow text-ink-soft mb-2">
-            What's this about?
+            What&apos;s this about?
           </label>
           <div className="relative">
             <select

@@ -89,7 +89,7 @@ export default function Footer() {
                 variant={status === 'success' ? 'brass' : 'brass'} 
                 type="submit"
                 disabled={status === 'loading' || status === 'success'}
-                className="min-w-[120px] relative flex items-center justify-center transition-all"
+                className="min-w-30 relative flex items-center justify-center transition-all"
               >
                 {status === 'loading' && (
                   <span className="inline-block w-4 h-4 border-2 border-parchment border-t-transparent rounded-full animate-spin mr-2" />

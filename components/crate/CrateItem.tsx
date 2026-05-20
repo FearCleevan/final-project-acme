@@ -15,7 +15,7 @@ export default function CrateItem({ item }: CrateItemProps) {
 
   return (
     <div className="flex gap-3 py-4 border-b border-ink-rule">
-      <div className="flex-shrink-0 w-[60px]">
+      <div className="shrink-0 w-15">
         <PlateImage
           src={product.images[0]}
           alt={product.name}

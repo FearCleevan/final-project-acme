@@ -61,10 +61,10 @@ export default function SearchOverlay({ isOpen, onClose, query, onQueryChange }:
           transition={{ duration: 0.25 }}
           className="fixed inset-0 z-50 bg-parchment/96 backdrop-blur-md overflow-y-auto"
         >
-          <div className="max-w-[800px] mx-auto px-6 pt-8 pb-16">
+          <div className="max-w-200 mx-auto px-6 pt-8 pb-16">
             {/* Search bar */}
             <div className="flex items-center gap-4 border-b-2 border-ink-iron pb-4 mb-8">
-              <BiSearch size={22} className="text-ink-soft flex-shrink-0" aria-hidden="true" />
+              <BiSearch size={22} className="text-ink-soft shrink-0" aria-hidden="true" />
               <input
                 ref={inputRef}
                 type="search"
@@ -76,7 +76,7 @@ export default function SearchOverlay({ isOpen, onClose, query, onQueryChange }:
               />
               <button
                 onClick={onClose}
-                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-parchment-2 transition-colors flex-shrink-0"
+                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-parchment-2 transition-colors shrink-0"
                 aria-label="Close search"
               >
                 <BiX size={22} className="text-ink-iron" />
@@ -117,7 +117,7 @@ export default function SearchOverlay({ isOpen, onClose, query, onQueryChange }:
                           onClick={onClose}
                           className="flex items-center gap-4 py-3 group"
                         >
-                          <div className="w-10 h-12 flex-shrink-0">
+                          <div className="w-10 h-12 shrink-0">
                             <PlateImage
                               src={product.images[0]}
                               alt={product.name}
@@ -132,7 +132,7 @@ export default function SearchOverlay({ isOpen, onClose, query, onQueryChange }:
                               {product.name}
                             </p>
                           </div>
-                          <p className="font-serif text-[16px] text-brass-deep flex-shrink-0">
+                          <p className="font-serif text-[16px] text-brass-deep shrink-0">
                             {formatPrice(product.price)}
                           </p>
                         </Link>
@@ -155,7 +155,7 @@ export default function SearchOverlay({ isOpen, onClose, query, onQueryChange }:
                       key={product.id}
                       href={`/catalog/${product.slug}`}
                       onClick={onClose}
-                      className="flex-shrink-0 w-[140px] group"
+                      className="shrink-0 w-35 group"
                     >
                       <PlateImage
                         src={product.images[0]}

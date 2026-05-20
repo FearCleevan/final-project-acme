@@ -57,7 +57,7 @@ function CheckRow({
     <label className="flex items-center gap-3 cursor-pointer group">
       <span
         className={cn(
-          'w-4 h-4 flex-shrink-0 rounded-sm border transition-colors',
+          'w-4 h-4 shrink-0 rounded-sm border transition-colors',
           checked
             ? 'bg-ink-iron border-ink-iron'
             : 'border-ink-rule group-hover:border-ink-iron'
@@ -120,7 +120,7 @@ export default function FilterSidebar({ isOpen, onClose, filters, onFiltersChang
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ duration: 0.3, ease: [0.32, 0, 0.08, 1] }}
-            className="fixed right-0 top-0 bottom-0 z-50 w-full sm:w-[340px] bg-parchment shadow-search-overlay flex flex-col"
+            className="fixed right-0 top-0 bottom-0 z-50 w-full sm:w-85 bg-parchment shadow-search-overlay flex flex-col"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-ink-rule">
@@ -214,14 +214,14 @@ export default function FilterSidebar({ isOpen, onClose, filters, onFiltersChang
               {/* Sort */}
               <div>
                 <p className="text-[10px] font-mono uppercase tracking-eyebrow text-ink-soft mb-3">
-                  Curator's order
+                  Curator&apos;s order
                 </p>
                 <div className="space-y-2.5">
                   {SORT_OPTIONS.map(s => (
                     <label key={s.value} className="flex items-center gap-3 cursor-pointer group">
                       <span
                         className={cn(
-                          'w-4 h-4 flex-shrink-0 rounded-full border transition-colors flex items-center justify-center',
+                          'w-4 h-4 shrink-0 rounded-full border transition-colors flex items-center justify-center',
                           filters.sortBy === s.value
                             ? 'border-ink-iron'
                             : 'border-ink-rule group-hover:border-ink-iron'
@@ -250,7 +250,7 @@ export default function FilterSidebar({ isOpen, onClose, filters, onFiltersChang
             <div className="sticky bottom-0 px-6 py-4 border-t border-ink-rule bg-parchment">
               <button
                 onClick={onClose}
-                className="w-full h-[52px] bg-green-brand text-[#F5F1E6] rounded-btn font-sans font-semibold text-[15px] hover:bg-green-deep hover:shadow-cta-hover transition-all"
+                className="w-full h-13 bg-green-brand text-[#F5F1E6] rounded-btn font-sans font-semibold text-[15px] hover:bg-green-deep hover:shadow-cta-hover transition-all"
               >
                 Show {count} {count === 1 ? 'piece' : 'pieces'}
               </button>

@@ -259,7 +259,7 @@ export default function TestimonialsCarousel() {
                     />
                     
                     {/* Dark gradient for text scannability */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/40 z-10" />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/30 to-black/40 z-10" />
 
                     <p
                       className="absolute top-4 left-5 font-serif leading-none tabular-nums z-20"
