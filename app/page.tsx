@@ -2,7 +2,7 @@ import HeroSection from '@/components/home/HeroSection'
 import ProvenanceSection from '@/components/home/ProvenanceSection'
 import CategoryGrid from '@/components/home/CategoryGrid'
 import PickedOffTheBench from '@/components/home/PickedOffTheBench'
-import TestimonialsBar from '@/components/home/TestimonialsBar'
+import TestimonialsCarousel from '@/components/home/TestimonialsCarousel'
 
 const MARQUEE_TEXT =
   'Cattaraugus Patent 1873 · Tested for the Night Burn · Bench-Numbered · Hand-Finished · Pune Workshop · Pressed on Original Dies · Plain Paper Invoice · '
@@ -33,7 +33,7 @@ export default function Home() {
       <ProvenanceSection />
       <CategoryGrid />
       <PickedOffTheBench />
-      <TestimonialsBar />
+      <TestimonialsCarousel />
     </>
   )
 }
