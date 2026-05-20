@@ -184,7 +184,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
       <button
         onClick={handleAdd}
         disabled={!product.inStock}
-        className="w-full min-h-[60px] flex items-center justify-center gap-2 bg-green-brand text-[#F5F1E6] rounded-btn font-sans text-[17px] font-semibold hover:bg-green-deep hover:shadow-cta-hover hover:-translate-y-px active:translate-y-0 transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none"
+        className="w-full min-h-15 flex items-center justify-center gap-2 bg-green-brand text-[#F5F1E6] rounded-btn font-sans text-[17px] font-semibold hover:bg-green-deep hover:shadow-cta-hover hover:-translate-y-px active:translate-y-0 transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none"
       >
         {added
           ? '✓ Added to your crate'
@@ -199,7 +199,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
           { icon: BiEnvelope,  text: 'Real receipt — plain paper, real return address' },
         ].map(({ icon: Icon, text }) => (
           <div key={text} className="flex items-center gap-3">
-            <Icon size={16} className="text-ink-soft flex-shrink-0" aria-hidden="true" />
+            <Icon size={16} className="text-ink-soft shrink-0" aria-hidden="true" />
             <p className="text-[12px] font-sans text-ink-soft">{text}</p>
           </div>
         ))}
