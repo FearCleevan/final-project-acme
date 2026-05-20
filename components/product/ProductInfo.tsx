@@ -51,6 +51,11 @@ export default function ProductInfo({ product }: ProductInfoProps) {
             Out of stock
           </span>
         )}
+        {product.inStock && product.stockQuantity <= 3 && (
+          <span className="px-3 py-1 rounded-pill bg-brass/10 text-brass-deep text-[10px] font-mono uppercase tracking-eyebrow">
+            Only {product.stockQuantity} left
+          </span>
+        )}
       </div>
 
       {/* Name */}
@@ -145,7 +150,14 @@ export default function ProductInfo({ product }: ProductInfoProps) {
 
       {/* Quantity stepper */}
       <div>
-        <p className="text-[11px] font-mono uppercase tracking-eyebrow text-ink-soft mb-2">Quantity</p>
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-[11px] font-mono uppercase tracking-eyebrow text-ink-soft">Quantity</p>
+          {product.inStock && product.stockQuantity <= 10 && (
+            <p className="text-[11px] font-mono text-brass-deep">
+              {product.stockQuantity} in stock
+            </p>
+          )}
+        </div>
         <div className="flex items-center gap-0 border border-ink-rule rounded-sm w-fit">
           <button
             onClick={() => setQty(q => Math.max(1, q - 1))}
@@ -158,8 +170,9 @@ export default function ProductInfo({ product }: ProductInfoProps) {
             {qty}
           </span>
           <button
-            onClick={() => setQty(q => q + 1)}
-            className="w-11 h-11 flex items-center justify-center text-ink-iron hover:bg-parchment-2 transition-colors text-[18px] font-mono border-l border-ink-rule"
+            onClick={() => setQty(q => Math.min(product.stockQuantity, q + 1))}
+            disabled={qty >= product.stockQuantity}
+            className="w-11 h-11 flex items-center justify-center text-ink-iron hover:bg-parchment-2 transition-colors text-[18px] font-mono border-l border-ink-rule disabled:opacity-30 disabled:pointer-events-none"
             aria-label="Increase quantity"
           >
             +

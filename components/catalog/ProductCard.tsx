@@ -61,6 +61,17 @@ const ProductCard = memo(function ProductCard({
             background: 'radial-gradient(ellipse at center, transparent 55%, rgba(30,32,34,0.18) 100%)',
           }}
         />
+        {/* Stock badges */}
+        {!product.inStock && (
+          <div className="absolute top-2.5 left-2.5 px-2.5 py-1 bg-ink-charcoal/80 backdrop-blur-sm rounded-pill text-[9px] font-mono uppercase tracking-eyebrow text-canvas-dim pointer-events-none">
+            Sold Out
+          </div>
+        )}
+        {product.inStock && product.stockQuantity <= 3 && (
+          <div className="absolute top-2.5 left-2.5 px-2.5 py-1 bg-brass-deep/90 backdrop-blur-sm rounded-pill text-[9px] font-mono uppercase tracking-eyebrow text-[#F5F1E6] pointer-events-none">
+            Only {product.stockQuantity} left
+          </div>
+        )}
       </Link>
 
       {/* ── Meta ──────────────────────────────────────────────── */}

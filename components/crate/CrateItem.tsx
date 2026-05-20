@@ -56,7 +56,8 @@ export default function CrateItem({ item }: CrateItemProps) {
             </span>
             <button
               onClick={() => updateQuantity(product.id, quantity + 1)}
-              className="w-7 h-7 flex items-center justify-center border border-ink-rule rounded-sm text-ink-iron hover:border-ink-iron text-sm font-mono transition-colors"
+              disabled={quantity >= product.stockQuantity}
+              className="w-7 h-7 flex items-center justify-center border border-ink-rule rounded-sm text-ink-iron hover:border-ink-iron text-sm font-mono transition-colors disabled:opacity-30 disabled:pointer-events-none"
               aria-label="Increase quantity"
             >
               +
