@@ -129,7 +129,7 @@ export default function SearchOverlay({ isOpen, onClose, query, onQueryChange }:
                 <BiSearch size={19} className="text-ink-soft shrink-0" aria-hidden="true" />
                 <input
                   ref={inputRef}
-                  type="search"
+                  type="text"
                   value={query}
                   onChange={e => onQueryChange(e.target.value)}
                   onKeyDown={handleKeyDown}
