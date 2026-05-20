@@ -31,6 +31,27 @@ const serviceLinks = [
 
 export default function Footer() {
   const [email, setEmail] = useState('')
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [errorMessage, setErrorMessage] = useState('')
+
+  async function handleSubscribe(e: React.FormEvent) {
+    e.preventDefault()
+    if (!email) return
+
+    setStatus('loading')
+    setErrorMessage('')
+
+    try {
+      // Simulate real workshop database roundtrip latency delay
+      await new Promise((resolve) => setTimeout(resolve, 1500))
+
+      setStatus('success')
+      setEmail('')
+    } catch (error) {
+      setStatus('error')
+      setErrorMessage('Something went wrong. Please try again.')
+    }
+  }
 
   return (
     <footer aria-label="Site footer">
@@ -47,22 +68,51 @@ export default function Footer() {
               Real writing from the workshop. No promo codes shouted in all caps.
             </p>
           </div>
-          <form
-            onSubmit={e => { e.preventDefault(); setEmail('') }}
-            className="flex gap-0 w-auto md:w-auto self-center md:self-auto"
-          >
-            <label htmlFor="footer-email" className="sr-only">Email address</label>
-            <input
-              id="footer-email"
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="your@email.com"
-              required
-              className="flex-1 md:w-56 h-13 px-4 bg-parchment border border-ink-rule rounded-btn text-[15px] text-ink-iron placeholder:text-ink-soft/60 focus:outline-none focus:border-brass-deep transition-colors"
-            />
-            <Button variant="brass" type="submit">Subscribe</Button>
-          </form>
+
+          <div className="w-full md:w-auto flex flex-col items-start md:items-end">
+            <form
+              onSubmit={handleSubscribe}
+              className="flex gap-2 w-full md:w-auto self-center md:self-auto"
+            >
+              <label htmlFor="footer-email" className="sr-only">Email address</label>
+              <input
+                id="footer-email"
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder={status === 'success' ? "Thank you!" : "your@email.com"}
+                required
+                disabled={status === 'loading' || status === 'success'}
+                className="flex-1 md:w-56 h-13 px-4 bg-parchment border border-ink-rule rounded-btn text-[15px] text-ink-iron placeholder:text-ink-soft/60 focus:outline-none focus:border-brass-deep transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              />
+              <Button 
+                variant={status === 'success' ? 'brass' : 'brass'} 
+                type="submit"
+                disabled={status === 'loading' || status === 'success'}
+                className="min-w-[120px] relative flex items-center justify-center transition-all"
+              >
+                {status === 'loading' && (
+                  <span className="inline-block w-4 h-4 border-2 border-parchment border-t-transparent rounded-full animate-spin mr-2" />
+                )}
+                {status === 'loading' && 'Sending...'}
+                {status === 'success' && 'Subscribed!'}
+                {status === 'idle' && 'Subscribe'}
+                {status === 'error' && 'Retry'}
+              </Button>
+            </form>
+
+            {/* Status Messages */}
+            {status === 'success' && (
+              <p className="text-[12px] font-sans text-emerald-700 mt-2 self-center md:self-start animate-fade-in">
+                ✓ You are on the workshop dispatch list.
+              </p>
+            )}
+            {status === 'error' && (
+              <p className="text-[12px] font-sans text-rose-700 mt-2 self-center md:self-start animate-fade-in">
+                ✕ {errorMessage}
+              </p>
+            )}
+          </div>
         </div>
       </div>
 

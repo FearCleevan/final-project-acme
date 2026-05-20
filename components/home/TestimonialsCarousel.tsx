@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import Image from 'next/image'
 import { motion, useReducedMotion } from 'framer-motion'
 import Eyebrow from '@/components/shared/Eyebrow'
 
@@ -24,6 +25,7 @@ const testimonials = [
     quote:  "The Cattaraugus reproduction holds an extra flame — the bench test others won't run.",
     accent: '#2E4A3F',
     light:  true,
+    image:  '/assets/SampleImage1.webp'
   },
   {
     name:   'W. Hooper',
@@ -31,6 +33,7 @@ const testimonials = [
     quote:  "Acme Lamp & Sign's chimneys are the only ones we still recommend without an asterisk.",
     accent: '#9C7A2E',
     light:  true,
+    image:  '/assets/SampleImage2.webp'
   },
   {
     name:   'B. Santos',
@@ -38,6 +41,7 @@ const testimonials = [
     quote:  'The kind of shop that ships a hand-written invoice and means it.',
     accent: '#C29B47',
     light:  false,
+    image:  '/assets/SampleImage3.webp'
   },
   {
     name:   'R. Blackwood',
@@ -45,6 +49,7 @@ const testimonials = [
     quote:  'Every piece arrived straw-packed and hand-tagged. This is how the trade should work.',
     accent: '#4A4D50',
     light:  true,
+    image:  '/assets/SampleImage4.webp'
   },
   {
     name:   'M. Perrin',
@@ -52,6 +57,7 @@ const testimonials = [
     quote:  "Finally — a supplier who knows a No. 2 chimney is not the same as a No. 3.",
     accent: '#233830',
     light:  true,
+    image:  '/assets/SampleImage5.webp'
   },
 ]
 
@@ -66,13 +72,6 @@ export default function TestimonialsCarousel() {
   const [dims,    setDims]    = useState<Dims>({ cw: 300, ch: 420, spacing: 240 })
   const prefersReduced        = useReducedMotion()
 
-  /*
-   * didNavigate: set true when a swipe gesture exceeds DRAG_THRESH and we
-   * navigate. The phantom "click" that browsers fire after pointerup reads
-   * this flag and bails out, then resets it so future taps work normally.
-   * This replaces the old isDragging approach which was too aggressive and
-   * blocked normal desktop clicks whenever the mouse moved even slightly.
-   */
   const pointerStartX = useRef<number | null>(null)
   const didNavigate   = useRef(false)
 
@@ -92,16 +91,15 @@ export default function TestimonialsCarousel() {
     setFlipped({})
   }
 
-  /* ── Card click: flip if active, jump to card if not ── */
+  /* ── Card click ── */
   function handleCardClick(i: number) {
     if (didNavigate.current) { didNavigate.current = false; return }
     if (i === active) setFlipped(prev => ({ ...prev, [i]: !prev[i] }))
     else              goTo(i)
   }
 
-  /* ── Swipe drag — NO setPointerCapture (that redirects click to section) ── */
+  /* ── Swipe drag ── */
   function handlePointerDown(e: React.PointerEvent<HTMLElement>) {
-    // Only track left-button mouse or primary touch
     if (e.pointerType === 'mouse' && e.button !== 0) return
     pointerStartX.current = e.clientX
     didNavigate.current   = false
@@ -178,17 +176,10 @@ export default function TestimonialsCarousel() {
                 top:          24,
                 perspective:  900,
                 zIndex:       20 - absDist,
-                /*
-                 * pointer-events: none on the anchor — its layout box sits at
-                 * left:50% for EVERY card, so the highest-z card would eat all
-                 * clicks in that zone. Disabling here, re-enabling on the inner
-                 * flip card, means hit-testing uses each card's actual visual
-                 * bounds (post-transform) instead of the shared layout box.
-                 */
                 pointerEvents: 'none',
               }}
             >
-              {/* Position + scale + brightness — also pass-through for events */}
+              {/* Position + scale + brightness */}
               <motion.div
                 animate={{
                   x:      dist * spacing - cw / 2,
@@ -196,9 +187,13 @@ export default function TestimonialsCarousel() {
                   filter: `brightness(${isActive ? 1 : Math.max(0.42, 0.65 - absDist * 0.1)})`,
                 }}
                 transition={prefersReduced ? instant : spring}
-                style={{ transformStyle: 'preserve-3d', pointerEvents: 'none' }}
+                style={{ 
+                  transformStyle: 'preserve-3d', 
+                  pointerEvents: 'none',
+                  willChange: 'transform, filter' // Added: Keep hardware composite active cleanly
+                }}
               >
-                {/* Tilt + flip — this is the interactive card */}
+                {/* Tilt + flip */}
                 <motion.div
                   onClick={() => handleCardClick(i)}
                   animate={{
@@ -206,6 +201,7 @@ export default function TestimonialsCarousel() {
                     rotateY: isFlip ? 180 : 0,
                   }}
                   transition={prefersReduced ? instant : flipSpring}
+                  className="antialiased transform-gpu" // Added: Subpixel text stabilization
                   style={{
                     width:          cw,
                     height:         ch,
@@ -214,7 +210,8 @@ export default function TestimonialsCarousel() {
                     position:       'relative',
                     userSelect:     'none',
                     touchAction:    'none',
-                    pointerEvents:  'auto',  // re-enable on the actual card face
+                    pointerEvents:  'auto',
+                    willChange:     'transform', // Added: Prevent subpixel drop frame rasterization
                   }}
                   role="button"
                   tabIndex={isActive ? 0 : -1}
@@ -222,7 +219,7 @@ export default function TestimonialsCarousel() {
                   aria-label={
                     isActive
                       ? `${t.name} — ${isFlip ? 'tap to close' : 'tap to read quote'}`
-                      : `Navigate to ${t.name}`
+                      : `Maps to ${t.name}`
                   }
                   onKeyDown={e => {
                     if (isActive && (e.key === 'Enter' || e.key === ' ')) {
@@ -233,47 +230,60 @@ export default function TestimonialsCarousel() {
                 >
                   {/* ── FRONT ── */}
                   <div
-                    className="absolute inset-0 overflow-hidden border-[3px]"
+                    className="absolute inset-0 overflow-hidden border-[3px] antialiased select-none"
                     style={{
                       borderRadius:             32,
                       backfaceVisibility:       'hidden',
                       WebkitBackfaceVisibility: 'hidden',
                       borderColor:              t.accent,
                       background:               '#242628',
+                      transform:                'translateZ(0px)', // Added: Forces isolated texture layer clear of 3D matrix blending
                     }}
                   >
+                    <Image
+                      src={t.image}
+                      alt={`Portrait or workshop scene for ${t.name}`}
+                      fill
+                      sizes="(max-w-480px) 200px, (max-w-768px) 250px, 300px"
+                      priority={i >= 1 && i <= 3}
+                      className="object-cover pointer-events-none select-none z-0"
+                    />
+
+                    {/* Semi-transparent grid overlay */}
                     <div
-                      className="absolute inset-0"
+                      className="absolute inset-0 z-10"
                       style={{
                         backgroundImage:
                           'repeating-linear-gradient(45deg,rgba(194,155,71,0.07) 0,rgba(194,155,71,0.07) 1px,transparent 1px,transparent 8px)',
                       }}
                     />
-                    <div className="absolute inset-0 bg-linear-to-t from-black/70 via-transparent to-transparent" />
+                    
+                    {/* Dark gradient for text scannability */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/40 z-10" />
 
                     <p
-                      className="absolute top-4 left-5 font-serif leading-none tabular-nums"
-                      style={{ fontSize: cw < 240 ? 22 : 28, color: t.accent + '70' }}
+                      className="absolute top-4 left-5 font-serif leading-none tabular-nums z-20"
+                      style={{ fontSize: cw < 240 ? 22 : 28, color: '#F5EFE0AA' }}
                     >
                       {String(i + 1).padStart(2, '0')}
                     </p>
 
                     {isActive && (
-                      <p className="absolute top-5 right-5 font-mono text-[9px] uppercase tracking-eyebrow text-canvas-dim">
+                      <p className="absolute top-5 right-5 font-mono text-[9px] uppercase tracking-eyebrow text-canvas-dim z-20">
                         {cw < 240 ? 'tap' : 'flip →'}
                       </p>
                     )}
 
-                    <div className="absolute bottom-5 left-5 right-4">
+                    <div className="absolute bottom-5 left-5 right-4 z-20">
                       <h3
-                        className="font-serif font-medium text-canvas-heading leading-snug"
+                        className="font-serif font-medium text-canvas-heading leading-snug subpixel-antialiased"
                         style={{ fontSize: cw < 240 ? 18 : cw < 270 ? 20 : 24 }}
                       >
                         {t.name}
                       </h3>
                       <p
                         className="font-mono text-[9px] uppercase tracking-eyebrow mt-1"
-                        style={{ color: t.accent }}
+                        style={{ color: '#C29B47' }}
                       >
                         {t.role.split('·')[0].trim()}
                       </p>
@@ -282,13 +292,13 @@ export default function TestimonialsCarousel() {
 
                   {/* ── BACK ── */}
                   <div
-                    className="absolute inset-0 overflow-hidden border-[3px] flex flex-col items-center justify-center"
+                    className="absolute inset-0 overflow-hidden border-[3px] flex flex-col items-center justify-center antialiased"
                     style={{
                       borderRadius:             32,
                       padding:                  cw < 240 ? '28px 20px' : '32px 28px',
                       backfaceVisibility:       'hidden',
                       WebkitBackfaceVisibility: 'hidden',
-                      transform:                'rotateY(180deg)',
+                      transform:                'rotateY(180deg) translateZ(0px)',
                       backgroundColor:          t.accent,
                       borderColor:              t.accent,
                     }}
@@ -300,7 +310,7 @@ export default function TestimonialsCarousel() {
                       {t.role}
                     </p>
                     <blockquote
-                      className="font-serif italic leading-relaxed text-center"
+                      className="font-serif italic leading-relaxed text-center subpixel-antialiased"
                       style={{ color: textColor, fontSize: cw < 240 ? 14 : 16 }}
                     >
                       &ldquo;{t.quote}&rdquo;
@@ -319,7 +329,7 @@ export default function TestimonialsCarousel() {
         })}
       </div>
 
-      {/* Controls — stopPropagation so section's pointerDown doesn't treat these as drag starts */}
+      {/* Controls */}
       <div
         className="flex justify-center items-center gap-4 mt-4"
         onPointerDown={e => e.stopPropagation()}
