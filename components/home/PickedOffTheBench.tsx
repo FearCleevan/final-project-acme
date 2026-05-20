@@ -28,7 +28,7 @@ export default function PickedOffTheBench() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10 items-start">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-3 sm:gap-x-5 gap-y-6 sm:gap-y-10 lg:gap-10 items-start">
           {featured.map((product, i) => (
             <ProductCard
               key={product.id}
