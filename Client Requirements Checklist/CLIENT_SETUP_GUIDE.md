@@ -98,7 +98,7 @@ You will need these later.
 2. Choose **Continue with GitHub** if you already have a GitHub account — or choose **Continue with Email** and enter your email address.
 3. If using email: check your inbox for a magic link and click it to confirm.
 4. On the "Tell us about you" screen, select **Personal** and click **Continue**.
-5. Skip the "Import Git Repository" step for now — click **Skip** or **Continue**. Jonathan will handle the code import.
+5. Skip the "Import Git Repository" step for now — click **Skip** or **Continue**. The Developer/Peter Paul will handle the code import.
 6. Your Vercel account is ready. Stay on the **Free (Hobby)** plan for now.
 
 ### Add Developer Access
@@ -220,7 +220,7 @@ You will need these later.
 2. Click the **Settings** tab → **Users**.
 3. Click **Invite a user**.
 4. Enter `jonathan.mauring17@gmail.com` — set role to **Manager**.
-5. Click **Send invite**. Jonathan will receive an email to accept.
+5. Click **Send invite**. The Developer will receive an email to accept.
 
 ---
 
