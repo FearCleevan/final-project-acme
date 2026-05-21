@@ -142,7 +142,7 @@ export default function ContactShippingForm({ onComplete }: ContactShippingFormP
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
           <div className="sm:col-span-1">
             {fieldLabel('City / Town', 'city')}
-            {field('city', 'city', 'Adelaide')}
+            {field('city', 'city', 'Halifax')}
           </div>
           <div>
             {fieldLabel('State / Region', 'region')}

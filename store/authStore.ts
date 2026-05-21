@@ -89,15 +89,15 @@ const DEMO_ORDERS: Order[] = [
 ]
 
 const DEMO_ADDRESS: SavedAddress = {
-  fullName: 'Adelaide Demo',
+  fullName: 'Scott Demo',
   email: 'demo@acmelamp.co',
-  phone: '+61 8 7000 1873',
-  street: '14 Pirie Street',
+  phone: '+1 (902) 555-1873',
+  street: '14 Harbour Drive',
   apt: '',
-  city: 'Adelaide',
-  state: 'SA',
-  zip: '5000',
-  country: 'Australia',
+  city: 'Halifax',
+  state: 'NS',
+  zip: 'B3J 1A1',
+  country: 'Canada',
 }
 
 const DEMO_EMAIL = 'demo@acmelamp.co'
