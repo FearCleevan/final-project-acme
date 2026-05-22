@@ -62,13 +62,14 @@ export default function HeroSection() {
             className="w-full max-w-150" // Constraint ensures it sits exactly right on desktop
           >
             <PlateImage
-              src="/assets/HeroSampleImage.webp" // Set the static public path
+              src="/assets/HeroSampleImage.webp"
               alt="An authentic, realistic reproduction antique brass oil lamp with a hand-blown glass chimney."
-              aspectRatio="4/5" // Maintains standard plate geometry
-              dark={false} // Switch to light mode vignette to match the brass/parchment tone
+              aspectRatio="4/5"
+              dark={false}
               label="Standard Issue Brass Lamp No. 2 · Precision Reproduction"
-              className="w-full h-auto object-contain"
-              priority // High-priority load for LCP
+              objectFit="cover"
+              className="w-full h-auto"
+              priority
             />
           </motion.div>
         </div>

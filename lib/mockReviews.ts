@@ -12,7 +12,7 @@ export interface Review {
 
 const lightingReviews: Review[] = [
   {
-    id: 'r-l-001', productId: 'l-001',
+    id: 'r-l-001', productId: 'eb-013',
     author: 'Margaret H.',
     location: 'Charleston, SC',
     rating: 5,
@@ -22,7 +22,7 @@ const lightingReviews: Review[] = [
     verified: true,
   },
   {
-    id: 'r-l-002', productId: 'l-001',
+    id: 'r-l-002', productId: 'eb-013',
     author: 'Thomas W.',
     location: 'Portland, OR',
     rating: 5,
@@ -32,7 +32,7 @@ const lightingReviews: Review[] = [
     verified: true,
   },
   {
-    id: 'r-l-003', productId: 'l-001',
+    id: 'r-l-003', productId: 'eb-013',
     author: 'Diane F.',
     location: 'Savannah, GA',
     rating: 4,
@@ -45,7 +45,7 @@ const lightingReviews: Review[] = [
 
 const glassReviews: Review[] = [
   {
-    id: 'r-g-001', productId: 'g-001',
+    id: 'r-g-001', productId: 'eb-001',
     author: 'Harold B.',
     location: 'New Orleans, LA',
     rating: 5,
@@ -55,7 +55,7 @@ const glassReviews: Review[] = [
     verified: true,
   },
   {
-    id: 'r-g-002', productId: 'g-001',
+    id: 'r-g-002', productId: 'eb-001',
     author: 'Clara M.',
     location: 'Burlington, VT',
     rating: 5,
@@ -68,7 +68,7 @@ const glassReviews: Review[] = [
 
 const hardwareReviews: Review[] = [
   {
-    id: 'r-h-001', productId: 'h-001',
+    id: 'r-h-001', productId: 'eb-003',
     author: 'Raymond S.',
     location: 'Cincinnati, OH',
     rating: 5,
@@ -78,7 +78,7 @@ const hardwareReviews: Review[] = [
     verified: true,
   },
   {
-    id: 'r-h-002', productId: 'h-001',
+    id: 'r-h-002', productId: 'eb-003',
     author: 'Louise P.',
     location: 'Richmond, VA',
     rating: 4,
@@ -156,7 +156,7 @@ export function getReviewsForProduct(productId: string, category: string): Revie
   const specific = mockReviews.filter(r => r.productId === productId)
   if (specific.length > 0) return specific
 
-  const categoryFirstId = { lighting: 'l-001', 'glass-chimneys': 'g-001', hardware: 'h-001', signs: 's-001' }[category]
+  const categoryFirstId = { lighting: 'eb-013', 'glass-chimneys': 'eb-001', hardware: 'eb-003', signs: '' }[category]
   if (categoryFirstId) {
     const categoryReviews = mockReviews.filter(r => r.productId === categoryFirstId)
     if (categoryReviews.length > 0) return categoryReviews

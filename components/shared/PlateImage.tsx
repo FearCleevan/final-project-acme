@@ -11,6 +11,7 @@ interface PlateImageProps {
   label?: string
   className?: string
   priority?: boolean
+  objectFit?: 'contain' | 'cover'
 }
 
 const aspectClasses: Record<AspectRatio, string> = {
@@ -28,6 +29,7 @@ export default function PlateImage({
   label,
   className,
   priority = false,
+  objectFit = 'contain',
 }: PlateImageProps) {
   return (
     <div
@@ -43,7 +45,7 @@ export default function PlateImage({
           src={src}
           alt={alt}
           fill
-          className="object-cover"
+          className={objectFit === 'cover' ? 'object-cover' : 'object-contain p-3'}
           priority={priority}
           loading={priority ? undefined : 'lazy'}
           style={{ willChange: 'transform' }}
