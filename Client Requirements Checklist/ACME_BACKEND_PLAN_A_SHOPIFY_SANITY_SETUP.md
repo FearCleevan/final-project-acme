@@ -2,29 +2,32 @@
 ## Shopify + Sanity.io · External Systems Configuration
 ### Phase-by-Phase Setup Guide · Stop → Report → Proceed
 
-> **Who this plan is for:** The developer or agency admin configuring the Shopify store and Sanity studio. This plan covers all work done *outside* the Next.js codebase — in the Shopify Admin dashboard, Shopify Partner dashboard, and Sanity Studio. Plan B covers the codebase integration.
+> **Who this plan is for:** The developer or agency admin configuring the Shopify store and Sanity studio. This plan covers all work done *outside* the Next.js codebase — in the Shopify Admin dashboard and Sanity Studio. Plan B covers the codebase integration.
 >
 > **Every phase ends with a STOP.** Provide a full report of what was completed. Ask: **"Continue with the next phase?"** — only proceed on explicit "Yes, Proceed."
 >
-> **Reference:** `ACME_LAMP_SIGN_PROCESS_FLOW.md` for the complete user journey this config must support.
+> **Reference:** Vercel guide — [Building E-commerce Sites with Next.js and Shopify](https://vercel.com/kb/guide/building-ecommerce-sites-with-next-js-and-shopify)
 
 ---
 
 ## Memory Anchors (Read Before Starting)
 
 ```
-PROJECT:        Acme Lamp & Sign Co. — Spring Release
-SHOPIFY_PLAN:   Shopify Basic (minimum) or Shopify (recommended for reporting)
-SANITY_PLAN:    Free tier (sufficient for this project scope)
-PRODUCTS:       50 SKUs across 4 categories
-CATEGORIES:     lighting | glass-chimneys | hardware | signs
-VARIANTS:       Finish (per product) + Burner Size (per applicable product)
-CHECKOUT:       Shopify hosted checkout (not custom)
-AUTH:           Shopify Customer Account API (new Customer Accounts, not legacy)
-CMS_SCOPE:      Journal posts, editorial copy, testimonials, Our Story, Heritage
-CURRENCY:       USD
-SHIPPING:       Free over $150 (Shopify shipping rule)
-PHASE_GATE:     STOP after each phase. Report. Ask "Continue with the next phase?" — wait for "Yes, Proceed."
+PROJECT:          Acme Lamp & Sign Co. — Spring Release
+STORE_URL:        Not Yet Created
+SHOPIFY_PLAN:     Basic (minimum) or Shopify (recommended for reporting)
+SANITY_PLAN:      Free tier (sufficient for this project scope)
+PRODUCTS:         16 SKUs currently (real eBay data) — expanding to 50 with real inventory
+CATEGORIES:       lighting | glass-chimneys | hardware | signs
+VARIANTS:         Finish (per product) + Burner Size (per applicable product)
+CHECKOUT:         Shopify hosted checkout (not custom)
+AUTH:             Shopify Customer Account API (new Customer Accounts, not legacy)
+CMS_SCOPE:        Journal posts, editorial copy, testimonials, Our Story, Heritage
+CURRENCY:         CAD (Canadian Dollar)
+REGION:           Canada — Halifax, Nova Scotia (primary market: North America)
+SHIPPING:         Free over $150 CAD (Shopify shipping rule)
+API_VERSION:      2025-01  ← use this consistently everywhere
+PHASE_GATE:       STOP after each phase. Report. Ask "Continue with the next phase?" — wait for "Yes, Proceed."
 ```
 
 ---
@@ -32,35 +35,35 @@ PHASE_GATE:     STOP after each phase. Report. Ask "Continue with the next phase
 ## Phase A0 — Accounts, Access & Credentials
 
 ### Objective
-Create all required platform accounts, obtain API credentials, and document them securely before any configuration begins.
+Obtain API credentials from the existing Shopify store and create the Sanity project before any configuration begins.
 
-### A0.1 — Shopify Store Creation
+### A0.1 — Shopify Store (Already Created)
 
-1. Go to [shopify.com](https://shopify.com) → Start free trial.
-2. Store name: **Acme Lamp & Sign Co.**
-3. Industry: **Home & Garden** (closest match).
-4. Region: Australia (Adelaide HQ).
-5. Currency: **USD**.
-6. Note your store URL: `acme-lamp-sign.myshopify.com` (or chosen handle).
+The store already exists:
+- **Store URL:** `acme-lamp-and-sign.myshopify.com`
+- **Admin URL:** `admin.shopify.com/store/acme-lamp-and-sign`
+- **Store name:** Acme Lamp and Sign
+- **Region:** Canada · **Currency:** CAD
 
-### A0.2 — Shopify Partner App (for Storefront API access)
+> No new store creation needed. Proceed directly to A0.2.
 
-1. Go to Shopify Partner Dashboard → **Apps** → **Create app**.
-2. App name: `Acme Lamp Frontend`.
-3. App type: **Custom app** (for your store only).
-4. In the app settings, enable:
-   - **Storefront API** — `unauthenticated_read_*` scopes (full list in A0.3).
-   - **Admin API** — for order tracking and webhooks (Phase A4).
-5. Save and copy the following credentials:
-   ```
-   SHOPIFY_STORE_DOMAIN=acme-lamp-sign.myshopify.com
-   SHOPIFY_STOREFRONT_TOKEN=[public token]
-   SHOPIFY_ADMIN_TOKEN=[admin token — keep server-side only]
-   ```
+### A0.2 — Create a Custom App for API Access
+
+Shopify now routes custom app creation through **Settings**, not the Partner/Dev Dashboard.
+
+1. Go to `admin.shopify.com/store/acme-lamp-and-sign/settings/apps`
+2. Click **Develop apps for your store** → **Allow custom app development** → confirm
+3. Click **Create an app**
+4. App name: `Acme Lamp Frontend`
+5. Click **Configure Storefront API scopes** → enable all scopes listed in A0.3
+6. Click **Save** → **Install app**
+7. Copy the **Storefront API access token** — it is shown only once
+
+> **Why not the Dev Dashboard (`dev.shopify.com`)?** That is for building apps to publish in the Shopify App Store. Custom private tokens for a headless frontend come from Settings → Apps only.
 
 ### A0.3 — Storefront API Scopes Required
 
-Enable all of the following unauthenticated read scopes on the Storefront API:
+Enable all of the following on the Storefront API:
 
 | Scope | Why |
 |---|---|
@@ -72,45 +75,63 @@ Enable all of the following unauthenticated read scopes on the Storefront API:
 | `unauthenticated_write_customers` | Sign in, create account |
 | `unauthenticated_read_content` | Metaobjects / CMS data |
 
-### A0.4 — Sanity Project Creation
+### A0.4 — Environment Variables (Vercel Guide naming convention)
 
-1. Go to [sanity.io](https://sanity.io) → **Create new project**.
-2. Project name: **Acme Lamp & Sign**.
-3. Dataset: `production`.
-4. Note credentials:
-   ```
-   SANITY_PROJECT_ID=[project id]
-   SANITY_DATASET=production
-   SANITY_API_VERSION=2024-01-01
-   SANITY_READ_TOKEN=[viewer token — for server-side reads]
-   ```
-5. Plan: Free tier is sufficient (up to 100k API requests/month).
+Use **exactly** these variable names — they match the Vercel guide and the `lib/shopify.ts` file Plan B will create:
 
-### A0.5 — Credential Storage
-
-Store all credentials in a `.env.local` template file at the project root (values masked). Plan B Phase B0 populates the actual values.
-
-```
-# .env.local (template — no real values in version control)
-NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN=
-NEXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN=
-SHOPIFY_ADMIN_TOKEN=
+```bash
+# .env.local
+SHOPIFY_STORE_DOMAIN=acme-lamp-and-sign.myshopify.com
+SHOPIFY_STOREFRONT_ACCESS_TOKEN=          # from A0.2 — public, safe for client
+SHOPIFY_ADMIN_TOKEN=                      # Admin API token — server-side only, never expose
 NEXT_PUBLIC_SANITY_PROJECT_ID=
-NEXT_PUBLIC_SANITY_DATASET=
-NEXT_PUBLIC_SANITY_API_VERSION=
-SANITY_READ_TOKEN=
+NEXT_PUBLIC_SANITY_DATASET=production
+NEXT_PUBLIC_SANITY_API_VERSION=2025-01
+SANITY_READ_TOKEN=                        # viewer token — server-side reads
+SHOPIFY_WEBHOOK_SECRET=                   # from A7.2
 ```
+
+> **Important:** `SHOPIFY_STOREFRONT_ACCESS_TOKEN` (not `SHOPIFY_STOREFRONT_TOKEN`) — the Vercel guide and our `shopifyFetch()` function both use this exact name.
+
+### A0.5 — Core `shopifyFetch()` Pattern (Reference)
+
+The Vercel guide establishes this pattern. Plan B will implement it in `lib/shopify.ts`:
+
+```typescript
+export async function shopifyFetch({ query, variables }: { query: string; variables?: object }) {
+  const result = await fetch(
+    `https://${process.env.SHOPIFY_STORE_DOMAIN}/api/2025-01/graphql.json`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Shopify-Storefront-Access-Token': process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN!,
+      },
+      body: JSON.stringify({ query, variables }),
+    }
+  )
+  return result.json()
+}
+```
+
+### A0.6 — Sanity Project Creation
+
+1. Go to [sanity.io](https://sanity.io) → **Create new project**
+2. Project name: **Acme Lamp & Sign**
+3. Dataset: `production`
+4. Copy credentials into `.env.local` above
 
 ---
 
 ### PHASE A0 STOP ✋
 
 > **Complete ALL steps above, then report:**
-> 1. Shopify store URL confirmed
-> 2. Custom app created — Storefront + Admin API tokens obtained
-> 3. All 7 Storefront API scopes enabled
-> 4. Sanity project created — project ID and read token obtained
-> 5. `.env.local` template created
+> 1. Store URL confirmed: `acme-lamp-and-sign.myshopify.com`
+> 2. Custom app created via Settings → Apps (not Dev Dashboard)
+> 3. Storefront API access token copied (shown only once)
+> 4. All 7 Storefront API scopes enabled
+> 5. `.env.local` file created with correct variable names
+> 6. Sanity project created — project ID noted
 >
 > **Ask: "Continue with the next phase?"** — wait for "Yes, Proceed."
 
@@ -125,7 +146,7 @@ Create the 4 product collections that map directly to the frontend category filt
 
 In Shopify Admin → **Products** → **Collections** → **Create collection**:
 
-Create each of the following as a **Manual collection** (not automated, so you control which products are in each):
+Create each as a **Manual collection** (not automated — precise control during launch):
 
 | Collection Title | Handle (URL slug) | Frontend category key |
 |---|---|---|
@@ -134,271 +155,234 @@ Create each of the following as a **Manual collection** (not automated, so you c
 | Burners & Hardware | `hardware` | `hardware` |
 | Advertising Signs | `signs` | `signs` |
 
-> **Why manual?** Automated collections filter by tag or price. Manual gives precise control during the initial 50-piece launch.
-
 ### A1.2 — Collection Descriptions
-
-Each collection needs a short description that feeds into the catalog header on the frontend.
 
 | Collection | Description |
 |---|---|
 | Lighting Fixtures | Complete oil lamp assemblies — center-draft, side-draft, railroad, and parlor fixtures reproduced from original 1873–1934 patterns. Bench-tested for an 8-hour burn. |
 | Glass & Chimneys | Mouth-blown replacement chimneys and shades. Each piece individually inspected; no fire-polish shortcuts. Sized to the original burner fitments. |
-| Burners & Hardware | Replacement burners, wick tubes, galleries, and founts. Pressed on the original Pune tooling. Sized for No. 1, No. 2, No. 3, and Universal fitment. |
+| Burners & Hardware | Replacement burners, cotton wicks, font caps, and trimming tools. Pressed on the original Pune tooling. Sized for No. 1, No. 2, No. 3, and Universal fitment. |
 | Advertising Signs | Triple-fired porcelain-on-steel reproduction signs from the 1890s–1940s railroad and petroleum trade. Numbered and dated on the reverse. |
 
 ### A1.3 — Collection SEO
 
-For each collection, in Shopify Admin → Collection → **Search engine listing**:
-
-- **Meta title:** e.g. `Lighting Fixtures — Acme Lamp & Sign Co.`
-- **Meta description:** First 155 characters of the collection description above.
-- **URL handle:** Match exactly the handle in A1.1 (no auto-generated suffixes).
+For each collection → **Search engine listing**:
+- **Meta title:** e.g. `Glass & Chimneys — Acme Lamp & Sign Co.`
+- **Meta description:** First 155 characters of the collection description above
+- **URL handle:** Match exactly the handle in A1.1
 
 ---
 
 ### PHASE A1 STOP ✋
 
-> **Complete ALL steps above, then report:**
-> 1. 4 collections created with exact handles
-> 2. Descriptions added to each collection
-> 3. SEO meta filled for each collection
-> 4. Screenshot or confirmation of collections list in Shopify Admin
->
-> **Ask: "Continue with the next phase?"** — wait for "Yes, Proceed."
+> **Report:** 4 collections created with exact handles, descriptions, and SEO meta filled.
+> **Ask: "Continue with the next phase?"**
 
 ---
 
 ## Phase A2 — Shopify Product Metafields
 
 ### Objective
-Define custom metafields that store the product data points the frontend displays (bench tester name, patent, workshop, edition number, fits description) — data that has no standard Shopify field.
+Define custom metafields for product data the frontend displays that has no standard Shopify field.
 
 ### A2.1 — Create Metafield Definitions
 
-In Shopify Admin → **Settings** → **Custom data** → **Products** → **Add definition**:
-
-Create each metafield below:
+In Shopify Admin → **Settings** → **Metafields and metaobjects** → **Products** → **Add definition**:
 
 | Name | Namespace + Key | Type | Purpose |
 |---|---|---|---|
-| SKU Code | `acme.sku` | Single-line text | e.g. `OL-1873-CB` |
+| SKU Code | `acme.sku` | Single-line text | e.g. `EB-204895` |
 | Patent Year | `acme.patent` | Single-line text | e.g. `1873 PAT.` |
 | Bench Tester Name | `acme.bench_tester` | Single-line text | e.g. `R.K. Patel` |
 | Bench Test Date | `acme.bench_test_date` | Date | ISO 8601 date |
 | Workshop | `acme.workshop` | Single-line text | `Pune Press Shop 4` |
 | Edition | `acme.edition` | Single-line text | `Spring 2026` |
-| Fits Description | `acme.fits` | Multi-line text | Long fitment note |
+| Fits Description | `acme.fits` | Multi-line text | Fitment/dimensions note |
 | Net Weight | `acme.net_weight` | Single-line text | e.g. `0.86 kg` |
-| Full Description | `acme.full_description` | Rich text | Long-form bench notes copy |
-| Burner Size | `acme.burner_size` | Single-line text | `No. 2` or null |
+| Full Description | `acme.full_description` | Rich text | Long-form product copy |
+| Burner Size | `acme.burner_size` | Single-line text | `No. 1`, `No. 2`, `No. 3`, or blank |
 
-> **Note:** Standard Shopify fields (title, description, price, variants, images, tags) do not need metafields. These metafields are for the spec table and fitment box only.
+### A2.2 — Expose Metafields via Storefront API
 
-### A2.2 — Metafield Validation Rules
+For each metafield definition → enable **"Storefront API access: Read"**.
 
-For `acme.bench_tester` and `acme.workshop`:
-- Set validation: required, max 80 characters.
+Without this, the GraphQL queries in Plan B cannot read them.
 
-For `acme.sku`:
-- Set validation: required, pattern `[A-Z]{2,4}-[0-9]{4}-[A-Z]{2,3}`.
+### A2.3 — Current SKU Format
 
-### A2.3 — Expose Metafields via Storefront API
+Real products from the eBay data use the format `EB-XXXXXX` (e.g. `EB-204895`). The metafield validation pattern should accept this:
 
-In Shopify Admin → Settings → Custom data → select each metafield → enable **"Storefront API access: Read"** for all 10 metafields above.
-
-Without this, the Storefront API GraphQL queries in Plan B will not be able to read them.
+```
+[A-Z]{2,4}-[0-9]{4,6}
+```
 
 ---
 
 ### PHASE A2 STOP ✋
 
-> **Complete ALL steps above, then report:**
-> 1. All 10 metafield definitions created
-> 2. Namespace + key matches table exactly (case-sensitive)
-> 3. Storefront API read access enabled on all 10
-> 4. Screenshot of metafield definitions list
->
-> **Ask: "Continue with the next phase?"** — wait for "Yes, Proceed."
+> **Report:** All 10 metafield definitions created, Storefront API read access enabled on all 10.
+> **Ask: "Continue with the next phase?"**
 
 ---
 
 ## Phase A3 — Shopify Product Data Entry
 
 ### Objective
-Enter all 50 products into Shopify with correct metafields, variants, collections, images, and SEO. This phase maps directly from `lib/mockData.ts` into the real Shopify catalogue.
+Enter all products into Shopify with correct metafields, variants, collections, images, and SEO.
 
-### A3.1 — Product Entry Template (per product)
+### A3.1 — Current Product Count
 
-For each product, in Shopify Admin → **Products** → **Add product**, fill in:
+| Status | Count |
+|---|---|
+| Real products (from eBay scrape, in `mockData.ts`) | **16** |
+| Target at full launch | **50** |
+
+Enter all 16 now. Remaining 34 are added when Scott provides real inventory data and photos.
+
+### A3.2 — Product Entry Template (per product)
 
 **Standard Shopify fields:**
 
 | Field | Value |
 |---|---|
-| Title | Full product name (e.g. `Cattaraugus Brass Center-Draft Lamp`) |
-| Description | `shortDescription` from mock data |
+| Title | Full product name (e.g. `OIL LAMP SHADE - Vesta Shade 7 3/8" Cupid Etched Green`) |
+| Description | `shortDescription` from `mockData.ts` |
 | Status | Active |
-| Category | Select from Shopify's product category taxonomy (closest match) |
-| Price | As per mock data (USD) |
-| SKU (Variant level) | `acme.sku` value |
-| Barcode | Leave blank |
-| Weight | Numeric value only (metafield stores formatted string) |
+| Price | As per `mockData.ts` (CAD) |
+| SKU (variant level) | `sku` field from `mockData.ts` (e.g. `EB-390452`) |
+| Track quantity | Yes — set to `1` per product (all current stock is 1 unit) |
 | Requires shipping | Yes |
-| Track quantity | Yes (set starting inventory) |
-| Images | Upload product images to Shopify CDN |
-
-**Variant Setup (for products with Finish options):**
-
-- Add variant option: **Finish** → values as per mock data (e.g. `Oiled Brass`, `Antique Nickel`, `Japanned Black`)
-- Add second variant option (only for lamps): **Burner Size** → `No. 1`, `No. 2`, `No. 3`, `Universal`
-- Price all variants the same (no price variance between finishes in this release)
+| Images | Upload from eBay CDN URLs in `mockData.ts` images array |
 
 **Metafields (scroll to bottom of product page):**
 
-Fill all 10 `acme.*` metafields per product.
+Fill all applicable `acme.*` metafields. For eBay-sourced products, `benchTesterName`, `workshop`, and `edition` are blank until Scott provides real data.
 
-**Collections:**
+**Collections:** Assign each product to exactly one collection matching its `category` field.
 
-Assign each product to exactly one collection (matching its category).
+**Tags:** Add tags for filtering — e.g. `glass-chimneys`, `No. 3`, `oil lamp`, `victorian`, `borosilicate`
 
-**Tags:**
+**SEO URL handle:** Must match the `slug` field in `mockData.ts` exactly.
 
-Add tags matching material: `brass`, `nickel`, `glass`, `porcelain`, `iron` (used by filter).
-
-**SEO:**
-
-- Meta title: `[Product Name] — Acme Lamp & Sign Co.`
-- URL handle: match `slug` field from mock data exactly.
-
-### A3.2 — Category Distribution (50 products)
+### A3.3 — Category Distribution (current 16 products)
 
 | Collection | Count |
 |---|---|
-| Lighting Fixtures | 15 |
+| Lighting Fixtures | 1 (book) |
 | Glass & Chimneys | 12 |
-| Burners & Hardware | 10 |
-| Advertising Signs | 13 |
-| **Total** | **50** |
+| Burners & Hardware | 3 |
+| Advertising Signs | 0 (pending Scott's inventory) |
+| **Total** | **16** |
 
-### A3.3 — Featured Products
+### A3.4 — Featured Products
 
-Tag the same 3 products that are `featured: true` in `mockData.ts` with the Shopify tag: `featured`. The frontend `PickedOffTheBench` section queries by this tag.
+Tag these 3 products with the Shopify tag `featured` — they appear in the **"Picked off the bench this week"** section on the homepage:
 
-### A3.4 — Image Upload
+| SKU | Product name |
+|---|---|
+| `EB-204895` | OIL LAMP SHADE - Floral Etched Large Ball Shade Blue 4" Fit |
+| `EB-390452` | OIL LAMP SHADE - Vesta Shade 7 3/8" Cupid Etched Green |
+| `EB-950466` | OIL LAMP SPREADER- Miller Flame Spreader #1 |
 
-For each product:
-- Upload a minimum of 4 images per product to Shopify's media library.
-- Alt text format: `[Product Name] — [Finish] — Acme Lamp & Sign Co.`
-- Images must be: JPEG or WebP, minimum 1600px on longest side, sRGB color profile.
+### A3.5 — Image Upload
 
-> **If real product images are not available yet:** Upload placeholder images (dark studio-tone square images with SKU text overlay) so the data structure is complete. Images can be swapped once photography is delivered.
+For each product, download images from the eBay CDN URLs in `mockData.ts` and upload to Shopify's media library:
+- Format: JPEG or WebP, minimum 1600px on longest side
+- Alt text: `[Product Name] — Acme Lamp & Sign Co.`
+
+> Once Scott provides professional product photography, replace the eBay CDN images before going live.
 
 ---
 
 ### PHASE A3 STOP ✋
 
-> **Complete ALL steps above, then report:**
-> 1. Total products entered (target: 50)
-> 2. All metafields populated per product
-> 3. Variants configured (list products with Burner Size variants)
-> 4. All products assigned to correct collections
-> 5. 3 featured products tagged `featured`
-> 6. Image upload status (real or placeholder)
->
-> **Ask: "Continue with the next phase?"** — wait for "Yes, Proceed."
+> **Report:** Total products entered (target: 16), metafields populated, 3 featured products tagged, images uploaded.
+> **Ask: "Continue with the next phase?"**
 
 ---
 
 ## Phase A4 — Shopify Checkout & Shipping Configuration
 
 ### Objective
-Configure the shipping rules, tax settings, checkout branding, and order notification emails to match the Acme Lamp & Sign brand.
+Configure shipping rules, tax settings, checkout branding, and order notifications for the Canadian market.
 
 ### A4.1 — Shipping Rates
 
 In Shopify Admin → **Settings** → **Shipping and delivery** → **Manage rates**:
 
-**Zone: Australia**
-- Flat rate: `Standard — Straw-packed crate` → $18.00 AUD
-- Condition: Free shipping when order subtotal ≥ $150.00
+**Zone: Canada**
+- Flat rate: `Standard shipping` → $15.00 CAD
+- Free shipping when order subtotal ≥ $150.00 CAD
 
 **Zone: United States**
-- Flat rate: `International freight` → $28.00 USD
-- Free when subtotal ≥ $150.00
+- Flat rate: `International freight` → $22.00 CAD
+- Free when subtotal ≥ $150.00 CAD
 
 **Zone: Rest of World**
-- Flat rate: `International freight` → $35.00 USD
-- Free when subtotal ≥ $150.00
+- Flat rate: `International freight` → $35.00 CAD
+- Free when subtotal ≥ $150.00 CAD
 
-> These rates align with the copy on the frontend (`Free freight over $150` displayed on ProductInfo and the crate drawer).
+> These rates align with the `Free freight over $150` copy displayed on ProductInfo and the crate drawer in the frontend.
 
 ### A4.2 — Tax Configuration
 
 In Shopify Admin → **Settings** → **Taxes and duties**:
-- Australia: Enable Shopify's automatic Australian GST calculation.
-- International: Set to collect taxes at checkout based on customer location.
-- Mark all products as taxable.
+- Canada: Enable Shopify's automatic Canadian GST/HST calculation
+- International: Collect taxes at checkout based on customer location
+- Mark all products as taxable
 
 ### A4.3 — Checkout Branding
 
 In Shopify Admin → **Settings** → **Checkout** → **Customize**:
 
-- **Logo:** Upload Acme Lamp & Sign wordmark (SVG or PNG, max 500px wide).
-- **Background color:** `#FAF5EC` (parchment).
-- **Button color:** `#2E4A3F` (green-brand).
-- **Button text color:** `#F5F1E6`.
-- **Font (heading):** Select closest to Playfair Display available (or leave default — the checkout page is Shopify-hosted).
-- **Form background:** `#F2EBDB` (parchment-2).
+| Setting | Value |
+|---|---|
+| Logo | Upload Acme Lamp & Sign wordmark (SVG or PNG, max 500px wide) |
+| Background color | `#FAF5EC` (parchment) |
+| Button color | `#2E4A3F` (green-brand) |
+| Button text color | `#F5F1E6` |
+| Form background | `#F2EBDB` (parchment-2) |
 
 ### A4.4 — Customer Accounts
 
 In Shopify Admin → **Settings** → **Customer accounts**:
-- Select: **New customer accounts** (not legacy — required for the Customer Account API used in Plan B Phase B5).
-- Enable: **Require email verification**.
-- Login experience: **Sign in with email link** (passwordless is fine; Plan B handles UI).
+- Select: **New customer accounts** (not legacy — required for Customer Account API in Plan B)
+- Enable: **Require email verification**
 
 ### A4.5 — Order Confirmation Email
 
 In Shopify Admin → **Settings** → **Notifications** → **Order confirmation**:
-- Customize subject: `Your Acme Lamp & Sign order — [order_name]`
-- Add plain-text footer:
+- Subject: `Your Acme Lamp & Sign order — [order_name]`
+- Footer text:
   ```
-  Your order is being straw-packed by hand at Adelaide House, 14 Pirie Street.
+  Your order is being carefully packed by hand at our Halifax workshop.
   You'll receive a dispatch confirmation within two business days.
-  Questions? Write to hello@acmelamp.co or call +61 8 7000 1873.
+  Questions? Write to hello@acmelampandsign.com
   ```
+
+> Update contact email and address once Scott provides real business details.
 
 ### A4.6 — Abandoned Checkout
 
 In Shopify Admin → **Marketing** → **Automations**:
-- Enable: **Abandoned checkout** — send after 4 hours.
+- Enable: **Abandoned checkout** — send after 4 hours
 - Subject: `"Your crate is still waiting — Acme Lamp & Sign"`
 
 ---
 
 ### PHASE A4 STOP ✋
 
-> **Complete ALL steps above, then report:**
-> 1. Shipping zones and rates created (list all zones + rates)
-> 2. Tax configuration verified (AU + international)
-> 3. Checkout branded with correct colors and logo
-> 4. New Customer Accounts enabled (not legacy)
-> 5. Order confirmation email customized
-> 6. Abandoned checkout automation enabled
->
-> **Ask: "Continue with the next phase?"** — wait for "Yes, Proceed."
+> **Report:** Shipping zones set (Canada + US + ROW), Canadian tax enabled, checkout branded, New Customer Accounts on, order email customized.
+> **Ask: "Continue with the next phase?"**
 
 ---
 
 ## Phase A5 — Sanity Studio Schema Setup
 
 ### Objective
-Define the Sanity content schemas for all CMS-driven content: journal posts, editorial copy, testimonials, and page sections for Our Story and Heritage.
+Define the Sanity content schemas for all CMS-driven content: journal posts, testimonials, Our Story, Heritage timeline, and site settings.
 
 ### A5.1 — Sanity Studio Initialization
-
-This creates the Studio app that the Acme team uses to edit content. It can be embedded at `/studio` in the Next.js app (handled in Plan B Phase B6), or run as a standalone admin.
 
 ```bash
 npm create sanity@latest -- \
@@ -425,7 +409,7 @@ export default {
     { name: 'excerpt',     type: 'text',     title: 'Excerpt (shown in card/list)', rows: 3 },
     { name: 'body',        type: 'array',    title: 'Body', of: [{ type: 'block' }, { type: 'image' }] },
     { name: 'coverImage',  type: 'image',    title: 'Cover Image', options: { hotspot: true } },
-    { name: 'author',      type: 'string',   title: 'Author name (e.g. R.K. Patel)' },
+    { name: 'author',      type: 'string',   title: 'Author name' },
     { name: 'readTime',    type: 'number',   title: 'Estimated read time (minutes)' },
     { name: 'tags',        type: 'array',    title: 'Tags', of: [{ type: 'string' }] },
   ],
@@ -454,7 +438,7 @@ export default {
 }
 ```
 
-### A5.4 — Schema: Our Story Page
+### A5.4 — Schema: Our Story Page (Singleton)
 
 File: `schemas/ourStoryPage.ts`
 
@@ -463,19 +447,19 @@ export default {
   name: 'ourStoryPage',
   title: 'Our Story Page',
   type: 'document',
-  __experimental_actions: ['update', 'publish'],  // singleton — no create/delete
+  __experimental_actions: ['update', 'publish'],
   fields: [
-    { name: 'heroHeadline',       type: 'string', title: 'Hero Headline' },
-    { name: 'heroBody',           type: 'text',   title: 'Hero Body' },
-    { name: 'missionQuote',       type: 'text',   title: 'Mission Statement Quote' },
-    { name: 'pillar1Title',       type: 'string', title: 'Pillar 01 Title' },
-    { name: 'pillar1Body',        type: 'text',   title: 'Pillar 01 Body' },
-    { name: 'pillar2Title',       type: 'string', title: 'Pillar 02 Title' },
-    { name: 'pillar2Body',        type: 'text',   title: 'Pillar 02 Body' },
-    { name: 'pillar3Title',       type: 'string', title: 'Pillar 03 Title' },
-    { name: 'pillar3Body',        type: 'text',   title: 'Pillar 03 Body' },
-    { name: 'foundersQuote',      type: 'text',   title: "Founder's testimonial quote" },
-    { name: 'foundersAttribution',type: 'string', title: 'Founder attribution line' },
+    { name: 'heroHeadline',        type: 'string', title: 'Hero Headline' },
+    { name: 'heroBody',            type: 'text',   title: 'Hero Body' },
+    { name: 'missionQuote',        type: 'text',   title: 'Mission Statement Quote' },
+    { name: 'pillar1Title',        type: 'string', title: 'Pillar 01 Title' },
+    { name: 'pillar1Body',         type: 'text',   title: 'Pillar 01 Body' },
+    { name: 'pillar2Title',        type: 'string', title: 'Pillar 02 Title' },
+    { name: 'pillar2Body',         type: 'text',   title: 'Pillar 02 Body' },
+    { name: 'pillar3Title',        type: 'string', title: 'Pillar 03 Title' },
+    { name: 'pillar3Body',         type: 'text',   title: 'Pillar 03 Body' },
+    { name: 'foundersQuote',       type: 'text',   title: "Founder's quote" },
+    { name: 'foundersAttribution', type: 'string', title: 'Founder attribution line' },
   ],
 }
 ```
@@ -516,7 +500,7 @@ export default {
     { name: 'newsletterHeading',    type: 'string', title: 'Newsletter section heading' },
     { name: 'newsletterBody',       type: 'text',   title: 'Newsletter section body' },
     { name: 'marqueeText',          type: 'string', title: 'Provenance marquee strip text' },
-    { name: 'catalogSeasonEyebrow', type: 'string', title: 'Catalog season eyebrow (e.g. SPRING RELEASE · 50 PIECES)' },
+    { name: 'catalogSeasonEyebrow', type: 'string', title: 'Catalog season eyebrow' },
     { name: 'heroHeadline',         type: 'string', title: 'Homepage hero headline' },
     { name: 'heroBody',             type: 'text',   title: 'Homepage hero body' },
   ],
@@ -530,11 +514,11 @@ In `sanity.config.ts`:
 ```typescript
 import { defineConfig } from 'sanity'
 import { structureTool } from 'sanity/structure'
-import journalPost    from './schemas/journalPost'
-import testimonial    from './schemas/testimonial'
-import ourStoryPage   from './schemas/ourStoryPage'
-import timelineEntry  from './schemas/timelineEntry'
-import siteSettings   from './schemas/siteSettings'
+import journalPost   from './schemas/journalPost'
+import testimonial   from './schemas/testimonial'
+import ourStoryPage  from './schemas/ourStoryPage'
+import timelineEntry from './schemas/timelineEntry'
+import siteSettings  from './schemas/siteSettings'
 
 export default defineConfig({
   name: 'default',
@@ -553,41 +537,39 @@ cd acme-sanity-studio
 npx sanity deploy
 ```
 
-Studio URL will be: `https://acme-lamp-sign.sanity.studio`
+Studio URL: `https://acme-lamp-sign.sanity.studio`
+
+Add CORS origins in Sanity project settings → API → CORS origins:
+- `http://localhost:3000`
+- `https://acmelampandsign.vercel.app`
 
 ---
 
 ### PHASE A5 STOP ✋
 
-> **Complete ALL steps above, then report:**
-> 1. All 5 schemas created (list each file)
-> 2. Studio starts locally without TypeScript errors (`npx sanity dev`)
-> 3. Studio deployed — confirm URL accessible
-> 4. All schema document types visible in the Studio sidebar
-> 5. CORS origins configured (add `localhost:3000` and production domain in Sanity project settings → API → CORS origins)
->
-> **Ask: "Continue with the next phase?"** — wait for "Yes, Proceed."
+> **Report:** All 5 schemas created, Studio deploys without errors, all document types visible in Studio sidebar, CORS origins configured.
+> **Ask: "Continue with the next phase?"**
 
 ---
 
 ## Phase A6 — Sanity Content Population
 
 ### Objective
-Seed all CMS-driven content into Sanity. This mirrors the mock data currently hardcoded in the Next.js components.
+Seed all CMS-driven content that is currently hardcoded in Next.js components.
 
 ### A6.1 — Populate Testimonials
 
-Using the Sanity Studio at the deployed URL, create 3 testimonials (or more) that match the homepage testimonials bar:
+Create 3 testimonials in Sanity Studio, all marked `featured: true`:
 
-| Quote | Attribution | Featured |
-|---|---|---|
-| "The Cattaraugus reproduction holds an extra flame — the bench test others won't run." | T. ALDRIDGE / LAMP COLLECTOR, VICTORIA | ✓ |
-| "Acme Lamp & Sign's chimneys are the only ones we still recommend without an asterisk." | W. HOOPER / RESTORATION WORKSHOP, TASMANIA | ✓ |
-| "The kind of shop that ships a hand-written invoice and means it." | B. SANTOS / INTERIOR ARCHITECT, SYDNEY | ✓ |
+| Quote | Attribution |
+|---|---|
+| "The Cattaraugus reproduction holds an extra flame — the bench test others won't run." | T. ALDRIDGE / LAMP COLLECTOR |
+| "Acme Lamp & Sign's chimneys are the only ones we still recommend without an asterisk." | W. HOOPER / RESTORATION WORKSHOP |
+| "The kind of shop that ships a hand-written invoice and means it." | B. SANTOS / INTERIOR ARCHITECT |
 
 ### A6.2 — Populate Heritage Timeline
 
-Create 6 timeline entries matching the current hardcoded data in `app/heritage/page.tsx`:
+Create 6 timeline entries:
 
 | Year | Title | Description |
 |---|---|---|
@@ -595,28 +577,25 @@ Create 6 timeline entries matching the current hardcoded data in `app/heritage/p
 | 1881 | Pittsburgh railroad order | First gimbal-mounted caboose lamps roll out of the Pune works for the Indian railway. |
 | 1898 | British Indian Lamp Co. closes | The dies stay. The Patel family buys the press shop for ₹140 and a promise. |
 | 1934 | Porcelain signage line | A third firing process is developed for the advertising-sign trade. |
-| 2003 | Adelaide distribution opens | The first containers cross the Indian Ocean, ending up on Pirie Street. |
-| 2026 | Spring liquidation | Fifty surplus pieces. This is the website you are reading. No catalog will repeat exactly. |
+| 2003 | North American distribution opens | The first containers cross the Atlantic, arriving in Halifax. |
+| 2026 | Spring release | Sixteen pieces available now. More to follow as inventory is catalogued. |
 
 ### A6.3 — Populate Our Story Page
 
-Create the `ourStoryPage` singleton document with all text currently hardcoded in `app/our-story/page.tsx`.
+Create the `ourStoryPage` singleton with all text currently hardcoded in `app/our-story/page.tsx`.
 
 ### A6.4 — Populate Site Settings
 
 Create the `siteSettings` singleton with:
-- Marquee text (copy from current `HeroSection.tsx` or `ProvenanceSection.tsx`)
-- Newsletter heading + body (copy from current `Footer.tsx` / `BenchNotesCTA.tsx`)
-- Catalog season eyebrow: `SPRING RELEASE · 50 PIECES`
+- Marquee text (from current `page.tsx` `MARQUEE_TEXT` constant)
+- Newsletter heading + body (from current `Footer.tsx`)
+- Catalog season eyebrow: `SPRING RELEASE · 16 PIECES`
 
 ### A6.5 — Create First Journal Post
-
-Create at least 1 journal post as a content baseline (so the journal page renders with real data from day one):
 
 - **Title:** `The night-burn test: what it means and why we run it`
 - **Eyebrow:** `BENCH NOTES · SPRING 2026`
 - **Excerpt:** `Every lamp we sell runs eight hours on No. 2 wick before it earns its tag. Here's what we're looking for — and what fails.`
-- **Body:** Editorial copy (2–4 paragraphs, rich text)
 - **Author:** `R.K. Patel`
 - **Read time:** `5`
 
@@ -624,25 +603,19 @@ Create at least 1 journal post as a content baseline (so the journal page render
 
 ### PHASE A6 STOP ✋
 
-> **Complete ALL steps above, then report:**
-> 1. 3+ testimonials created and marked featured
-> 2. 6 timeline entries created (confirm year order is correct)
-> 3. Our Story page singleton populated
-> 4. Site Settings singleton populated
-> 5. At least 1 journal post created and published
->
-> **Ask: "Continue with the next phase?"** — wait for "Yes, Proceed."
+> **Report:** 3 testimonials created, 6 timeline entries created, Our Story and Site Settings singletons populated, 1 journal post published.
+> **Ask: "Continue with the next phase?"**
 
 ---
 
 ## Phase A7 — Shopify Admin API & Webhooks
 
 ### Objective
-Configure the Admin API scopes and set up webhooks so the Next.js backend can receive real-time order and inventory updates.
+Configure Admin API scopes and webhooks for real-time order and inventory updates.
 
 ### A7.1 — Admin API Scopes
 
-In Shopify Admin → App settings → Admin API integration, ensure these scopes are enabled on the custom app:
+In the custom app settings → Admin API integration:
 
 | Scope | Purpose |
 |---|---|
@@ -651,35 +624,28 @@ In Shopify Admin → App settings → Admin API integration, ensure these scopes
 | `write_customers` | Create/update customer records |
 | `read_products` | Server-side product reads (ISR revalidation) |
 | `read_inventory` | Stock level checks |
-| `write_draft_orders` | (Future: wholesale/custom orders) |
+| `write_draft_orders` | Future: wholesale/custom orders |
 
 ### A7.2 — Webhooks
 
 In Shopify Admin → **Settings** → **Notifications** → **Webhooks**:
 
-Create the following webhooks pointing to your Next.js API routes (set up in Plan B Phase B7):
-
 | Event | URL endpoint | Format |
 |---|---|---|
-| `orders/create` | `https://your-domain.com/api/webhooks/order-created` | JSON |
-| `orders/fulfilled` | `https://your-domain.com/api/webhooks/order-fulfilled` | JSON |
-| `orders/cancelled` | `https://your-domain.com/api/webhooks/order-cancelled` | JSON |
-| `products/update` | `https://your-domain.com/api/webhooks/product-updated` | JSON |
-| `inventory_levels/update` | `https://your-domain.com/api/webhooks/inventory-updated` | JSON |
+| `orders/create` | `https://acmelampandsign.vercel.app/api/webhooks/order-created` | JSON |
+| `orders/fulfilled` | `https://acmelampandsign.vercel.app/api/webhooks/order-fulfilled` | JSON |
+| `orders/cancelled` | `https://acmelampandsign.vercel.app/api/webhooks/order-cancelled` | JSON |
+| `products/update` | `https://acmelampandsign.vercel.app/api/webhooks/product-updated` | JSON |
+| `inventory_levels/update` | `https://acmelampandsign.vercel.app/api/webhooks/inventory-updated` | JSON |
 
-> **Note:** The webhook URLs will only be active after Plan B Phase B7 deploys the API routes. Save the webhook secret key:
-> ```
-> SHOPIFY_WEBHOOK_SECRET=[webhook signing secret]
-> ```
+Save the webhook signing secret to `.env.local` as `SHOPIFY_WEBHOOK_SECRET`.
 
 ### A7.3 — Order Status Mapping
-
-The frontend track-order page displays status labels. Map Shopify's fulfillment states to frontend display labels:
 
 | Shopify Status | Frontend Label | Color |
 |---|---|---|
 | `unfulfilled` | Processing | Yellow |
-| `partial` | Packed at Adelaide | Yellow |
+| `partial` | Packed at Workshop | Yellow |
 | `fulfilled` | Dispatched | Green |
 | `in_transit` | In Transit | Blue |
 | `delivered` | Delivered | Green |
@@ -690,51 +656,48 @@ The frontend track-order page displays status labels. Map Shopify's fulfillment 
 
 ### PHASE A7 STOP ✋
 
-> **Complete ALL steps above, then report:**
-> 1. All 6 Admin API scopes confirmed active
-> 2. All 5 webhooks created (list each with URL)
-> 3. Webhook signing secret saved to `.env.local` template
-> 4. Order status mapping table reviewed and confirmed
->
-> **Ask: "Continue with the next phase?"** — wait for "Yes, Proceed."
+> **Report:** All 6 Admin API scopes active, all 5 webhooks created, webhook secret saved.
+> **Ask: "Continue with the next phase?"**
 
 ---
 
-## Phase A8 — Go-Live Checklist & DNS
-
-### Objective
-Final verification before the codebase integration begins. Confirm all external systems are correctly configured and accessible.
+## Phase A8 — Go-Live Checklist & API Smoke Tests
 
 ### A8.1 — Shopify Verification Checklist
 
-- [ ] 50 products live, all with status `Active`
-- [ ] All products have at least 4 images
-- [ ] All metafields populated on all products
+- [ ] 16 products live, all with status `Active`
 - [ ] All products assigned to correct collections
-- [ ] 3 products tagged `featured`
-- [ ] Shipping rates created for AU + US + Rest of World
-- [ ] Free shipping at $150 confirmed (test with a $149 cart and a $151 cart)
+- [ ] 3 products tagged `featured` (`EB-204895`, `EB-390452`, `EB-950466`)
+- [ ] All metafields populated per product
+- [ ] Shipping rates: Canada + US + Rest of World
+- [ ] Free shipping at $150 CAD confirmed
 - [ ] Checkout branded (logo, parchment bg, green button)
-- [ ] New Customer Accounts enabled
-- [ ] Test customer account creation works (create one manually)
-- [ ] Storefront API responds to a test query (use Shopify's API playground)
+- [ ] New Customer Accounts enabled (not legacy)
+- [ ] Test customer account: create one and verify email link works
+- [ ] Currency set to CAD
+- [ ] Storefront API token obtained and tested
 
 ### A8.2 — Sanity Verification Checklist
 
 - [ ] Studio accessible at deployed URL
-- [ ] All 5 schema types visible
-- [ ] Testimonials: 3+ documents, all marked `featured: true`
-- [ ] Timeline: 6 entries, all published
-- [ ] `ourStoryPage` singleton: all fields populated
-- [ ] `siteSettings` singleton: all fields populated
-- [ ] 1+ journal posts: published and publicly accessible via GROQ query
-- [ ] CORS origin `localhost:3000` added in Sanity project settings
+- [ ] All 5 schema types visible in sidebar
+- [ ] 3+ testimonials marked `featured: true`
+- [ ] 6 timeline entries published
+- [ ] `ourStoryPage` singleton populated and published
+- [ ] `siteSettings` singleton populated and published
+- [ ] 1+ journal post published
+- [ ] CORS origins include `localhost:3000` and `acmelampandsign.vercel.app`
 
 ### A8.3 — API Smoke Tests
 
-Before Plan B starts, verify each API is reachable:
+Run these before Plan B starts to confirm both APIs return data.
 
-**Shopify Storefront API (run in browser console or Insomnia):**
+**Shopify Storefront API** — POST to:
+```
+https://acme-lamp-and-sign.myshopify.com/api/2025-01/graphql.json
+```
+Header: `X-Shopify-Storefront-Access-Token: [your token]`
+Body:
 ```graphql
 {
   products(first: 3) {
@@ -742,15 +705,13 @@ Before Plan B starts, verify each API is reachable:
   }
 }
 ```
-POST to: `https://[store].myshopify.com/api/2024-04/graphql.json`
-Headers: `X-Shopify-Storefront-Access-Token: [token]`
 
-**Sanity (GROQ via CDN):**
+**Sanity GROQ via CDN:**
 ```
-https://[projectId].api.sanity.io/v2024-01-01/data/query/production?query=*[_type=="testimonial"]
+https://[projectId].api.sanity.io/v2025-01/data/query/production?query=*[_type=="testimonial"]
 ```
 
-Both should return real data before proceeding to Plan B.
+Both must return real data before Plan B begins.
 
 ---
 
@@ -759,14 +720,15 @@ Both should return real data before proceeding to Plan B.
 > **Final Plan A report:**
 > 1. All A8.1 Shopify checklist items: pass/fail
 > 2. All A8.2 Sanity checklist items: pass/fail
-> 3. Both A8.3 smoke tests: confirmed responses (paste first result of each)
-> 4. All credentials documented in `.env.local` template
-> 5. Any deviations from this plan and the reason
+> 3. Both A8.3 smoke tests: confirmed (paste first result of each)
+> 4. All credentials in `.env.local` template
+> 5. Any deviations from this plan and reason
 >
 > **State: "External systems configuration complete. Ready to begin Plan B — Codebase Integration."**
 
 ---
 
-*Acme Lamp & Sign Co. · Backend Implementation Plan A — External Systems*  
-*Shopify + Sanity.io Setup · Spring Release 2026*  
+*Acme Lamp & Sign Co. · Backend Implementation Plan A — External Systems*
+*Shopify + Sanity.io Setup · Spring Release 2026*
+*Reference: [Vercel — Building E-commerce Sites with Next.js and Shopify](https://vercel.com/kb/guide/building-ecommerce-sites-with-next-js-and-shopify)*
 *Companion document: `ACME_BACKEND_PLAN_B_CODEBASE_INTEGRATION.md`*
