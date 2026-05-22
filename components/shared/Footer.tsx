@@ -195,13 +195,25 @@ export default function Footer() {
           </div>
 
           {/* Bottom micro-bar */}
-          <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+          <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <p className="text-[11px] font-mono uppercase tracking-eyebrow text-canvas-dim">
               © 1873–2026 · Acme Lamp &amp; Sign Co. · All marks honoured.
             </p>
-            <p className="text-[11px] font-mono uppercase tracking-eyebrow text-canvas-dim">
-              Crate No. 014 · Spring Release
-            </p>
+            <nav aria-label="Legal links" className="flex flex-wrap gap-x-4 gap-y-1">
+              {[
+                { label: 'Privacy Policy', href: '/legal/privacy-policy' },
+                { label: 'Terms & Conditions', href: '/legal/terms' },
+                { label: 'Accessibility', href: '/legal/accessibility' },
+              ].map(l => (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  className="text-[11px] font-mono uppercase tracking-eyebrow text-canvas-dim hover:text-canvas-muted transition-colors"
+                >
+                  {l.label}
+                </Link>
+              ))}
+            </nav>
           </div>
         </div>
       </div>
