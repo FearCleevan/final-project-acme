@@ -138,6 +138,11 @@ const PRODUCT_FRAGMENT = `
       { namespace: "acme", key: "net_weight"       }
       { namespace: "acme", key: "full_description" }
       { namespace: "acme", key: "burner_size"      }
+      { namespace: "acme", key: "material"         }
+      { namespace: "acme", key: "era"              }
+      { namespace: "acme", key: "power_source"     }
+      { namespace: "acme", key: "product_type"     }
+      { namespace: "acme", key: "condition"        }
     ]) {
       key
       namespace
@@ -201,7 +206,7 @@ export function shopifyProductToProduct(p: ShopifyProduct): Product {
     category,
     burnerSize:       parseBurnerSize(meta(mf, 'burner_size')),
     stockQuantity:    firstVar?.quantityAvailable ?? 0,
-    material:         '',
+    material:         meta(mf, 'material'),
     finish:           finishes,
     fits:             meta(mf, 'fits'),
     benchTesterName:  meta(mf, 'bench_tester'),
@@ -209,6 +214,10 @@ export function shopifyProductToProduct(p: ShopifyProduct): Product {
     workshop:         meta(mf, 'workshop'),
     edition:          meta(mf, 'edition'),
     netWeight:        meta(mf, 'net_weight'),
+    era:              meta(mf, 'era'),
+    powerSource:      meta(mf, 'power_source'),
+    productType:      meta(mf, 'product_type'),
+    condition:        meta(mf, 'condition'),
     images:           p.images.edges.map(e => e.node.url),
     inStock:          p.availableForSale,
     featured:         p.tags.includes('featured'),

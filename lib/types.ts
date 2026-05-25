@@ -20,6 +20,10 @@ export interface Product {
   workshop: string
   edition: string
   netWeight: string
+  era: string
+  powerSource: string
+  productType: string
+  condition: string
   images: string[]
   inStock: boolean
   featured: boolean

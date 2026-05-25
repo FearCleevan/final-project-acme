@@ -1,5 +1,5 @@
 import { Product } from '@/lib/types'
-import { mockProducts } from '@/lib/mockData'
+import { getProductsByCategory } from '@/lib/shopify'
 import Eyebrow from '@/components/shared/Eyebrow'
 import ProductCard from '@/components/catalog/ProductCard'
 
@@ -9,10 +9,9 @@ interface RelatedProductsProps {
 
 const ASPECT_CYCLE: Array<'3/5' | '4/5' | '5/4'> = ['3/5', '4/5', '5/4']
 
-export default function RelatedProducts({ product }: RelatedProductsProps) {
-  const related = mockProducts
-    .filter(p => p.category === product.category && p.id !== product.id)
-    .slice(0, 3)
+export default async function RelatedProducts({ product }: RelatedProductsProps) {
+  const all = await getProductsByCategory(product.category)
+  const related = all.filter(p => p.id !== product.id).slice(0, 3)
 
   if (related.length === 0) return null
 

@@ -8,13 +8,18 @@ interface SpecTableProps {
 export default function SpecTable({ product }: SpecTableProps) {
   const rows: { label: string; value: string | number | null | undefined }[] = [
     { label: 'Catalog Number',       value: product.sku },
-    { label: 'Burner Size',          value: product.burnerSize },
-    { label: 'Workshop',             value: product.workshop },
-    { label: "Bench Tester's Name",  value: product.benchTesterName },
-    { label: 'Pattern of Origin',    value: product.patent },
+    { label: 'Type',                 value: product.productType },
+    { label: 'Condition',            value: product.condition },
+    { label: 'Era',                  value: product.era },
     { label: 'Primary Material',     value: product.material },
+    { label: 'Power Source',         value: product.powerSource },
+    { label: 'Burner Size',          value: product.burnerSize },
+    { label: 'Fits',                 value: product.fits },
     { label: 'Net Weight',           value: product.netWeight },
     { label: 'Edition',              value: product.edition },
+    { label: 'Pattern of Origin',    value: product.patent },
+    { label: 'Workshop',             value: product.workshop },
+    { label: "Bench Tester's Name",  value: product.benchTesterName },
   ].filter(r => r.value !== undefined && r.value !== null && r.value !== '')
 
   return (

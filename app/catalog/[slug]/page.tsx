@@ -1,4 +1,4 @@
-import { mockProducts } from '@/lib/mockData'
+import { getAllProducts, getProductByHandle } from '@/lib/shopify'
 import { notFound } from 'next/navigation'
 import Breadcrumb from '@/components/shared/Breadcrumb'
 import ProductGallery from '@/components/product/ProductGallery'
@@ -13,12 +13,13 @@ interface Props {
 }
 
 export async function generateStaticParams() {
-  return mockProducts.map(p => ({ slug: p.slug }))
+  const products = await getAllProducts()
+  return products.map(p => ({ slug: p.slug }))
 }
 
 export default async function ProductPage({ params }: Props) {
   const { slug } = await params
-  const product = mockProducts.find(p => p.slug === slug)
+  const product = await getProductByHandle(slug)
   if (!product) notFound()
 
   const isDark = product.category === 'signs'

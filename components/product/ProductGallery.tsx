@@ -11,15 +11,8 @@ interface ProductGalleryProps {
   dark?: boolean
 }
 
-/* Build 4 "slots" — real images if provided, otherwise empty strings for placeholder */
-function buildSlots(images: string[]): string[] {
-  const filled = [...images]
-  while (filled.length < 4) filled.push('')
-  return filled.slice(0, 4)
-}
-
 export default function ProductGallery({ images, productName, sku, dark = false }: ProductGalleryProps) {
-  const slots = buildSlots(images)
+  const slots = images.slice(0, 4)
   const [active, setActive] = useState(0)
 
   return (

@@ -43,9 +43,11 @@ export default function ProductInfo({ product }: ProductInfoProps) {
         <span className="px-3 py-1 rounded-pill bg-ink-iron text-canvas-heading text-[10px] font-mono uppercase tracking-eyebrow">
           {product.sku}
         </span>
-        <span className="px-3 py-1 rounded-pill border border-ink-rule text-ink-soft text-[10px] font-mono uppercase tracking-eyebrow">
-          {product.patent}
-        </span>
+        {product.patent && (
+          <span className="px-3 py-1 rounded-pill border border-ink-rule text-ink-soft text-[10px] font-mono uppercase tracking-eyebrow">
+            {product.patent}
+          </span>
+        )}
         {!product.inStock && (
           <span className="px-3 py-1 rounded-pill bg-error/10 text-error text-[10px] font-mono uppercase tracking-eyebrow">
             Out of stock
