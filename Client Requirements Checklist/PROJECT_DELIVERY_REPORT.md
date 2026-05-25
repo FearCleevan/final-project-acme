@@ -10,7 +10,7 @@
 
 ## Executive Summary
 
-In 6 working days, a complete production-grade headless e-commerce storefront was designed, built, integrated with live backend services, and deployed to production. The deliverable covers everything from the design system foundation through to a live Shopify product with real data flowing end-to-end.
+A complete production-grade headless e-commerce storefront was designed, built, integrated with live backend services, and deployed to production. The deliverable covers everything from the design system foundation through to a live Shopify product with real data flowing end-to-end.
 
 ---
 
