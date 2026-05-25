@@ -1,7 +1,7 @@
 # Project Delivery Report
 ## Acme Lamp & Sign Co. — E-Commerce Storefront
 
-**Developer:** PPlazan
+**Developer:** Peter Paul Lazan
 **Sprint Duration:** May 18 – May 26, 2026 (6 working days)
 **Live Preview:** https://acmelampandsign.vercel.app/
 **Tech Stack:** Next.js 16 · Tailwind CSS v4 · TypeScript · Shopify Storefront API · Sanity CMS · Vercel
@@ -414,15 +414,15 @@ getProductsSorted()    — Products with custom sort key
 
 | Item | Owner | Status |
 |---|---|---|
-| Remaining 15 products entered in Shopify | PPlazan / Scott | In progress |
+| Remaining 15 products entered in Shopify | Peter Paul Lazan / Scott | In progress |
 | Real product photography | Scott | Pending |
-| Sanity CMS setup (journal, heritage, testimonials) | PPlazan | Pending — awaiting Sanity account access |
+| Sanity CMS setup (journal, heritage, testimonials) | Peter Paul Lazan | Pending — awaiting Sanity account access |
 | Domain purchase and DNS setup | Scott | Pending |
-| Vercel production environment variables | PPlazan | Ready to configure |
+| Vercel production environment variables | Peter Paul Lazan | Ready to configure |
 | Shopify Payments activation | Scott | Pending |
-| End-to-end checkout test with real payment | PPlazan + Scott | Pending |
-| Remove test API route (`/api/test-shopify`) | PPlazan | Before launch |
+| End-to-end checkout test with real payment | Peter Paul Lazan + Scott | Pending |
+| Remove test API route (`/api/test-shopify`) | Peter Paul Lazan | Before launch |
 
 ---
 
-*Report generated: 2026-05-26 · Acme Lamp & Sign Development Sprint · Developer: PPlazan*
+*Report generated: 2026-05-26 · Acme Lamp & Sign Development Sprint · Developer: Peter Paul Lazan*
