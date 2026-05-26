@@ -8,17 +8,6 @@ function StarIcon() {
   )
 }
 
-function QuoteIcon() {
-  return (
-    <svg className="mb-4" width="32" height="32" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M10 8.5c0-1.5-.7-2.5-2-3.5L6 7c1 .5 1.5 1 1.5 2H6c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h2c1.1 0 2-.9 2-2V8.5zm8 0c0-1.5-.7-2.5-2-3.5l-2 2c1 .5 1.5 1 1.5 2H14c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h2c1.1 0 2-.9 2-2V8.5z"
-        fill="#F5EFE0"
-        opacity="0.2"
-      />
-    </svg>
-  )
-}
 
 const testimonials = [
   { name: 'Sarah M.', location: 'Baltimore', quote: 'Finally — a supplier who knows a No. 2 chimney is not the same as a No. 3.' },
@@ -55,7 +44,7 @@ export default function TestimonialsCarousel() {
                 className="shrink-0 min-w-87.5 max-w-100 rounded-xl p-6 border border-parchment-3/20 mx-3 bg-white/4"
               // aria-hidden={i >= testimonials.length}
               >
-                <QuoteIcon />
+                <span className="block text-center font-serif text-[48px] leading-none text-canvas-heading/20 mb-2" aria-hidden="true">&ldquo;</span>
                 <p className="font-serif italic leading-relaxed text-center text-canvas-heading text-[16px] subpixel-antialiased">
                   {t.quote}
                 </p>
