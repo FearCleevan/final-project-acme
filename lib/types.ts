@@ -24,6 +24,10 @@ export interface Product {
   powerSource: string
   productType: string
   condition: string
+  style: string
+  colour: string
+  brand: string
+  vintage: string
   images: string[]
   inStock: boolean
   featured: boolean

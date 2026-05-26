@@ -337,7 +337,7 @@ getProductsSorted()    — Products with custom sort key
 ```
 
 - ISR caching: `next: { revalidate: 60 }` on all Shopify fetch calls
-- 15 custom `acme.*` metafield definitions in Shopify
+- 19 custom `acme.*` metafield definitions in Shopify
 - Zero TypeScript errors
 - Public Storefront API token (Headless channel)
 
@@ -361,6 +361,10 @@ getProductsSorted()    — Products with custom sort key
 | `acme.power_source` | Single line text | Fuel type |
 | `acme.product_type` | Single line text | Product classification |
 | `acme.condition` | Single line text | Item condition |
+| `acme.style` | Single line text | Style classification |
+| `acme.colour` | Single line text | Colour description |
+| `acme.brand` | Single line text | Brand or manufacturer |
+| `acme.vintage` | Single line text | Vintage classification |
 | `acme.patent` | Single line text | Patent reference |
 | `acme.edition` | Single line text | Edition/series |
 | `acme.workshop` | Single line text | Workshop of origin |

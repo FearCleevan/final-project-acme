@@ -143,12 +143,16 @@ const PRODUCT_FRAGMENT = `
       { namespace: "acme", key: "power_source"     }
       { namespace: "acme", key: "product_type"     }
       { namespace: "acme", key: "condition"        }
+      { namespace: "acme", key: "style"            }
+      { namespace: "acme", key: "colour"           }
+      { namespace: "acme", key: "brand"            }
+      { namespace: "acme", key: "vintage"          }
     ]) {
       key
       namespace
       value
     }
-    collections(first: 1) {
+    collections(first: 5) {
       edges { node { handle } }
     }
   }
@@ -178,7 +182,7 @@ function parseBurnerSize(val: string): Product['burnerSize'] {
 export function shopifyProductToProduct(p: ShopifyProduct): Product {
   const mf         = p.metafields
   const firstVar   = p.variants.edges[0]?.node
-  const colHandle  = p.collections.edges[0]?.node.handle ?? ''
+  const colHandle  = p.collections.edges.map(e => e.node.handle).find(h => CATEGORY_MAP[h]) ?? ''
   const category   = CATEGORY_MAP[colHandle] ?? 'lighting'
 
   // Collect finish values from variant options named "Finish"
@@ -218,6 +222,10 @@ export function shopifyProductToProduct(p: ShopifyProduct): Product {
     powerSource:      meta(mf, 'power_source'),
     productType:      meta(mf, 'product_type'),
     condition:        meta(mf, 'condition'),
+    style:            meta(mf, 'style'),
+    colour:           meta(mf, 'colour'),
+    brand:            meta(mf, 'brand'),
+    vintage:          meta(mf, 'vintage'),
     images:           p.images.edges.map(e => e.node.url),
     inStock:          p.availableForSale,
     featured:         p.tags.includes('featured'),
