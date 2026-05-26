@@ -63,6 +63,7 @@ export default function ProductGallery({ images, productName, sku, dark = false 
               aspectRatio="4/5"
               dark={dark}
               label={`0${i + 1}`}
+              sizes="(max-width: 768px) 25vw, 12vw"
             />
           </button>
         ))}
