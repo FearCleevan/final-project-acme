@@ -372,7 +372,7 @@ export default function ProductsPage() {
         {/* Desktop/tablet table */}
         <div className="hidden sm:block">
           <DataTable
-            columns={COLUMNS}
+            columns={COLUMNS as unknown as Column<Record<string, unknown>>[]}
             data={paginated as unknown as Record<string, unknown>[]}
             keyField="id"
             selectable
