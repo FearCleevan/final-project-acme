@@ -4,11 +4,13 @@ import { FilterState } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 const CATEGORY_PILLS = [
-  { label: 'All Pieces', value: 'all' },
-  { label: 'Lighting', value: 'lighting' },
-  { label: 'Glass & Chimneys', value: 'glass-chimneys' },
-  { label: 'Hardware', value: 'hardware' },
-  { label: 'Signs', value: 'signs' },
+  { label: 'All',                    value: 'all' },
+  { label: 'Oil Lamp Chimneys',      value: 'oil-lamp-chimneys' },
+  { label: 'Oil Lamp Shades',        value: 'oil-lamp-shades' },
+  { label: 'Oil Lamp Pressure Lamps', value: 'oil-lamp-pressure-lamps' },
+  { label: 'Oil Lamp Books',         value: 'oil-lamp-books' },
+  { label: 'Oil Lamp Spreaders',     value: 'oil-lamp-spreaders' },
+  { label: 'Oil Lamp Wicks',         value: 'oil-lamp-wicks' },
 ]
 
 const selectClass =
@@ -26,10 +28,11 @@ export default function FilterBar({ filters, onFiltersChange, count, onRefineOpe
 
   return (
     <div className="max-w-[1280px] mx-auto px-6">
-      {/* Category pills — horizontal scroll on mobile with fade-edge hint */}
+      {/* Category pills — horizontal scroll with fade-edge hints */}
       <div className="relative py-4 sm:py-5">
         <div
           className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1"
+          style={{ WebkitOverflowScrolling: 'touch' }}
           role="group"
           aria-label="Filter by category"
         >
@@ -38,7 +41,7 @@ export default function FilterBar({ filters, onFiltersChange, count, onRefineOpe
               key={p.value}
               onClick={() => set({ category: p.value })}
               className={cn(
-                'shrink-0 px-3.5 sm:px-4 py-1.5 rounded-pill text-[11px] sm:text-[12px] font-mono uppercase tracking-eyebrow transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass',
+                'shrink-0 px-3.5 py-1.5 rounded-pill text-[11px] font-mono uppercase tracking-eyebrow transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass whitespace-nowrap',
                 filters.category === p.value
                   ? 'bg-ink-iron text-parchment'
                   : 'border border-ink-rule text-ink-soft hover:border-ink-iron hover:text-ink-iron'
@@ -48,12 +51,12 @@ export default function FilterBar({ filters, onFiltersChange, count, onRefineOpe
               {p.label}
             </button>
           ))}
-          {/* Right fade hint for scroll affordance */}
-          <div className="shrink-0 w-4" aria-hidden="true" />
+          {/* Right spacer so last pill clears fade */}
+          <div className="shrink-0 w-8" aria-hidden="true" />
         </div>
-        {/* Fade-out edge on right — mobile only */}
+        {/* Fade-out edge on right */}
         <div
-          className="sm:hidden absolute right-0 top-0 bottom-0 w-8 bg-linear-to-l from-parchment to-transparent pointer-events-none"
+          className="absolute right-0 top-0 bottom-0 w-12 bg-linear-to-l from-parchment to-transparent pointer-events-none"
           aria-hidden="true"
         />
       </div>

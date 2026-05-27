@@ -7,10 +7,12 @@ import { FilterState } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 const PIECE_TYPES = [
-  { label: 'Lighting Fixtures', value: 'lighting' },
-  { label: 'Glass & Chimneys', value: 'glass-chimneys' },
-  { label: 'Burners & Hardware', value: 'hardware' },
-  { label: 'Signs', value: 'signs' },
+  { label: 'Oil Lamp Chimneys',       value: 'oil-lamp-chimneys' },
+  { label: 'Oil Lamp Shades',         value: 'oil-lamp-shades' },
+  { label: 'Oil Lamp Pressure Lamps', value: 'oil-lamp-pressure-lamps' },
+  { label: 'Oil Lamp Books',          value: 'oil-lamp-books' },
+  { label: 'Oil Lamp Spreaders',      value: 'oil-lamp-spreaders' },
+  { label: 'Oil Lamp Wicks',          value: 'oil-lamp-wicks' },
 ]
 
 const BURNER_SIZES = [

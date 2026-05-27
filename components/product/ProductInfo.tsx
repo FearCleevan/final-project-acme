@@ -95,13 +95,18 @@ export default function ProductInfo({ product }: ProductInfoProps) {
       )}
 
       {/* Price */}
-      <div className="flex items-baseline gap-3 pb-4 border-b border-ink-rule">
-        <span className="font-serif text-[28px] text-brass-deep leading-none">
-          {formatPrice(product.price)}
-        </span>
-        <span className="text-[11px] font-mono uppercase tracking-eyebrow text-ink-soft">
-          USD · Free freight over $150
-        </span>
+      <div className="pb-4 border-b border-ink-rule">
+        <div className="flex items-baseline gap-3">
+          <span className="font-serif text-[28px] text-brass-deep leading-none">
+            {formatPrice(product.price)}
+          </span>
+          <span className="text-[11px] font-mono uppercase tracking-eyebrow text-ink-soft">
+            CAD · Free freight over $150
+          </span>
+        </div>
+        <p className="text-[11px] font-mono text-ink-soft mt-1">
+          Approx. US ${(product.price * 0.74).toFixed(2)} · AU ${(product.price * 1.12).toFixed(2)} — prices shown in Canadian dollars
+        </p>
       </div>
 
       {/* Fitment box */}

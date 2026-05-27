@@ -161,10 +161,12 @@ const PRODUCT_FRAGMENT = `
 // ─── Adapter: Shopify product → app Product type ──────────────────────────────
 
 const CATEGORY_MAP: Record<string, Product['category']> = {
-  'lighting':      'lighting',
-  'glass-chimneys': 'glass-chimneys',
-  'hardware':      'hardware',
-  'signs':         'signs',
+  'oil-lamp-chimneys':      'oil-lamp-chimneys',
+  'oil-lamp-shades':        'oil-lamp-shades',
+  'oil-lamp-pressure-lamps': 'oil-lamp-pressure-lamps',
+  'oil-lamp-books':         'oil-lamp-books',
+  'oil-lamp-spreaders':     'oil-lamp-spreaders',
+  'oil-lamp-wicks':         'oil-lamp-wicks',
 }
 
 const VALID_BURNER_SIZES = ['No. 1', 'No. 2', 'No. 3', 'Universal'] as const

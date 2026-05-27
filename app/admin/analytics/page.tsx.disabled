@@ -1,0 +1,171 @@
+'use client'
+
+import {
+  mockRevenueStats,
+  mockOrderCount,
+  mockSessionCount,
+  mockConversionRate,
+  mockTopProducts,
+  mockCustomers,
+  mockOrders,
+  mockAbandonedCheckouts,
+} from '@/lib/admin/mockData'
+import { formatCurrency, formatDate } from '@/lib/admin/utils'
+import PageHeader from '@/components/admin/shared/PageHeader'
+import SectionCard from '@/components/admin/shared/SectionCard'
+import RevenueChart from '@/components/admin/charts/RevenueChart'
+import OrdersChart from '@/components/admin/charts/OrdersChart'
+import TopProductsTable from '@/components/admin/charts/TopProductsTable'
+import { BiTrendingUp, BiTrendingDown, BiMinus } from 'react-icons/bi'
+
+function ChangeChip({ value }: { value: number }) {
+  if (value === 0) return (
+    <span className="inline-flex items-center gap-0.5 text-[11px] text-(--admin-text-muted)">
+      <BiMinus size={11} /> 0%
+    </span>
+  )
+  const up = value > 0
+  return (
+    <span className={`inline-flex items-center gap-0.5 text-[11px] ${up ? 'text-(--admin-green)' : 'text-(--admin-red)'}`}>
+      {up ? <BiTrendingUp size={12} /> : <BiTrendingDown size={12} />}
+      {up ? '+' : ''}{value}%
+    </span>
+  )
+}
+
+export default function AnalyticsPage() {
+  const totalRevenue     = mockCustomers.reduce((s, c) => s + c.totalSpent, 0)
+  const totalOrders      = mockOrders.length
+  const repeatCustomers  = mockCustomers.filter(c => c.orders > 1).length
+  const repeatRate       = mockCustomers.length > 0
+    ? Math.round((repeatCustomers / mockCustomers.length) * 100)
+    : 0
+  const avgOrderValue    = totalOrders > 0
+    ? totalRevenue / totalOrders
+    : 0
+
+  return (
+    <div>
+      <PageHeader
+        title="Analytics"
+        subtitle="Performance overview for your store"
+      />
+
+      {/* ── Revenue KPIs ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+        {[
+          { label: 'Today',      value: formatCurrency(mockRevenueStats.today),  change: mockRevenueStats.todayChange },
+          { label: 'This Week',  value: formatCurrency(mockRevenueStats.week),   change: mockRevenueStats.weekChange  },
+          { label: 'This Month', value: formatCurrency(mockRevenueStats.month),  change: mockRevenueStats.monthChange },
+          { label: 'All Time',   value: formatCurrency(totalRevenue),            change: 0 },
+        ].map(stat => (
+          <SectionCard key={stat.label} className="py-3 px-4">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-(--admin-text-muted) mb-1">{stat.label}</p>
+            <p className="text-[20px] font-semibold text-(--admin-text) leading-none mb-1.5">{stat.value}</p>
+            <ChangeChip value={stat.change} />
+          </SectionCard>
+        ))}
+      </div>
+
+      {/* ── Revenue Chart ── */}
+      <SectionCard className="mb-4">
+        <RevenueChart />
+      </SectionCard>
+
+      {/* ── Orders Chart + Customer Metrics ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+
+        <SectionCard className="lg:col-span-2">
+          <OrdersChart />
+          <div className="mt-4 pt-4 border-t border-(--admin-border) grid grid-cols-3 gap-4">
+            {[
+              { label: 'Today',      value: mockOrderCount.today },
+              { label: 'This Week',  value: mockOrderCount.week  },
+              { label: 'This Month', value: mockOrderCount.month },
+            ].map(s => (
+              <div key={s.label}>
+                <p className="text-[11px] text-(--admin-text-muted) uppercase tracking-wider mb-0.5">{s.label}</p>
+                <p className="text-[18px] font-semibold text-(--admin-text)">{s.value}</p>
+              </div>
+            ))}
+          </div>
+        </SectionCard>
+
+        <SectionCard>
+          <p className="text-[11px] uppercase tracking-widest text-(--admin-text-muted) mb-4">Customers</p>
+          <div className="space-y-4">
+            {[
+              { label: 'Total Customers',  value: mockCustomers.length },
+              { label: 'Repeat Customers', value: `${repeatCustomers} (${repeatRate}%)` },
+              { label: 'Avg. Order Value', value: formatCurrency(avgOrderValue) },
+              { label: 'Lifetime Revenue', value: formatCurrency(totalRevenue) },
+            ].map(row => (
+              <div key={row.label} className="flex items-center justify-between">
+                <span className="text-[12px] text-(--admin-text-muted)">{row.label}</span>
+                <span className="text-[13px] font-semibold text-(--admin-text)">{row.value}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-5 pt-4 border-t border-(--admin-border) space-y-3">
+            <p className="text-[11px] uppercase tracking-widest text-(--admin-text-muted)">Traffic</p>
+            <div className="flex items-center justify-between">
+              <span className="text-[12px] text-(--admin-text-muted)">Weekly Sessions</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[13px] font-semibold text-(--admin-text)">{mockSessionCount.week.toLocaleString()}</span>
+                <ChangeChip value={mockSessionCount.weekChange} />
+              </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[12px] text-(--admin-text-muted)">Conversion Rate</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[13px] font-semibold text-(--admin-text)">{mockConversionRate.value}%</span>
+                <ChangeChip value={mockConversionRate.change} />
+              </div>
+            </div>
+          </div>
+        </SectionCard>
+
+      </div>
+
+      {/* ── Top Products + Abandoned Checkouts ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+        <SectionCard className="lg:col-span-2">
+          <TopProductsTable />
+        </SectionCard>
+
+        <SectionCard>
+          <p className="text-[11px] uppercase tracking-widest text-(--admin-text-muted) mb-4">
+            Abandoned Checkouts
+            <span className="ml-2 normal-case text-(--admin-text-muted)">
+              ({mockAbandonedCheckouts.length})
+            </span>
+          </p>
+          <div className="space-y-0">
+            {mockAbandonedCheckouts.map(ab => (
+              <div key={ab.id} className="py-3 border-b border-(--admin-border) last:border-0">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-[12px] font-medium text-(--admin-text) truncate">{ab.customer}</p>
+                    {ab.email && (
+                      <p className="text-[11px] text-(--admin-text-muted) truncate">{ab.email}</p>
+                    )}
+                  </div>
+                  <p className="text-[13px] font-semibold text-(--admin-text) shrink-0">{formatCurrency(ab.value)}</p>
+                </div>
+                <p className="text-[11px] text-(--admin-text-muted) mt-1">
+                  {ab.items} item{ab.items !== 1 ? 's' : ''} · {formatDate(ab.abandonedAt.slice(0, 10))}
+                </p>
+              </div>
+            ))}
+          </div>
+          {mockAbandonedCheckouts.length === 0 && (
+            <p className="text-[13px] text-(--admin-text-soft) py-6 text-center">No abandoned checkouts</p>
+          )}
+        </SectionCard>
+
+      </div>
+    </div>
+  )
+}

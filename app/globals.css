@@ -107,6 +107,53 @@
   }
 }
 
+/* ─── Admin Dashboard Design Tokens ─────────────────────────────────────── */
+:root {
+  --admin-bg:           #FAFAF9;
+  --admin-surface:      #FFFFFF;
+  --admin-surface-2:    #F4F3F1;
+  --admin-border:       #E5E4E1;
+  --admin-text:         #151617;
+  --admin-text-soft:    #6B6966;
+  --admin-text-muted:   #A39F9A;
+  --admin-accent:       #151617;
+  --admin-accent-text:  #FFFFFF;
+  /* State — refined: warm orange (not raw Tailwind yellow) */
+  --admin-green:        #1E7A4A;
+  --admin-red:          #C0392B;
+  --admin-amber:        #B45309;
+  --admin-green-bg:     rgba(30, 122, 74, 0.07);
+  --admin-red-bg:       rgba(192, 57, 43, 0.06);
+  --admin-amber-bg:     rgba(180, 83, 9, 0.06);
+  --admin-sidebar-w:    240px;
+  --admin-topbar-h:     56px;
+}
+
+.dark {
+  --admin-bg:           #0F0F0E;
+  --admin-surface:      #151617;
+  --admin-surface-2:    #242320;
+  --admin-border:       #2E2C29;
+  --admin-text:         #F0EDE8;
+  --admin-text-soft:    #9B9590;
+  --admin-text-muted:   #62666D;
+  --admin-accent:       #F0EDE8;
+  --admin-accent-text:  #151617;
+  /* State — dark mode */
+  --admin-green:        #4ADE80;
+  --admin-red:          #F87171;
+  --admin-amber:        #FBB040;
+  --admin-green-bg:     rgba(74, 222, 128, 0.08);
+  --admin-red-bg:       rgba(248, 113, 113, 0.08);
+  --admin-amber-bg:     rgba(251, 176, 64, 0.08);
+}
+
+/* ─── Admin root: scope Inter as the only font (no JetBrains Mono) ───────── */
+.admin-root {
+  --font-mono: "Inter", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  font-family: "Inter", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+}
+
 @layer utilities {
   .eyebrow {
     font-family: var(--mono);

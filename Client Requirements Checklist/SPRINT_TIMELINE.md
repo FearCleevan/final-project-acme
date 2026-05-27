@@ -158,3 +158,34 @@ These items are **blocked on the client** and will delay the schedule if not com
 ---
 
 *Timeline created: 2026-05-26 · Developer: PPlazan*
+
+---
+
+## Phase 2 — Post-Launch Features
+**July 2026 and beyond**
+
+Features planned after the store is live and stable. These are not part of the launch scope.
+
+---
+
+### Custom Admin Dashboard
+**Estimated effort:** 1–2 weeks
+
+Build a protected `/admin` route inside this Next.js codebase that connects to the **Shopify Admin API** — giving Scott (and PPlazan) a personalized dashboard without needing to browse Shopify admin directly.
+
+**Planned features:**
+- [ ] Order tracking — live order list, status, fulfillment
+- [ ] Revenue overview — daily/weekly/monthly charts
+- [ ] Inventory levels — stock counts per product
+- [ ] Add / edit products — form that writes directly to Shopify via Admin API
+- [ ] Customer list — name, email, order count
+- [ ] Protected login — password or token-gated, only accessible by owner
+
+**Technical notes:**
+- Uses Shopify **Admin API** (not Storefront API — separate token required)
+- Dashboard route protected via middleware or session token
+- Charts via a lightweight library (e.g. Recharts)
+- Fully styled to match the Acme Lamp & Sign design system
+
+**Why post-launch:**
+Shopify admin already handles all of this reliably. Building a custom dashboard before launch would delay the go-live date. Once the store is live and Scott is comfortable, this becomes a high-value quality-of-life feature.
