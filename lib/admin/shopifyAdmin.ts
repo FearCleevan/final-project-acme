@@ -9,7 +9,7 @@ const GQL_URL = `https://${DOMAIN}/admin/api/${VERSION}/graphql.json`
 
 // ─── Core fetch ──────────────────────────────────────────────────────────────
 
-async function adminFetch<T>(query: string, variables?: Record<string, unknown>): Promise<T> {
+export async function adminFetch<T>(query: string, variables?: Record<string, unknown>): Promise<T> {
   const res = await fetch(GQL_URL, {
     method:  'POST',
     headers: {
@@ -65,6 +65,7 @@ interface ShopifyProductNode {
   collections: { edges: { node: { handle: string } }[] }
   variants: { edges: { node: ShopifyVariantNode }[] }
   metafields: { edges: MetafieldEdge[] } | null
+  category?: { id: string; name: string; fullName: string } | null
 }
 
 // ─── Shopify → AdminProduct ───────────────────────────────────────────────────
@@ -104,6 +105,7 @@ function toAdminProduct(p: ShopifyProductNode): AdminProduct {
     workshop:           metaValue(mf, 'workshop'),
     benchTester:        metaValue(mf, 'bench_tester'),
     benchTestDate:      metaValue(mf, 'bench_test_date'),
+    category:           p.category ? { id: p.category.id, name: p.category.fullName ?? p.category.name } : null,
   }
 }
 
@@ -113,6 +115,7 @@ const PRODUCT_FIELDS = `
   id title description vendor productType status tags
   images(first: 10) { edges { node { url } } }
   collections(first: 10) { edges { node { handle } } }
+  category { id name fullName }
   variants(first: 1) {
     edges { node {
       id price compareAtPrice sku inventoryQuantity inventoryPolicy
@@ -156,6 +159,7 @@ type ProductInput = {
   tags?:               string[]
   collectionsToJoin?:  string[]
   collectionsToLeave?: string[]
+  category?:           { id: string } | null
   stock?:              number
   variants?:           { price: string; compareAtPrice?: string; inventoryPolicy?: string }[]
   metafields?:         { namespace: string; key: string; value: string; type: string }[]
@@ -233,6 +237,8 @@ export async function createAdminProduct(input: ProductInput): Promise<AdminProd
     }
   }
 
+  await publishToAllChannels(created.id)
+
   const result = toAdminProduct(created)
 
   if (stock != null && stock >= 0) {
@@ -299,6 +305,10 @@ export async function updateAdminProduct(shopifyId: string, input: ProductInput)
     }
   }
 
+  if (productInput.status === 'ACTIVE') {
+    await publishToAllChannels(gid)
+  }
+
   const result = toAdminProduct(updated)
 
   if (stock != null && stock >= 0) {
@@ -318,6 +328,33 @@ export async function updateAdminProduct(shopifyId: string, input: ProductInput)
   }
 
   return result
+}
+
+// ─── Publications (Online Store channel) ─────────────────────────────────────
+
+async function publishToAllChannels(productGid: string): Promise<void> {
+  const pubData = await adminFetch<{ publications: { edges: { node: { id: string } }[] } }>(
+    `{ publications(first: 20) { edges { node { id } } } }`
+  )
+  const ids = pubData.publications.edges.map(e => e.node.id)
+  if (!ids.length) { console.warn('[publishToAllChannels] no publications found'); return }
+
+  for (const pubId of ids) {
+    try {
+      const data = await adminFetch<{ publishablePublish: { userErrors: { field: string; message: string }[] } }>(
+        `mutation Publish($id: ID!, $pubId: ID!) {
+          publishablePublish(id: $id, input: [{ publicationId: $pubId }]) {
+            userErrors { field message }
+          }
+        }`,
+        { id: productGid, pubId }
+      )
+      const errs = data.publishablePublish?.userErrors
+      if (errs?.length) console.warn(`[publishToAllChannels] ${pubId}: ${errs[0].message}`)
+    } catch (e) {
+      console.warn(`[publishToAllChannels] ${pubId}: ${String(e)}`)
+    }
+  }
 }
 
 // ─── Inventory ───────────────────────────────────────────────────────────────

@@ -41,7 +41,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
     const body = await req.json()
     const {
       title, shortDescription, fullDescription, price, compareAtPrice,
-      sku, stock, status, vendor, productType, tags, collections,
+      sku, stock, status, vendor, productType, tags, collections, category,
       material, colour, style, brand, vintage, burnerSize,
       fits, era, powerSource, condition, edition, workshop,
       benchTester, benchTestDate, patent, netWeight, sellWhenOutOfStock,
@@ -68,6 +68,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
       tags: Array.isArray(tags) ? tags : [],
       collectionsToJoin,
       collectionsToLeave,
+      category: category?.id ? { id: category.id } : null,
       stock: stock != null ? Number(stock) : undefined,
       variants: [
         {

@@ -100,6 +100,7 @@ export interface AdminProduct {
   workshop: string
   benchTester: string
   benchTestDate: string
+  category: { id: string; name: string } | null
 }
 
 export interface AdminCollection {

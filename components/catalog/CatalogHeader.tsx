@@ -18,10 +18,10 @@ export default function CatalogHeader() {
             The Full Catalog.
           </h1>
         </div>
-        <p className="font-sans text-[17px] text-ink-soft leading-relaxed max-w-[44ch]">
+        {/* <p className="font-sans text-[17px] text-ink-soft leading-relaxed max-w-[44ch]">
           Filter by burner size, material, or collection. Every piece has been hand-numbered,
           bench-tested, and packed in straw — there is no second batch.
-        </p>
+        </p> */}
       </div>
     </div>
   )

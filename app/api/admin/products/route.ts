@@ -8,6 +8,7 @@ import {
   getAdminProducts,
   createAdminProduct,
   collectionHandlesToGids,
+  uploadProductImage,
 } from '@/lib/admin/shopifyAdmin'
 
 async function requireAuth() {
@@ -36,7 +37,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const {
       title, shortDescription, fullDescription, price, compareAtPrice,
-      sku, stock, status, vendor, productType, tags, collections,
+      sku, stock, status, vendor, productType, tags, collections, category,
       material, colour, style, brand, vintage, burnerSize,
       fits, era, powerSource, condition, edition, workshop,
       benchTester, benchTestDate, patent, netWeight, sellWhenOutOfStock,
@@ -54,6 +55,7 @@ export async function POST(req: NextRequest) {
       status: status === 'active' ? 'ACTIVE' : 'DRAFT',
       tags: Array.isArray(tags) ? tags : [],
       collectionsToJoin: collectionGids,
+      category: category?.id ? { id: category.id } : null,
       stock: stock != null ? Number(stock) : undefined,
       variants: [
         {
@@ -84,6 +86,11 @@ export async function POST(req: NextRequest) {
         { namespace: 'acme', key: 'bench_test_date',   value: benchTestDate ?? '',   type: 'single_line_text_field' },
       ].filter(m => m.value !== ''),
     })
+
+    const images: string[] = Array.isArray(body.images) ? body.images : []
+    if (images.length) {
+      await Promise.all(images.map(url => uploadProductImage(product.id, url)))
+    }
 
     revalidateTag('products', 'layout')
     return NextResponse.json(product, { status: 201 })

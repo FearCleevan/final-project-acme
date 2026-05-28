@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { BiPlus, BiPencil, BiTrash, BiExport, BiImport, BiX, BiFile, BiCheck } from 'react-icons/bi'
+import { BiPlus, BiPencil, BiTrash, BiExport, BiImport, BiX, BiFile, BiCheck, BiRefresh } from 'react-icons/bi'
 import { formatCurrency, collectionLabel } from '@/lib/admin/utils'
 import { AdminCollection } from '@/lib/admin/types'
 import Toast, { ToastType } from '@/components/admin/shared/Toast'
@@ -78,6 +78,25 @@ export default function ProductsPage() {
   const [page,         setPage]         = useState(1)
   const [selectedIds,  setSelectedIds]  = useState<Set<string>>(new Set())
   const [deleteTarget, setDeleteTarget] = useState<string[] | null>(null)
+  const [syncing,      setSyncing]      = useState(false)
+
+  async function handleSyncPublish() {
+    setSyncing(true)
+    try {
+      const res = await fetch('/api/admin/products/sync-publish', { method: 'POST' })
+      const data = await res.json()
+      if (res.ok) {
+        setToast({ message: `Published ${data.published} of ${data.total} products to Online Store.`, type: 'success' })
+        await loadProducts()
+      } else {
+        setToast({ message: data.error ?? 'Sync failed.', type: 'error' })
+      }
+    } catch {
+      setToast({ message: 'Sync failed. Please try again.', type: 'error' })
+    } finally {
+      setSyncing(false)
+    }
+  }
 
   async function loadProducts() {
     setLoading(true)
@@ -281,6 +300,15 @@ export default function ProductsPage() {
         subtitle={loading ? 'Loading…' : `${products.length} products`}
         actions={
           <div className="flex items-center gap-2">
+            <button
+              onClick={handleSyncPublish}
+              disabled={syncing}
+              title="Publish all active products to the Online Store channel"
+              className="flex items-center gap-1.5 h-8 px-3 text-[12px] text-(--admin-text-soft) bg-(--admin-surface-2) border border-(--admin-border) rounded-md hover:bg-(--admin-border) transition-colors disabled:opacity-60"
+            >
+              <BiRefresh size={14} className={syncing ? 'animate-spin' : ''} />
+              <span className="hidden sm:inline">{syncing ? 'Syncing…' : 'Sync to Store'}</span>
+            </button>
             <button
               onClick={() => exportProductsCSV(filtered)}
               className="flex items-center gap-1.5 h-8 px-3 text-[12px] text-(--admin-text-soft) bg-(--admin-surface-2) border border-(--admin-border) rounded-md hover:bg-(--admin-border) transition-colors"

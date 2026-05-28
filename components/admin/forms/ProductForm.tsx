@@ -8,6 +8,7 @@ import { slugify } from '@/lib/admin/utils'
 import SectionCard from '@/components/admin/shared/SectionCard'
 import ImageUploader from './ImageUploader'
 import CollectionSelect from './CollectionSelect'
+import CategorySelect from './CategorySelect'
 import MetafieldFields from './MetafieldFields'
 import { cn } from '@/lib/utils'
 
@@ -24,7 +25,7 @@ const BLANK: Partial<AdminProduct> = {
   title: '', shortDescription: '', fullDescription: '',
   price: 0, compareAtPrice: null, sku: '', patent: '',
   stock: 0, status: 'active', collections: [], tags: [],
-  vendor: 'Acme Lamp & Sign Co.', images: [],
+  vendor: 'Acme Lamp & Sign Co.', images: [], category: null,
   sellWhenOutOfStock: false, netWeight: '', material: '',
   colour: '', style: '', brand: '', vintage: '', burnerSize: '',
   fits: '', era: '', powerSource: '', productType: '',
@@ -48,6 +49,7 @@ export default function ProductForm({ defaultValues, onSave, onDiscard, hideFoot
 
   const [images,       setImages]       = useState<string[]>(defaultValues?.images ?? [])
   const [collections,  setCollections]  = useState<string[]>(defaultValues?.collections ?? [])
+  const [category,     setCategory]     = useState<{ id: string; name: string } | null>(defaultValues?.category ?? null)
   const [tagsInput,    setTagsInput]    = useState((defaultValues?.tags ?? []).join(', '))
   const [seoHandle,    setSeoHandle]    = useState(slugify(defaultValues?.title ?? ''))
   const [handleLocked, setHandleLocked] = useState(false)
@@ -69,6 +71,7 @@ export default function ProductForm({ defaultValues, onSave, onDiscard, hideFoot
       id: defaultValues?.id ?? `prod-${Date.now()}`,
       images,
       collections,
+      category,
       tags,
       compareAtPrice: data.compareAtPrice || null,
     })
@@ -276,6 +279,11 @@ export default function ProductForm({ defaultValues, onSave, onDiscard, hideFoot
               <div>
                 <label className={labelCls}>Vendor</label>
                 <input {...register('vendor')} className={inputCls} />
+              </div>
+
+              <div>
+                <label className={labelCls}>Category</label>
+                <CategorySelect value={category} onChange={setCategory} />
               </div>
 
               <div>
