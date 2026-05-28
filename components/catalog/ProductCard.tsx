@@ -22,7 +22,7 @@ const ProductCard = memo(function ProductCard({
   const addItem = useCrateStore(s => s.addItem)
   const [added, setAdded] = useState(false)
 
-  const isDark = product.category === 'signs'
+  const isDark = (product.category as string) === 'signs'
 
   function handleAddToCrate(e: React.MouseEvent) {
     e.preventDefault()

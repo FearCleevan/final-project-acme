@@ -28,7 +28,7 @@ export default function OrderSummary() {
                   src={item.product.images[0]}
                   alt={item.product.name}
                   aspectRatio="4/5"
-                  dark={item.product.category === 'signs'}
+                  dark={(item.product.category as string) === 'signs'}
                   className="rounded-sm"
                 />
               </div>

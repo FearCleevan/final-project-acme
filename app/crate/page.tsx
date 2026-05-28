@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { useCrateStore } from '@/store/crateStore'
 import { formatPrice } from '@/lib/utils'
@@ -16,9 +16,7 @@ export default function CratePage() {
   const items = useCrateStore(s => s.items)
   const total = useCrateStore(s => s.total())
   const clearCrate = useCrateStore(s => s.clearCrate)
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => { setMounted(true) }, [])
+  const mounted = useSyncExternalStore(() => () => {}, () => true, () => false)
 
   if (!mounted) return null
 
@@ -30,7 +28,7 @@ export default function CratePage() {
   if (items.length === 0) {
     return (
       <div className="bg-parchment min-h-screen px-6 py-20">
-        <div className="max-w-[680px] mx-auto text-center">
+        <div className="max-w-170 mx-auto text-center">
           <div className="w-20 h-20 rounded-full border-2 border-ink-rule flex items-center justify-center mx-auto mb-8">
             <span className="text-[32px] text-ink-soft font-mono">Ø</span>
           </div>
@@ -91,7 +89,7 @@ export default function CratePage() {
                       src={item.product.images[0]}
                       alt={item.product.name}
                       aspectRatio="4/5"
-                      dark={item.product.category === 'signs'}
+                      dark={(item.product.category as string) === 'signs'}
                       className="rounded-sm hover:opacity-90 transition-opacity"
                     />
                   </Link>
