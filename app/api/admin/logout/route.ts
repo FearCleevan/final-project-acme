@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
 import { getIronSession } from 'iron-session'
 import { sessionOptions } from '@/lib/admin/session'
 import type { AdminSession } from '@/lib/admin/auth'
 
-export async function POST(req: NextRequest) {
-  const res = NextResponse.json({ ok: true })
-  const session = await getIronSession<AdminSession>(req, res, sessionOptions)
+export async function POST() {
+  const session = await getIronSession<AdminSession>(await cookies(), sessionOptions)
   session.destroy()
-  return res
+  return NextResponse.json({ ok: true })
 }

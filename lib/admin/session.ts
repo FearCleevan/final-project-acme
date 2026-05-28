@@ -1,18 +1,12 @@
-import type { IronSessionOptions } from 'iron-session'
-import type { AdminSession } from './auth'
+import type { SessionOptions } from 'iron-session'
 
-export const sessionOptions: IronSessionOptions = {
+export const sessionOptions: SessionOptions = {
   cookieName: 'acme_admin_session',
   password: process.env.SESSION_SECRET ?? 'fallback-dev-secret-replace-in-production',
   cookieOptions: {
-    // Plan 2: set secure: true once you're on HTTPS (Vercel / production)
     secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,     // JS in the browser cannot read this cookie
+    httpOnly: true,
     sameSite: 'lax',
-    maxAge: 60 * 60 * 8, // 8-hour session
+    maxAge: 60 * 60 * 8,
   },
-}
-
-declare module 'iron-session' {
-  interface IronSessionData extends AdminSession {}
 }

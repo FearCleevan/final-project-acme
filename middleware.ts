@@ -1,23 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getIronSession } from 'iron-session'
+import { unsealData } from 'iron-session'
 import { sessionOptions } from '@/lib/admin/session'
 import type { AdminSession } from '@/lib/admin/auth'
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
-  // Login page is always public
   if (pathname === '/admin/login') return NextResponse.next()
 
-  const res = NextResponse.next()
-  const session = await getIronSession<AdminSession>(req, res, sessionOptions)
+  const cookieValue = req.cookies.get(sessionOptions.cookieName as string)?.value
 
-  if (!session.isLoggedIn) {
-    const loginUrl = new URL('/admin/login', req.url)
-    return NextResponse.redirect(loginUrl)
+  if (!cookieValue) {
+    return NextResponse.redirect(new URL('/admin/login', req.url))
   }
 
-  return res
+  try {
+    const session = await unsealData<AdminSession>(cookieValue, {
+      password: sessionOptions.password as string,
+    })
+    if (!session.isLoggedIn) {
+      return NextResponse.redirect(new URL('/admin/login', req.url))
+    }
+  } catch {
+    return NextResponse.redirect(new URL('/admin/login', req.url))
+  }
+
+  return NextResponse.next()
 }
 
 export const config = {
