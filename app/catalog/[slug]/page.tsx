@@ -22,7 +22,7 @@ export default async function ProductPage({ params }: Props) {
   const product = await getProductByHandle(slug)
   if (!product) notFound()
 
-  const isDark = product.category === 'signs'
+  const isDark = (product.category as string) === 'signs'
 
   return (
     <div className="bg-parchment min-h-screen">
