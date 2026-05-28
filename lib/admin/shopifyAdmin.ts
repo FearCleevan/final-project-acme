@@ -206,7 +206,7 @@ export async function createAdminProduct(input: ProductInput): Promise<AdminProd
   }
   const created = data.productCreate.product
 
-  // Update the default variant: price, compareAt, inventory policy
+  // Update the default variant: price, compareAt, inventory policy, enable tracking
   if (variants?.length) {
     const variantNode = created.variants?.edges?.[0]?.node
     if (variantNode) {
@@ -223,6 +223,7 @@ export async function createAdminProduct(input: ProductInput): Promise<AdminProd
             price: variants[0].price,
             compareAtPrice: variants[0].compareAtPrice,
             inventoryPolicy: variants[0].inventoryPolicy,
+            inventoryItem: { tracked: true },
           }],
         }
       )
@@ -271,7 +272,7 @@ export async function updateAdminProduct(shopifyId: string, input: ProductInput)
   }
   const updated = data.productUpdate.product
 
-  // Update variant: price, compareAt, inventory policy
+  // Update variant: price, compareAt, inventory policy, enable tracking
   if (variants?.length) {
     const variantNode = updated.variants?.edges?.[0]?.node
     if (variantNode) {
@@ -288,6 +289,7 @@ export async function updateAdminProduct(shopifyId: string, input: ProductInput)
             price: variants[0].price,
             compareAtPrice: variants[0].compareAtPrice,
             inventoryPolicy: variants[0].inventoryPolicy,
+            inventoryItem: { tracked: true },
           }],
         }
       )
@@ -339,25 +341,40 @@ export async function setInventoryQuantity(
   const locationId = await getPrimaryLocationId()
   if (!locationId) throw new Error('No Shopify location found')
 
-  // Ensure inventory tracking is enabled on this item
-  const trackData = await adminFetch<{ inventoryItemUpdate: { userErrors: { field: string; message: string }[] } }>(
-    `mutation EnableTracking($id: ID!, $input: InventoryItemUpdateInput!) {
-      inventoryItemUpdate(id: $id, input: $input) {
-        inventoryItem { id tracked }
-        userErrors { field message }
+  // Fetch current on_hand at our location (changeFromQuantity is required in 2026-04)
+  const currentData = await adminFetch<{
+    inventoryItem: {
+      inventoryLevels: {
+        edges: { node: { location: { id: string }; quantities: { name: string; quantity: number }[] } }[]
+      }
+    } | null
+  }>(
+    `query GetOnHand($id: ID!) {
+      inventoryItem(id: $id) {
+        inventoryLevels(first: 10) {
+          edges {
+            node {
+              location { id }
+              quantities(names: ["on_hand"]) { name quantity }
+            }
+          }
+        }
       }
     }`,
-    { id: inventoryItemId, input: { tracked: true } }
+    { id: inventoryItemId }
   )
-  if (trackData.inventoryItemUpdate.userErrors.length) {
-    console.error('[setInventoryQuantity] tracking error:', trackData.inventoryItemUpdate.userErrors[0].message)
-  }
+
+  const levels = currentData.inventoryItem?.inventoryLevels?.edges ?? []
+  const level  = levels.find(e => e.node.location.id === locationId)
+  const changeFromQuantity = level?.node?.quantities?.find(q => q.name === 'on_hand')?.quantity ?? 0
+
+  const idempotencyKey = `inv-${inventoryItemId.split('/').pop()}-${Date.now()}`
 
   const data = await adminFetch<{
     inventorySetQuantities: { userErrors: { field: string; message: string }[] }
   }>(
     `mutation SetInventory($input: InventorySetQuantitiesInput!) {
-      inventorySetQuantities(input: $input) {
+      inventorySetQuantities(input: $input) @idempotent(key: "${idempotencyKey}") {
         userErrors { field message }
       }
     }`,
@@ -365,8 +382,7 @@ export async function setInventoryQuantity(
       input: {
         name: 'on_hand',
         reason: 'correction',
-        ignoreCompareQuantity: true,
-        quantities: [{ inventoryItemId, locationId, quantity }],
+        quantities: [{ inventoryItemId, locationId, quantity, changeFromQuantity }],
       },
     }
   )
