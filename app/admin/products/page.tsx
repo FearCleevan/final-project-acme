@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { BiPlus, BiPencil, BiTrash, BiExport, BiImport, BiX, BiFile, BiCheck } from 'react-icons/bi'
-import { mockAdminProducts, mockCollections } from '@/lib/admin/mockData'
 import { formatCurrency, collectionLabel } from '@/lib/admin/utils'
+import { AdminCollection } from '@/lib/admin/types'
+import Toast, { ToastType } from '@/components/admin/shared/Toast'
 import { ProductStatus, AdminProduct } from '@/lib/admin/types'
 import PageHeader from '@/components/admin/shared/PageHeader'
 import SectionCard from '@/components/admin/shared/SectionCard'
@@ -68,12 +69,31 @@ interface ParsedRow { [key: string]: string }
 export default function ProductsPage() {
   const router = useRouter()
 
+  const [products,     setProducts]     = useState<AdminProduct[]>([])
+  const [collections,  setCollections]  = useState<AdminCollection[]>([])
+  const [loading,      setLoading]      = useState(true)
   const [tab,          setTab]          = useState<TabFilter>('all')
   const [collection,   setCollection]   = useState('all')
   const [search,       setSearch]       = useState('')
   const [page,         setPage]         = useState(1)
   const [selectedIds,  setSelectedIds]  = useState<Set<string>>(new Set())
   const [deleteTarget, setDeleteTarget] = useState<string[] | null>(null)
+
+  async function loadProducts() {
+    setLoading(true)
+    try {
+      const [pRes, cRes] = await Promise.all([
+        fetch('/api/admin/products'),
+        fetch('/api/admin/collections'),
+      ])
+      if (pRes.ok) setProducts(await pRes.json())
+      if (cRes.ok) setCollections(await cRes.json())
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { loadProducts() }, [])
 
   // Import modal state
   const [showImport,   setShowImport]   = useState(false)
@@ -86,10 +106,11 @@ export default function ProductsPage() {
   const [addModalOpen,   setAddModalOpen]   = useState(false)
   const [addSaving,      setAddSaving]      = useState(false)
   const [addSuccess,     setAddSuccess]     = useState(false)
-  const [addFormKey,     setAddFormKey]     = useState(0)  // increment to reset form
+  const [addFormKey,     setAddFormKey]     = useState(0)
+  const [toast,          setToast]          = useState<{ message: string; type: ToastType } | null>(null)  // increment to reset form
 
   const filtered = useMemo(() => {
-    let list = mockAdminProducts
+    let list = products
     if (tab !== 'all')        list = list.filter(p => p.status === tab)
     if (collection !== 'all') list = list.filter(p => p.collections.includes(collection))
     if (search.trim()) {
@@ -99,13 +120,13 @@ export default function ProductsPage() {
       )
     }
     return list
-  }, [tab, collection, search])
+  }, [tab, collection, search, products])
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
   const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   const tabCount = (v: TabFilter) =>
-    v === 'all' ? mockAdminProducts.length : mockAdminProducts.filter(p => p.status === v).length
+    v === 'all' ? products.length : products.filter(p => p.status === v).length
 
   const handleTabChange = (v: TabFilter) => { setTab(v); setPage(1) }
   const handleSearch    = (v: string)    => { setSearch(v); setPage(1) }
@@ -137,17 +158,29 @@ export default function ProductsPage() {
     setImportDone(true)
   }
 
-  function handleAddSave(_data: AdminProduct) {
+  async function handleAddSave(data: AdminProduct) {
     setAddSaving(true)
-    setTimeout(() => {
-      setAddSaving(false)
+    try {
+      const res = await fetch('/api/admin/products', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(data),
+      })
+      if (!res.ok) throw new Error(await res.text())
       setAddSuccess(true)
+      setToast({ message: 'Product added to Shopify.', type: 'success' })
+      await loadProducts()
       setTimeout(() => {
         setAddSuccess(false)
         setAddModalOpen(false)
-        setAddFormKey(k => k + 1) // reset form after successful save
+        setAddFormKey(k => k + 1)
       }, 1200)
-    }, 700)
+    } catch (err) {
+      console.error('Failed to save product:', err)
+      setToast({ message: 'Failed to add product. Please try again.', type: 'error' })
+    } finally {
+      setAddSaving(false)
+    }
   }
 
   function handleAddDiscard() {
@@ -245,7 +278,7 @@ export default function ProductsPage() {
     <div>
       <PageHeader
         title="Products"
-        subtitle={`${mockAdminProducts.length} products`}
+        subtitle={loading ? 'Loading…' : `${products.length} products`}
         actions={
           <div className="flex items-center gap-2">
             <button
@@ -307,7 +340,7 @@ export default function ProductsPage() {
               className="w-40 sm:w-auto shrink-0"
               options={[
                 { value: 'all', label: 'All collections' },
-                ...mockCollections.map(c => ({ value: c.handle, label: c.title })),
+                ...collections.map(c => ({ value: c.handle, label: c.title })),
               ]}
             />
             <SearchInput
@@ -338,8 +371,28 @@ export default function ProductsPage() {
           </div>
         )}
 
+        {/* Loading skeleton */}
+        {loading && (
+          <div className="divide-y divide-(--admin-border)">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3 px-5 py-3">
+                <div className="w-4 h-4 rounded bg-(--admin-border) animate-pulse shrink-0" />
+                <div className="w-10 h-10 rounded-md bg-(--admin-border) animate-pulse shrink-0" />
+                <div className="flex-1 space-y-1.5">
+                  <div className="h-3 w-48 bg-(--admin-border) rounded animate-pulse" />
+                  <div className="h-2.5 w-20 bg-(--admin-border) rounded animate-pulse" />
+                </div>
+                <div className="h-3 w-24 bg-(--admin-border) rounded animate-pulse hidden sm:block" />
+                <div className="h-3 w-14 bg-(--admin-border) rounded animate-pulse hidden sm:block" />
+                <div className="h-3 w-10 bg-(--admin-border) rounded animate-pulse hidden sm:block" />
+                <div className="h-5 w-14 bg-(--admin-border) rounded-full animate-pulse hidden sm:block" />
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Mobile card list */}
-        <div className="sm:hidden divide-y divide-(--admin-border)">
+        {!loading && <div className="sm:hidden divide-y divide-(--admin-border)">
           {paginated.length === 0 ? (
             <div className="py-16 text-center">
               <p className="text-[13px] text-(--admin-text-soft)">No products found</p>
@@ -367,10 +420,10 @@ export default function ProductsPage() {
               </div>
             </div>
           ))}
-        </div>
+        </div>}
 
         {/* Desktop/tablet table */}
-        <div className="hidden sm:block">
+        {!loading && <div className="hidden sm:block">
           <DataTable
             columns={COLUMNS as unknown as Column<Record<string, unknown>>[]}
             data={paginated as unknown as Record<string, unknown>[]}
@@ -382,7 +435,7 @@ export default function ProductsPage() {
             emptyMessage="No products found"
             emptyDescription="Try adjusting your filters or add a new product."
           />
-        </div>
+        </div>}
 
         <div className="px-5 pb-4">
           <Pagination
@@ -403,7 +456,17 @@ export default function ProductsPage() {
           message="This action cannot be undone. In Plan 1 this only affects your current session."
           confirmLabel="Delete"
           dangerous
-          onConfirm={() => { setDeleteTarget(null); setSelectedIds(new Set()) }}
+          onConfirm={async () => {
+            await Promise.all(
+              (deleteTarget ?? []).map(id =>
+                fetch(`/api/admin/products/${id}`, { method: 'DELETE' })
+              )
+            )
+            setDeleteTarget(null)
+            setSelectedIds(new Set())
+            await loadProducts()
+            setToast({ message: 'Product deleted from Shopify.', type: 'success' })
+          }}
           onCancel={() => setDeleteTarget(null)}
         />
       )}
@@ -593,6 +656,14 @@ export default function ProductsPage() {
           </div>
         </div>
       </div>
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   )
 }

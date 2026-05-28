@@ -1,7 +1,7 @@
 'use client'
 
-import { useRef } from 'react'
-import { BiImageAdd, BiX } from 'react-icons/bi'
+import { useRef, useState } from 'react'
+import { BiImageAdd, BiX, BiLoaderAlt } from 'react-icons/bi'
 
 interface Props {
   images: string[]
@@ -9,12 +9,35 @@ interface Props {
 }
 
 export default function ImageUploader({ images, onChange }: Props) {
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef               = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
+  const [error,     setError]     = useState<string | null>(null)
 
-  function handleFiles(files: FileList | null) {
-    if (!files) return
-    const urls = Array.from(files).map(f => URL.createObjectURL(f))
-    onChange([...images, ...urls])
+  async function handleFiles(files: FileList | null) {
+    if (!files || files.length === 0) return
+    setError(null)
+    setUploading(true)
+
+    try {
+      const uploaded: string[] = []
+      for (const file of Array.from(files)) {
+        const form = new FormData()
+        form.append('file', file)
+        const res = await fetch('/api/admin/products/upload', { method: 'POST', body: form })
+        if (!res.ok) {
+          const data = await res.json()
+          throw new Error(data.error ?? 'Upload failed')
+        }
+        const { url } = await res.json()
+        uploaded.push(url)
+      }
+      onChange([...images, ...uploaded])
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Upload failed')
+    } finally {
+      setUploading(false)
+      if (inputRef.current) inputRef.current.value = ''
+    }
   }
 
   function handleDrop(e: React.DragEvent) {
@@ -31,14 +54,23 @@ export default function ImageUploader({ images, onChange }: Props) {
       <div
         onDrop={handleDrop}
         onDragOver={e => e.preventDefault()}
-        onClick={() => inputRef.current?.click()}
+        onClick={() => !uploading && inputRef.current?.click()}
         className="border-2 border-dashed border-(--admin-border) rounded-md p-6 text-center cursor-pointer hover:border-(--admin-accent)/30 transition-colors"
       >
-        <BiImageAdd size={22} className="mx-auto mb-2 text-(--admin-text-muted)" />
-        <p className="text-[12px] text-(--admin-text-soft)">Drop images here or click to upload</p>
-        <p className="text-[10px] text-(--admin-text-muted) mt-0.5">
-          Plan 1: preview only — image upload syncs to Shopify in Plan 2
-        </p>
+        {uploading ? (
+          <>
+            <BiLoaderAlt size={22} className="mx-auto mb-2 text-(--admin-accent) animate-spin" />
+            <p className="text-[12px] text-(--admin-text-soft)">Uploading to Shopify…</p>
+          </>
+        ) : (
+          <>
+            <BiImageAdd size={22} className="mx-auto mb-2 text-(--admin-text-muted)" />
+            <p className="text-[12px] text-(--admin-text-soft)">Drop images here or click to upload</p>
+            <p className="text-[10px] text-(--admin-text-muted) mt-0.5">
+              Images are uploaded directly to Shopify CDN
+            </p>
+          </>
+        )}
         <input
           ref={inputRef}
           type="file"
@@ -48,6 +80,10 @@ export default function ImageUploader({ images, onChange }: Props) {
           onChange={e => handleFiles(e.target.files)}
         />
       </div>
+
+      {error && (
+        <p className="text-[11px] text-(--admin-red) mt-2">{error}</p>
+      )}
 
       {images.length > 0 && (
         <div className="mt-3 grid grid-cols-5 gap-2">

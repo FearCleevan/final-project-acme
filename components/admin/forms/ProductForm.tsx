@@ -17,6 +17,7 @@ interface Props {
   onDiscard: () => void
   hideFooter?: boolean
   formId?: string
+  saving?: boolean
 }
 
 const BLANK: Partial<AdminProduct> = {
@@ -34,7 +35,7 @@ const inputCls = 'w-full h-9 px-3 text-[13px] text-(--admin-text) bg-(--admin-su
 const labelCls = 'block text-[12px] font-medium text-(--admin-text) mb-1.5'
 const errorCls = 'text-[11px] text-(--admin-red) mt-1'
 
-export default function ProductForm({ defaultValues, onSave, onDiscard, hideFooter, formId = 'product-form' }: Props) {
+export default function ProductForm({ defaultValues, onSave, onDiscard, hideFooter, formId = 'product-form', saving: externalSaving }: Props) {
   const merged = { ...BLANK, ...defaultValues }
 
   const {
@@ -50,7 +51,8 @@ export default function ProductForm({ defaultValues, onSave, onDiscard, hideFoot
   const [tagsInput,    setTagsInput]    = useState((defaultValues?.tags ?? []).join(', '))
   const [seoHandle,    setSeoHandle]    = useState(slugify(defaultValues?.title ?? ''))
   const [handleLocked, setHandleLocked] = useState(false)
-  const [saving,       setSaving]       = useState(false)
+  const [internalSaving, setInternalSaving] = useState(false)
+  const saving = externalSaving ?? internalSaving
 
   const title  = watch('title')
   const status = watch('status')
@@ -60,7 +62,7 @@ export default function ProductForm({ defaultValues, onSave, onDiscard, hideFoot
   }, [title, handleLocked])
 
   function onSubmit(data: AdminProduct) {
-    setSaving(true)
+    setInternalSaving(true)
     const tags = tagsInput.split(',').map(t => t.trim()).filter(Boolean)
     onSave({
       ...data,
@@ -320,10 +322,9 @@ export default function ProductForm({ defaultValues, onSave, onDiscard, hideFoot
       {/* Sticky footer — only when not inside a modal */}
       {!hideFooter && (
         <div
-          className="fixed bottom-0 right-0 z-10 border-t px-6 py-3 flex items-center justify-end gap-3"
+          className="fixed bottom-16 lg:bottom-0 left-0 right-0 lg:left-(--admin-sidebar-w) z-10 border-t px-6 py-3 flex items-center justify-end gap-3"
           style={{
-            left: 'var(--admin-sidebar-w)',
-            background: 'var(--admin-surface)',
+            background:  'var(--admin-surface)',
             borderColor: 'var(--admin-border)',
           }}
         >
@@ -339,7 +340,7 @@ export default function ProductForm({ defaultValues, onSave, onDiscard, hideFoot
             disabled={saving}
             className="h-9 px-5 text-[12px] font-medium bg-(--admin-accent) text-(--admin-accent-text) rounded-md hover:opacity-90 transition-opacity disabled:opacity-60"
           >
-            {saving ? 'Saving…' : 'Save product'}
+            {saving ? 'Saving…' : 'Save changes'}
           </button>
         </div>
       )}

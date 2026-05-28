@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { mockAdminProducts } from '@/lib/admin/mockData'
+import { AdminProduct } from '@/lib/admin/types'
 import PageHeader from '@/components/admin/shared/PageHeader'
 import SectionCard from '@/components/admin/shared/SectionCard'
 import SearchInput from '@/components/admin/shared/SearchInput'
@@ -35,17 +35,27 @@ function stockLabel(stock: number): string {
 export default function InventoryPage() {
   const router = useRouter()
 
-  const [stocks, setStocks] = useState<Record<string, number>>(
-    () => Object.fromEntries(mockAdminProducts.map(p => [p.id, p.stock]))
-  )
-  const [editing, setEditing] = useState<string | null>(null)
-  const [editVal, setEditVal] = useState('')
-  const [tab, setTab]         = useState<TabFilter>('all')
-  const [search, setSearch]   = useState('')
-  const inputRef              = useRef<HTMLInputElement>(null)
+  const [baseProducts, setBaseProducts] = useState<AdminProduct[]>([])
+  const [loading,      setLoading]      = useState(true)
+  const [stocks,       setStocks]       = useState<Record<string, number>>({})
+  const [editing,      setEditing]      = useState<string | null>(null)
+  const [editVal,      setEditVal]      = useState('')
+  const [tab,          setTab]          = useState<TabFilter>('all')
+  const [search,       setSearch]       = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    fetch('/api/admin/products')
+      .then(r => r.ok ? r.json() : [])
+      .then((data: AdminProduct[]) => {
+        setBaseProducts(data)
+        setStocks(Object.fromEntries(data.map(p => [p.id, p.stock])))
+      })
+      .finally(() => setLoading(false))
+  }, [])
 
   const products = useMemo(() => {
-    let list = mockAdminProducts.map(p => ({ ...p, stock: stocks[p.id] ?? p.stock }))
+    let list = baseProducts.map(p => ({ ...p, stock: stocks[p.id] ?? p.stock }))
     if (tab === 'low') list = list.filter(p => p.stock > 0 && p.stock <= LOW_STOCK_THRESHOLD)
     if (tab === 'out') list = list.filter(p => p.stock === 0)
     if (search.trim()) {
@@ -55,10 +65,10 @@ export default function InventoryPage() {
       )
     }
     return list
-  }, [stocks, tab, search])
+  }, [baseProducts, stocks, tab, search])
 
   const tabCount = (v: TabFilter) => {
-    const all = mockAdminProducts.map(p => ({ ...p, stock: stocks[p.id] ?? p.stock }))
+    const all = baseProducts.map(p => ({ ...p, stock: stocks[p.id] ?? p.stock }))
     if (v === 'all') return all.length
     if (v === 'low') return all.filter(p => p.stock > 0 && p.stock <= LOW_STOCK_THRESHOLD).length
     return all.filter(p => p.stock === 0).length
@@ -85,11 +95,11 @@ export default function InventoryPage() {
     <div>
       <PageHeader
         title="Inventory"
-        subtitle={`${mockAdminProducts.length} SKUs · ${lowCount} low · ${outCount} out of stock`}
+        subtitle={loading ? 'Loading…' : `${baseProducts.length} SKUs · ${lowCount} low · ${outCount} out of stock`}
       />
 
       {/* Summary chips */}
-      {(lowCount > 0 || outCount > 0) && (
+      {!loading && (lowCount > 0 || outCount > 0) && (
         <div className="flex flex-wrap gap-2 mb-4">
           {outCount > 0 && (
             <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-(--admin-red-bg) border border-(--admin-red)/20">
@@ -147,8 +157,24 @@ export default function InventoryPage() {
           </div>
         </div>
 
+        {/* Loading skeleton */}
+        {loading && (
+          <div className="divide-y divide-(--admin-border)">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-4 px-5 py-3">
+                <div className="flex-1 space-y-1.5">
+                  <div className="h-3 w-56 bg-(--admin-border) rounded animate-pulse" />
+                  <div className="h-2.5 w-20 bg-(--admin-border) rounded animate-pulse" />
+                </div>
+                <div className="h-5 w-16 bg-(--admin-border) rounded-full animate-pulse" />
+                <div className="h-3 w-8 bg-(--admin-border) rounded animate-pulse" />
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Mobile card list */}
-        <div className="sm:hidden divide-y divide-(--admin-border)">
+        {!loading && <div className="sm:hidden divide-y divide-(--admin-border)">
           {products.length === 0 ? (
             <div className="py-16 text-center">
               <p className="text-[13px] text-(--admin-text-soft)">No products found</p>
@@ -166,7 +192,6 @@ export default function InventoryPage() {
                     : { borderLeft: '3px solid transparent' }
               }
             >
-              {/* Top row: title + badge */}
               <div className="flex items-start justify-between gap-2 mb-1.5">
                 <button
                   onClick={() => router.push(`/admin/products/${p.id}`)}
@@ -176,8 +201,6 @@ export default function InventoryPage() {
                 </button>
                 <Badge label={stockLabel(p.stock)} variant={stockVariant(p.stock)} />
               </div>
-
-              {/* Bottom row: SKU + stock + adjust */}
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[11px] text-(--admin-text-muted)">{p.sku}</span>
                 <div className="flex items-center gap-2">
@@ -218,10 +241,10 @@ export default function InventoryPage() {
               </div>
             </div>
           ))}
-        </div>
+        </div>}
 
         {/* Desktop table */}
-        <div className="hidden sm:block overflow-x-auto">
+        {!loading && <div className="hidden sm:block overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-(--admin-border)">
@@ -310,12 +333,11 @@ export default function InventoryPage() {
               ))}
             </tbody>
           </table>
-        </div>
+        </div>}
 
-        {/* Footer note */}
         <div className="px-5 py-3 border-t border-(--admin-border)">
           <p className="text-[11px] text-(--admin-text-muted)">
-            Stock adjustments are session-only in Plan 1. Shopify sync in Plan 2.
+            Stock levels are pulled live from Shopify. Adjustments here are local — full inventory write API in next sprint.
           </p>
         </div>
       </SectionCard>

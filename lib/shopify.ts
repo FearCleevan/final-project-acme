@@ -76,7 +76,7 @@ export async function shopifyFetch<T>({
       body: query && variables
         ? JSON.stringify({ query, variables })
         : JSON.stringify({ query }),
-      next: { revalidate: 60 },
+      next: { revalidate: 60, tags: ['products'] },
     })
 
     return {
