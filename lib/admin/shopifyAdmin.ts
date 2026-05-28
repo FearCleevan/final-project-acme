@@ -1,3 +1,5 @@
+// lib/admin/shopify.ts
+
 import type { AdminProduct, ProductStatus } from './types'
 
 const DOMAIN  = process.env.SHOPIFY_STORE_DOMAIN!
@@ -31,16 +33,45 @@ const METAFIELD_FRAGMENT = `
   }
 `
 
-function metaValue(edges: { node: { namespace: string; key: string; value: string } }[], key: string): string {
+interface MetafieldEdge {
+  node: { namespace: string; key: string; value: string }
+}
+
+function metaValue(edges: MetafieldEdge[], key: string): string {
   return edges.find(e => e.node.namespace === 'acme' && e.node.key === key)?.node.value ?? ''
+}
+
+// ─── GraphQL Product Shape ───────────────────────────────────────────────────
+
+interface ShopifyVariantNode {
+  id: string
+  price: string
+  compareAtPrice?: string | null
+  sku: string
+  inventoryQuantity: number
+  inventoryPolicy: string
+  inventoryItem: { id: string } | null
+}
+
+interface ShopifyProductNode {
+  id: string
+  title: string
+  description: string
+  vendor: string
+  productType: string
+  status: string
+  tags: string[]
+  images: { edges: { node: { url: string } }[] }
+  collections: { edges: { node: { handle: string } }[] }
+  variants: { edges: { node: ShopifyVariantNode }[] }
+  metafields: { edges: MetafieldEdge[] } | null
 }
 
 // ─── Shopify → AdminProduct ───────────────────────────────────────────────────
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function toAdminProduct(p: any): AdminProduct {
+function toAdminProduct(p: ShopifyProductNode): AdminProduct {
   const mf = p.metafields?.edges ?? []
-  const variant = p.variants?.edges?.[0]?.node ?? {}
+  const variant = p.variants?.edges?.[0]?.node ?? ({} as Partial<ShopifyVariantNode>)
   return {
     id:                 p.id.replace('gid://shopify/Product/', ''),
     title:              p.title ?? '',
@@ -52,10 +83,10 @@ function toAdminProduct(p: any): AdminProduct {
     patent:             metaValue(mf, 'patent'),
     stock:              variant.inventoryQuantity ?? 0,
     status:             (p.status?.toLowerCase() ?? 'draft') as ProductStatus,
-    collections:        p.collections?.edges?.map((e: any) => e.node.handle) ?? [],
+    collections:        p.collections?.edges?.map(e => e.node.handle) ?? [],
     tags:               p.tags ?? [],
     vendor:             p.vendor ?? '',
-    images:             p.images?.edges?.map((e: any) => e.node.url) ?? [],
+    images:             p.images?.edges?.map(e => e.node.url) ?? [],
     sellWhenOutOfStock: variant.inventoryPolicy === 'CONTINUE',
     netWeight:          metaValue(mf, 'net_weight'),
     material:           metaValue(mf, 'material'),
@@ -84,7 +115,7 @@ const PRODUCT_FIELDS = `
   collections(first: 10) { edges { node { handle } } }
   variants(first: 1) {
     edges { node {
-      price compareAtPrice sku inventoryQuantity inventoryPolicy
+      id price compareAtPrice sku inventoryQuantity inventoryPolicy
       inventoryItem { id }
     } }
   }
@@ -92,7 +123,7 @@ const PRODUCT_FIELDS = `
 `
 
 export async function getAdminProducts(first = 50): Promise<AdminProduct[]> {
-  const data = await adminFetch<{ products: { edges: { node: unknown }[] } }>(
+  const data = await adminFetch<{ products: { edges: { node: ShopifyProductNode }[] } }>(
     `query GetProducts($first: Int!) {
       products(first: $first) {
         edges { node { ${PRODUCT_FIELDS} } }
@@ -105,7 +136,7 @@ export async function getAdminProducts(first = 50): Promise<AdminProduct[]> {
 
 export async function getAdminProductById(shopifyId: string): Promise<AdminProduct | null> {
   const gid = shopifyId.startsWith('gid://') ? shopifyId : `gid://shopify/Product/${shopifyId}`
-  const data = await adminFetch<{ product: unknown | null }>(
+  const data = await adminFetch<{ product: ShopifyProductNode | null }>(
     `query GetProduct($id: ID!) {
       product(id: $id) { ${PRODUCT_FIELDS} }
     }`,
@@ -117,19 +148,32 @@ export async function getAdminProductById(shopifyId: string): Promise<AdminProdu
 // ─── Mutations ────────────────────────────────────────────────────────────────
 
 type ProductInput = {
-  title:              string
-  descriptionHtml?:   string
-  vendor?:            string
-  productType?:       string
-  status?:            'ACTIVE' | 'DRAFT'
-  tags?:              string[]
-  collectionsToJoin?: string[]
-  stock?:             number
-  variants?:          { price: string; compareAtPrice?: string; sku?: string; inventoryManagement?: string; inventoryPolicy?: string }[]
-  metafields?:        { namespace: string; key: string; value: string; type: string }[]
+  title:               string
+  descriptionHtml?:    string
+  vendor?:             string
+  productType?:        string
+  status?:             'ACTIVE' | 'DRAFT'
+  tags?:               string[]
+  collectionsToJoin?:  string[]
+  collectionsToLeave?: string[]
+  stock?:              number
+  variants?:           { price: string; compareAtPrice?: string; inventoryPolicy?: string }[]
+  metafields?:         { namespace: string; key: string; value: string; type: string }[]
 }
 
-// Convert collection handles → Shopify GIDs
+export async function getProductCollectionGids(shopifyId: string): Promise<string[]> {
+  const gid = shopifyId.startsWith('gid://') ? shopifyId : `gid://shopify/Product/${shopifyId}`
+  const data = await adminFetch<{ product: { collections: { edges: { node: { id: string } }[] } } | null }>(
+    `query GetProductCollections($id: ID!) {
+      product(id: $id) {
+        collections(first: 50) { edges { node { id } } }
+      }
+    }`,
+    { id: gid }
+  )
+  return data.product?.collections.edges.map(e => e.node.id) ?? []
+}
+
 export async function collectionHandlesToGids(handles: string[]): Promise<string[]> {
   if (!handles.length) return []
   const data = await adminFetch<{ collections: { edges: { node: { id: string; handle: string } }[] } }>(
@@ -146,10 +190,9 @@ export async function collectionHandlesToGids(handles: string[]): Promise<string
 }
 
 export async function createAdminProduct(input: ProductInput): Promise<AdminProduct> {
-  // productCreate no longer accepts variants in 2024-07+ — strip them out
   const { variants, stock, ...productInput } = input
 
-  const data = await adminFetch<{ productCreate: { product: unknown; userErrors: { message: string }[] } }>(
+  const data = await adminFetch<{ productCreate: { product: ShopifyProductNode; userErrors: { message: string }[] } }>(
     `mutation CreateProduct($input: ProductInput!) {
       productCreate(input: $input) {
         product { ${PRODUCT_FIELDS} }
@@ -163,44 +206,46 @@ export async function createAdminProduct(input: ProductInput): Promise<AdminProd
   }
   const created = data.productCreate.product
 
-  // Update the default variant Shopify auto-creates with price/sku
+  // Update the default variant: price, compareAt, inventory policy
   if (variants?.length) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const productGid = (created as any).id
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const variantId  = (created as any).variants?.edges?.[0]?.node?.id
-    if (productGid && variantId) {
-      await adminFetch(
+    const variantNode = created.variants?.edges?.[0]?.node
+    if (variantNode) {
+      const variantData = await adminFetch<{ productVariantsBulkUpdate: { userErrors: { field: string; message: string }[] } }>(
         `mutation UpdateVariants($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
           productVariantsBulkUpdate(productId: $productId, variants: $variants) {
             userErrors { field message }
           }
         }`,
         {
-          productId: productGid,
-          variants: variants.map(v => ({
-            id: variantId,
-            price: v.price,
-            compareAtPrice: v.compareAtPrice,
-            sku: v.sku,
-            inventoryPolicy: v.inventoryPolicy,
-          })),
+          productId: created.id,
+          variants: [{
+            id: variantNode.id,
+            price: variants[0].price,
+            compareAtPrice: variants[0].compareAtPrice,
+            inventoryPolicy: variants[0].inventoryPolicy,
+          }],
         }
       )
+      if (variantData.productVariantsBulkUpdate.userErrors.length) {
+        console.error('[createAdminProduct] variant error:', variantData.productVariantsBulkUpdate.userErrors[0].message)
+      }
     }
   }
 
   const result = toAdminProduct(created)
 
   if (stock != null && stock >= 0) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const inventoryItemId = (created as any).variants?.edges?.[0]?.node?.inventoryItem?.id
+    const inventoryItemId = created.variants?.edges?.[0]?.node?.inventoryItem?.id
+    console.log('[createAdminProduct] inventoryItemId:', inventoryItemId, 'stock:', stock)
     if (inventoryItemId) {
       try {
         await setInventoryQuantity(inventoryItemId, stock)
+        console.log('[createAdminProduct] inventory set OK')
       } catch (e) {
         console.error('[createAdminProduct] inventory error:', String(e))
       }
+    } else {
+      console.warn('[createAdminProduct] no inventoryItemId — skipping stock update')
     }
     result.stock = stock
   }
@@ -210,11 +255,9 @@ export async function createAdminProduct(input: ProductInput): Promise<AdminProd
 
 export async function updateAdminProduct(shopifyId: string, input: ProductInput): Promise<AdminProduct> {
   const gid = shopifyId.startsWith('gid://') ? shopifyId : `gid://shopify/Product/${shopifyId}`
-
-  // productUpdate no longer accepts variants in 2024-07+ — strip them out
   const { variants, stock, ...productInput } = input
 
-  const data = await adminFetch<{ productUpdate: { product: unknown; userErrors: { message: string }[] } }>(
+  const data = await adminFetch<{ productUpdate: { product: ShopifyProductNode; userErrors: { message: string }[] } }>(
     `mutation UpdateProduct($input: ProductInput!) {
       productUpdate(input: $input) {
         product { ${PRODUCT_FIELDS} }
@@ -228,12 +271,11 @@ export async function updateAdminProduct(shopifyId: string, input: ProductInput)
   }
   const updated = data.productUpdate.product
 
-  // Update variant (price, sku, etc.) separately if provided
+  // Update variant: price, compareAt, inventory policy
   if (variants?.length) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const variantId = (updated as any).variants?.edges?.[0]?.node?.id
-    if (variantId) {
-      await adminFetch(
+    const variantNode = updated.variants?.edges?.[0]?.node
+    if (variantNode) {
+      const variantData = await adminFetch<{ productVariantsBulkUpdate: { userErrors: { field: string; message: string }[] } }>(
         `mutation UpdateVariants($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
           productVariantsBulkUpdate(productId: $productId, variants: $variants) {
             userErrors { field message }
@@ -241,29 +283,34 @@ export async function updateAdminProduct(shopifyId: string, input: ProductInput)
         }`,
         {
           productId: gid,
-          variants: variants.map(v => ({
-            id: variantId,
-            price: v.price,
-            compareAtPrice: v.compareAtPrice,
-            sku: v.sku,
-            inventoryPolicy: v.inventoryPolicy,
-          })),
+          variants: [{
+            id: variantNode.id,
+            price: variants[0].price,
+            compareAtPrice: variants[0].compareAtPrice,
+            inventoryPolicy: variants[0].inventoryPolicy,
+          }],
         }
       )
+      if (variantData.productVariantsBulkUpdate.userErrors.length) {
+        console.error('[updateAdminProduct] variant error:', variantData.productVariantsBulkUpdate.userErrors[0].message)
+      }
     }
   }
 
   const result = toAdminProduct(updated)
 
   if (stock != null && stock >= 0) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const inventoryItemId = (updated as any).variants?.edges?.[0]?.node?.inventoryItem?.id
+    const inventoryItemId = updated.variants?.edges?.[0]?.node?.inventoryItem?.id
+    console.log('[updateAdminProduct] inventoryItemId:', inventoryItemId, 'stock:', stock)
     if (inventoryItemId) {
       try {
         await setInventoryQuantity(inventoryItemId, stock)
+        console.log('[updateAdminProduct] inventory set OK')
       } catch (e) {
         console.error('[updateAdminProduct] inventory error:', String(e))
       }
+    } else {
+      console.warn('[updateAdminProduct] no inventoryItemId — skipping stock update')
     }
     result.stock = stock
   }
@@ -292,23 +339,39 @@ export async function setInventoryQuantity(
   const locationId = await getPrimaryLocationId()
   if (!locationId) throw new Error('No Shopify location found')
 
+  // Ensure inventory tracking is enabled on this item
+  const trackData = await adminFetch<{ inventoryItemUpdate: { userErrors: { field: string; message: string }[] } }>(
+    `mutation EnableTracking($id: ID!, $input: InventoryItemUpdateInput!) {
+      inventoryItemUpdate(id: $id, input: $input) {
+        inventoryItem { id tracked }
+        userErrors { field message }
+      }
+    }`,
+    { id: inventoryItemId, input: { tracked: true } }
+  )
+  if (trackData.inventoryItemUpdate.userErrors.length) {
+    console.error('[setInventoryQuantity] tracking error:', trackData.inventoryItemUpdate.userErrors[0].message)
+  }
+
   const data = await adminFetch<{
-    inventorySetOnHandQuantities: { userErrors: { field: string; message: string }[] }
+    inventorySetQuantities: { userErrors: { field: string; message: string }[] }
   }>(
-    `mutation SetInventory($input: InventorySetOnHandQuantitiesInput!) {
-      inventorySetOnHandQuantities(input: $input) {
+    `mutation SetInventory($input: InventorySetQuantitiesInput!) {
+      inventorySetQuantities(input: $input) {
         userErrors { field message }
       }
     }`,
     {
       input: {
+        name: 'on_hand',
         reason: 'correction',
-        setQuantities: [{ inventoryItemId, locationId, quantity }],
+        ignoreCompareQuantity: true,
+        quantities: [{ inventoryItemId, locationId, quantity }],
       },
     }
   )
 
-  const errs = data.inventorySetOnHandQuantities?.userErrors
+  const errs = data.inventorySetQuantities?.userErrors
   if (errs?.length) throw new Error(`Inventory error: ${errs[0].message}`)
 }
 

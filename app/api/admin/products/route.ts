@@ -4,7 +4,11 @@ import { cookies } from 'next/headers'
 import { getIronSession } from 'iron-session'
 import { sessionOptions } from '@/lib/admin/session'
 import type { AdminSession } from '@/lib/admin/auth'
-import { getAdminProducts, createAdminProduct, collectionHandlesToGids } from '@/lib/admin/shopifyAdmin'
+import {
+  getAdminProducts,
+  createAdminProduct,
+  collectionHandlesToGids,
+} from '@/lib/admin/shopifyAdmin'
 
 async function requireAuth() {
   const session = await getIronSession<AdminSession>(await cookies(), sessionOptions)
@@ -47,17 +51,19 @@ export async function POST(req: NextRequest) {
       descriptionHtml: shortDescription,
       vendor,
       productType,
-      status:             status === 'active' ? 'ACTIVE' : 'DRAFT',
-      tags:               Array.isArray(tags) ? tags : [],
-      collectionsToJoin:  collectionGids,
-      stock:              stock != null ? Number(stock) : undefined,
-      variants: [{
-        price:               String(price ?? 0),
-        compareAtPrice:      compareAtPrice ? String(compareAtPrice) : undefined,
-        sku,
-        inventoryManagement: 'SHOPIFY',
-        inventoryPolicy:     sellWhenOutOfStock ? 'CONTINUE' : 'DENY',
-      }],
+      status: status === 'active' ? 'ACTIVE' : 'DRAFT',
+      tags: Array.isArray(tags) ? tags : [],
+      collectionsToJoin: collectionGids,
+      stock: stock != null ? Number(stock) : undefined,
+      variants: [
+        {
+          price: String(price ?? 0),
+          compareAtPrice: compareAtPrice ? String(compareAtPrice) : undefined,
+          inventoryPolicy: sellWhenOutOfStock ? 'CONTINUE' : 'DENY',
+          // ⚠️ sku and inventoryManagement are NOT included here –
+          // they are not accepted by ProductVariantsBulkInput.
+        },
+      ],
       metafields: [
         { namespace: 'acme', key: 'full_description', value: fullDescription ?? '', type: 'multi_line_text_field' },
         { namespace: 'acme', key: 'patent',            value: patent ?? '',          type: 'single_line_text_field' },
