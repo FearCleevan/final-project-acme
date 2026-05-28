@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { BiSearch, BiBell, BiX, BiPackage, BiCog, BiLogOut, BiBox, BiReceipt, BiUser } from 'react-icons/bi'
+import LogoutModal from '@/components/admin/shared/LogoutModal'
 import { mockInventoryAlerts, mockAdminProducts, mockOrders, mockCustomers } from '@/lib/admin/mockData'
 import { formatCurrency } from '@/lib/admin/utils'
 
@@ -33,7 +34,7 @@ function SearchDropdown({
   query: string
 }) {
   return (
-    <div className="absolute left-0 right-0 top-full mt-2 bg-(--admin-surface) border border-(--admin-border) rounded-xl shadow-xl z-50 overflow-hidden">
+    <div className="absolute left-0 right-0 top-full mt-2 bg-(--admin-surface) border border-(--admin-border) rounded-xl shadow-xl z-50 overflow-hidden" onMouseDown={e => e.stopPropagation()}>
       {!hasResults ? (
         <div className="px-4 py-8 text-center">
           <p className="text-[13px] text-(--admin-text-soft)">No results for &ldquo;{query}&rdquo;</p>
@@ -118,6 +119,8 @@ export default function AdminTopbar() {
   const [searchOpen,  setSearchOpen]  = useState(false)
   const [notifOpen,   setNotifOpen]   = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
+  const [showLogout,  setShowLogout]  = useState(false)
+  const [loggingOut,  setLoggingOut]  = useState(false)
 
   const notifRef    = useRef<HTMLDivElement>(null)
   const profileRef  = useRef<HTMLDivElement>(null)
@@ -154,7 +157,14 @@ export default function AdminTopbar() {
     router.push(href)
   }
 
+  async function handleLogout() {
+    setLoggingOut(true)
+    await fetch('/api/admin/logout', { method: 'POST' })
+    router.push('/admin/login')
+  }
+
   return (
+    <>
     <header
       className="fixed top-0 left-0 right-0 lg:left-60 flex items-center gap-3 px-4 sm:px-6 bg-(--admin-surface) border-b border-(--admin-border) z-20"
       style={{ height: 'var(--admin-topbar-h)' }}
@@ -309,11 +319,7 @@ export default function AdminTopbar() {
                   Settings
                 </button>
                 <button
-                  onClick={async () => {
-                    setProfileOpen(false)
-                    await fetch('/api/admin/logout', { method: 'POST' })
-                    router.push('/admin/login')
-                  }}
+                  onClick={() => { setProfileOpen(false); setShowLogout(true) }}
                   className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-(--admin-red) hover:bg-(--admin-red-bg) transition-colors"
                 >
                   <BiLogOut size={15} className="shrink-0" />
@@ -325,5 +331,14 @@ export default function AdminTopbar() {
         </div>
       </div>
     </header>
+
+    {showLogout && (
+      <LogoutModal
+        onConfirm={handleLogout}
+        onCancel={() => setShowLogout(false)}
+        loading={loggingOut}
+      />
+    )}
+    </>
   )
 }
