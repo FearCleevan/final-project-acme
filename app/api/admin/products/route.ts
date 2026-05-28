@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
       ].filter(m => m.value !== ''),
     })
 
-    revalidateTag('products')
+    revalidateTag('products', 'layout')
     return NextResponse.json(product, { status: 201 })
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 })
