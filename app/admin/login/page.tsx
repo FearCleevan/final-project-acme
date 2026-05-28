@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { BiLockAlt } from 'react-icons/bi'
+import Link from 'next/link'
 
 export default function AdminLoginPage() {
   const router = useRouter()
@@ -64,6 +65,14 @@ export default function AdminLoginPage() {
               />
             </div>
             {error && <p className="text-[11px] text-(--admin-red) mt-1.5">{error}</p>}
+            <div className="text-right mt-1">
+              <Link
+                href="/admin/forgot-password"
+                className="text-[11px] text-(--admin-text-muted) hover:text-(--admin-accent) transition-colors"
+              >
+                Forgot password?
+              </Link>
+            </div>
           </div>
 
           <button

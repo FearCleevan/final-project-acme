@@ -121,6 +121,14 @@ export default function AdminTopbar() {
   const [profileOpen, setProfileOpen] = useState(false)
   const [showLogout,  setShowLogout]  = useState(false)
   const [loggingOut,  setLoggingOut]  = useState(false)
+  const [ownerName,   setOwnerName]   = useState('')
+  const [ownerEmail,  setOwnerEmail]  = useState('')
+
+  useEffect(() => {
+    fetch('/api/admin/shop')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) { setOwnerName(d.name); setOwnerEmail(d.email) } })
+  }, [])
 
   const notifRef    = useRef<HTMLDivElement>(null)
   const profileRef  = useRef<HTMLDivElement>(null)
@@ -298,15 +306,17 @@ export default function AdminTopbar() {
             className="w-7 h-7 rounded-full bg-(--admin-accent) flex items-center justify-center hover:opacity-80 transition-opacity"
             aria-label="Profile menu"
           >
-            <span className="text-(--admin-accent-text) text-[11px] font-semibold">P</span>
+            <span className="text-(--admin-accent-text) text-[11px] font-semibold">
+              {ownerName ? ownerName[0].toUpperCase() : '?'}
+            </span>
           </button>
 
           {profileOpen && (
             <div className="absolute right-0 top-full mt-2 w-56 bg-(--admin-surface) border border-(--admin-border) rounded-xl shadow-xl z-50 overflow-hidden">
               {/* User info */}
               <div className="px-4 py-3 border-b border-(--admin-border)">
-                <p className="text-[13px] font-semibold text-(--admin-text)">PPlazan</p>
-                <p className="text-[11px] text-(--admin-text-muted)">Store owner</p>
+                <p className="text-[13px] font-semibold text-(--admin-text)">{ownerName || 'Store Owner'}</p>
+                <p className="text-[11px] text-(--admin-text-muted) truncate">{ownerEmail || 'Admin'}</p>
               </div>
 
               {/* Actions */}

@@ -237,6 +237,19 @@ export async function deleteAdminProduct(shopifyId: string): Promise<void> {
   }
 }
 
+// ─── Shop owner ──────────────────────────────────────────────────────────────
+
+export async function getShopOwner(): Promise<{ name: string; email: string }> {
+  const data = await adminFetch<{ shop: { contactEmail: string; name: string; owner: { firstName: string; lastName: string; email: string } } }>(
+    `{ shop { name contactEmail owner { firstName lastName email } } }`
+  )
+  const owner = data.shop.owner
+  return {
+    name:  `${owner.firstName} ${owner.lastName}`.trim() || data.shop.name,
+    email: owner.email || data.shop.contactEmail,
+  }
+}
+
 // ─── Media helpers ────────────────────────────────────────────────────────────
 
 export async function getProductMediaWithIds(shopifyId: string): Promise<{ id: string; url: string }[]> {

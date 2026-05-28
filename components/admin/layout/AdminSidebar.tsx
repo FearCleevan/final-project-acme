@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
@@ -73,11 +73,18 @@ export default function AdminSidebar() {
   const pathname = usePathname()
   const router   = useRouter()
   const { theme, setTheme } = useTheme()
-  const [mounted,      setMounted]      = useState(false)
+  const mounted = useSyncExternalStore(() => () => {}, () => true, () => false)
+
   const [showLogout,   setShowLogout]   = useState(false)
   const [loggingOut,   setLoggingOut]   = useState(false)
+  const [ownerName,    setOwnerName]    = useState('')
+  const [ownerEmail,   setOwnerEmail]   = useState('')
 
-  useEffect(() => setMounted(true), [])
+  useEffect(() => {
+    fetch('/api/admin/shop')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) { setOwnerName(d.name); setOwnerEmail(d.email) } })
+  }, [])
 
   async function handleLogout() {
     setLoggingOut(true)
@@ -136,8 +143,8 @@ export default function AdminSidebar() {
           </button>
           <div className="flex items-center justify-between px-3 py-2">
             <div className="min-w-0">
-              <p className="text-[12px] font-medium text-(--admin-text) truncate">PPlazan</p>
-              <p className="text-[10px] text-(--admin-text-muted) truncate">Store owner</p>
+              <p className="text-[12px] font-medium text-(--admin-text) truncate">{ownerName || 'Store Owner'}</p>
+              <p className="text-[10px] text-(--admin-text-muted) truncate">{ownerEmail || 'Admin'}</p>
             </div>
             <button
               onClick={() => setShowLogout(true)}

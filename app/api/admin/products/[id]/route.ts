@@ -88,7 +88,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
     const newImages = incomingImages.filter(url => !existingImageUrls.has(url))
     await Promise.all(newImages.map(url => uploadProductImage(id, url)))
 
-    revalidateTag('products')
+    revalidateTag('products', 'layout')
     return NextResponse.json(product)
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 })
@@ -100,7 +100,7 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   const { id } = await params
   try {
     await deleteAdminProduct(id)
-    revalidateTag('products')
+    revalidateTag('products', 'layout')
     return NextResponse.json({ ok: true })
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 })
