@@ -7,9 +7,9 @@ import AdminBottomNav from './AdminBottomNav'
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const isLogin  = pathname === '/admin/login'
+  const isPublic = ['/admin/login', '/admin/forgot-password', '/admin/reset-password'].includes(pathname)
 
-  if (isLogin) {
+  if (isPublic) {
     return (
       <div className="admin-root min-h-screen bg-(--admin-bg)">
         {children}

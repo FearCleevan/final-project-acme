@@ -1,6 +1,7 @@
 'use client'
 
-import { mockCollections } from '@/lib/admin/mockData'
+import { useEffect, useState } from 'react'
+import { AdminCollection } from '@/lib/admin/types'
 
 interface Props {
   value: string[]
@@ -8,6 +9,14 @@ interface Props {
 }
 
 export default function CollectionSelect({ value, onChange }: Props) {
+  const [collections, setCollections] = useState<AdminCollection[]>([])
+
+  useEffect(() => {
+    fetch('/api/admin/collections')
+      .then(r => r.ok ? r.json() : [])
+      .then(setCollections)
+  }, [])
+
   function toggle(handle: string) {
     if (value.includes(handle)) {
       onChange(value.filter(h => h !== handle))
@@ -16,9 +25,13 @@ export default function CollectionSelect({ value, onChange }: Props) {
     }
   }
 
+  if (!collections.length) {
+    return <p className="text-[12px] text-(--admin-text-muted)">Loading collections…</p>
+  }
+
   return (
     <div className="space-y-2">
-      {mockCollections.map(col => (
+      {collections.map(col => (
         <label
           key={col.handle}
           className="flex items-center gap-2.5 cursor-pointer group"

@@ -4,7 +4,7 @@ import { cookies } from 'next/headers'
 import { getIronSession } from 'iron-session'
 import { sessionOptions } from '@/lib/admin/session'
 import type { AdminSession } from '@/lib/admin/auth'
-import { getAdminProductById, updateAdminProduct, deleteAdminProduct, uploadProductImage, getProductMediaWithIds, deleteProductMedia } from '@/lib/admin/shopifyAdmin'
+import { getAdminProductById, updateAdminProduct, deleteAdminProduct, uploadProductImage, getProductMediaWithIds, deleteProductMedia, collectionHandlesToGids } from '@/lib/admin/shopifyAdmin'
 
 async function requireAuth() {
   const session = await getIronSession<AdminSession>(await cookies(), sessionOptions)
@@ -32,14 +32,16 @@ export async function PUT(req: NextRequest, { params }: Params) {
     const body = await req.json()
     const {
       title, shortDescription, fullDescription, price, compareAtPrice,
-      sku, status, vendor, productType, tags,
+      sku, stock, status, vendor, productType, tags, collections,
       material, colour, style, brand, vintage, burnerSize,
       fits, era, powerSource, condition, edition, workshop,
       benchTester, benchTestDate, patent, netWeight, sellWhenOutOfStock,
     } = body
 
-    // Fetch existing media with IDs before update (needed for deletion)
-    const existingMedia = await getProductMediaWithIds(id)
+    const [existingMedia, collectionGids] = await Promise.all([
+      getProductMediaWithIds(id),
+      collectionHandlesToGids(Array.isArray(collections) ? collections : []),
+    ])
     const existingImageUrls = new Set(existingMedia.map(m => m.url))
 
     const product = await updateAdminProduct(id, {
@@ -47,8 +49,10 @@ export async function PUT(req: NextRequest, { params }: Params) {
       descriptionHtml: shortDescription,
       vendor,
       productType,
-      status: status === 'active' ? 'ACTIVE' : 'DRAFT',
-      tags: Array.isArray(tags) ? tags : [],
+      status:            status === 'active' ? 'ACTIVE' : 'DRAFT',
+      tags:              Array.isArray(tags) ? tags : [],
+      collectionsToJoin: collectionGids,
+      stock:             stock != null ? Number(stock) : undefined,
       variants: [{
         price:               String(price ?? 0),
         compareAtPrice:      compareAtPrice ? String(compareAtPrice) : undefined,

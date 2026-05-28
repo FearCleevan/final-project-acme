@@ -6,7 +6,8 @@ import type { AdminSession } from '@/lib/admin/auth'
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
-  if (pathname === '/admin/login') return NextResponse.next()
+  const PUBLIC_ROUTES = ['/admin/login', '/admin/forgot-password', '/admin/reset-password']
+  if (PUBLIC_ROUTES.includes(pathname)) return NextResponse.next()
 
   const cookieValue = req.cookies.get(sessionOptions.cookieName as string)?.value
 
