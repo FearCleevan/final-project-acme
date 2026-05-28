@@ -190,14 +190,22 @@ export async function createAdminProduct(input: ProductInput): Promise<AdminProd
     }
   }
 
-  // Set inventory quantity — non-fatal if scopes are missing
+  const result = toAdminProduct(created)
+
   if (stock != null && stock >= 0) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const inventoryItemId = (created as any).variants?.edges?.[0]?.node?.inventoryItem?.id
-    if (inventoryItemId) await setInventoryQuantity(inventoryItemId, stock).catch(() => {})
+    if (inventoryItemId) {
+      try {
+        await setInventoryQuantity(inventoryItemId, stock)
+      } catch (e) {
+        console.error('[createAdminProduct] inventory error:', String(e))
+      }
+    }
+    result.stock = stock
   }
 
-  return toAdminProduct(created)
+  return result
 }
 
 export async function updateAdminProduct(shopifyId: string, input: ProductInput): Promise<AdminProduct> {
@@ -245,14 +253,22 @@ export async function updateAdminProduct(shopifyId: string, input: ProductInput)
     }
   }
 
-  // Update inventory quantity — non-fatal if scopes are missing
+  const result = toAdminProduct(updated)
+
   if (stock != null && stock >= 0) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const inventoryItemId = (updated as any).variants?.edges?.[0]?.node?.inventoryItem?.id
-    if (inventoryItemId) await setInventoryQuantity(inventoryItemId, stock).catch(() => {})
+    if (inventoryItemId) {
+      try {
+        await setInventoryQuantity(inventoryItemId, stock)
+      } catch (e) {
+        console.error('[updateAdminProduct] inventory error:', String(e))
+      }
+    }
+    result.stock = stock
   }
 
-  return toAdminProduct(updated)
+  return result
 }
 
 // ─── Inventory ───────────────────────────────────────────────────────────────
@@ -274,9 +290,11 @@ export async function setInventoryQuantity(
 ): Promise<void> {
   if (!inventoryItemId || quantity < 0) return
   const locationId = await getPrimaryLocationId()
-  if (!locationId) return
+  if (!locationId) throw new Error('No Shopify location found')
 
-  await adminFetch(
+  const data = await adminFetch<{
+    inventorySetOnHandQuantities: { userErrors: { field: string; message: string }[] }
+  }>(
     `mutation SetInventory($input: InventorySetOnHandQuantitiesInput!) {
       inventorySetOnHandQuantities(input: $input) {
         userErrors { field message }
@@ -289,6 +307,9 @@ export async function setInventoryQuantity(
       },
     }
   )
+
+  const errs = data.inventorySetOnHandQuantities?.userErrors
+  if (errs?.length) throw new Error(`Inventory error: ${errs[0].message}`)
 }
 
 export async function deleteAdminProduct(shopifyId: string): Promise<void> {
