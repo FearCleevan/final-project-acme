@@ -710,3 +710,79 @@ async headers() {
 
 *Plan created: 2026-05-28 · Acme Lamp & Sign Co. Admin Dashboard Phase 2*
 *Security audit appended: 2026-05-28*
+
+---
+
+## Shopify Admin API — App Scopes Reference
+
+> **How to access:** Shopify Admin → Settings → Apps → Develop apps → Build apps in Dev Dashboard → Create an app → Select scopes
+>
+> Store: `w061f6-k8.myshopify.com` · App: `Acme Admin Dashboard`
+
+---
+
+### Minimum Scopes (Current — Product Integration)
+
+| Scope | Permission |
+|---|---|
+| `read_products` | Read products, variants, images |
+| `write_products` | Create / update / delete products |
+| `read_files` | Read uploaded files / images |
+| `write_files` | Upload product images to Shopify CDN |
+
+---
+
+### Full Dashboard Scopes (Future Development)
+
+#### Orders
+| Scope | Permission |
+|---|---|
+| `read_orders` + `write_orders` | View and manage all orders |
+| `read_draft_orders` + `write_draft_orders` | Draft order management |
+| `read_order_edits` + `write_order_edits` | Edit existing orders |
+
+#### Customers
+| Scope | Permission |
+|---|---|
+| `read_customers` + `write_customers` | View and manage customer records |
+
+#### Inventory
+| Scope | Permission |
+|---|---|
+| `read_inventory` + `write_inventory` | Stock levels and adjustments |
+
+#### Collections
+| Scope | Permission |
+|---|---|
+| `read_publications` + `write_publications` | Manage product collections / channels |
+
+#### Shipping & Fulfillment
+| Scope | Permission |
+|---|---|
+| `read_fulfillments` + `write_fulfillments` | Fulfillment services |
+| `read_shipping` + `write_shipping` | Shipping rates and zones |
+
+#### Discounts
+| Scope | Permission |
+|---|---|
+| `read_discounts` + `write_discounts` | Discount codes and automatic discounts |
+
+#### Analytics & Reports
+| Scope | Permission |
+|---|---|
+| `read_reports` + `write_reports` | Store analytics and custom reports |
+
+#### Metafields (Product Specs)
+| Scope | Permission |
+|---|---|
+| `read_metaobjects` + `write_metaobjects` | Metaobject entries (burner size, era, etc.) |
+| `read_metaobject_definitions` + `write_metaobject_definitions` | Metaobject schema definitions |
+
+---
+
+### Scopes to Skip
+Everything else — POS, Payments, Translations, Web Pixels, Legal, Cart Transform, Customer Account API, Storefront API scopes — **not needed** for this admin dashboard project.
+
+---
+
+*Scopes reference added: 2026-05-28 · Acme Lamp & Sign Co.*
