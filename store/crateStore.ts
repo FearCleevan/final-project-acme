@@ -13,6 +13,7 @@ interface CrateStore {
   items:          CrateItem[]
   isOpen:         boolean
   cartId:         string | null
+  _cartCreating:  boolean
   openCrate:      () => void
   closeCrate:     () => void
   addItem:        (product: Product, finish: string, burnerSize: string) => void
@@ -27,9 +28,10 @@ interface CrateStore {
 export const useCrateStore = create<CrateStore>()(
   persist(
     (set, get) => ({
-      items:  [],
-      isOpen: false,
-      cartId: null,
+      items:         [],
+      isOpen:        false,
+      cartId:        null,
+      _cartCreating: false,
 
       openCrate:  () => set({ isOpen: true }),
       closeCrate: () => set({ isOpen: false }),
@@ -62,18 +64,26 @@ export const useCrateStore = create<CrateStore>()(
           const { cartId } = get()
 
           if (!cartId) {
-            // No cart yet — create one with ALL current items
+            // Guard against concurrent cartCreate calls
+            if (get()._cartCreating) return
+            set({ _cartCreating: true })
             const allItems = get().items
             cartCreate(
-              allItems.map(i => ({
-                merchandiseId: i.product.variantId ?? '',
-                quantity:      i.quantity,
-              }))
+              allItems
+                .filter(i => i.product.variantId !== null)
+                .map(i => ({
+                  merchandiseId: i.product.variantId!,
+                  quantity:      i.quantity,
+                }))
             ).then(result => {
-              if (!result) return
+              if (!result) {
+                set({ _cartCreating: false })
+                return
+              }
               set(state => ({
-                cartId: result.cartId,
-                items:  state.items.map(item => {
+                _cartCreating: false,
+                cartId:        result.cartId,
+                items:         state.items.map(item => {
                   const line = result.lines.find(l => l.merchandise.id === item.product.variantId)
                   return line ? { ...item, cartLineId: line.id } : item
                 }),
