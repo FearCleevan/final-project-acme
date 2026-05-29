@@ -72,7 +72,7 @@ export async function POST() {
       results.push({ title: product.title, ok: true })
     }
 
-    revalidateTag('products')
+    revalidateTag('products', 'layout')
 
     const published = results.filter(r => r.ok).length
     const failed    = results.filter(r => !r.ok)
