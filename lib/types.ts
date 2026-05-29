@@ -32,6 +32,7 @@ export interface Product {
   inStock: boolean
   featured: boolean
   collection: string
+  variantId: string
 }
 
 export interface CrateItem {
@@ -39,6 +40,7 @@ export interface CrateItem {
   quantity: number
   selectedFinish: string
   selectedBurnerSize: string
+  cartLineId: string | null
 }
 
 export interface FilterState {
