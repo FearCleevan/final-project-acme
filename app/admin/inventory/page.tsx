@@ -8,9 +8,8 @@ import SectionCard from '@/components/admin/shared/SectionCard'
 import SearchInput from '@/components/admin/shared/SearchInput'
 import Badge from '@/components/admin/shared/Badge'
 import { cn } from '@/lib/utils'
-import { BiEditAlt, BiCheck, BiX } from 'react-icons/bi'
+import { BiEditAlt, BiCheck, BiX, BiLoader } from 'react-icons/bi'
 import Toast, { ToastType } from '@/components/admin/shared/Toast'
-import { BiLoader } from 'react-icons/bi'
 
 const LOW_STOCK_THRESHOLD = 5
 
@@ -227,7 +226,12 @@ export default function InventoryPage() {
                 <span className="text-[11px] text-(--admin-text-muted)">{p.sku}</span>
                 <div className="flex items-center gap-2">
                   {savingId === p.id ? (
-                    <BiLoader size={14} className="animate-spin text-(--admin-text-muted)" />
+                    <div className="flex items-center gap-2">
+                      <span className="text-[13px] font-semibold text-(--admin-text-muted)">
+                        {stocks[p.id] ?? p.stock}
+                      </span>
+                      <BiLoader size={14} className="animate-spin text-(--admin-text-muted)" />
+                    </div>
                   ) : editing === p.id ? (
                     <div className="flex items-center gap-1.5">
                       <input
