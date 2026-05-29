@@ -99,6 +99,7 @@ export default function CollectionsPage() {
 
   async function handleSave() {
     if (!validate()) return
+    const currentEditingId = editingId
     setSaving(true)
     try {
       const body = {
@@ -106,8 +107,8 @@ export default function CollectionsPage() {
         handle:      draft.handle.trim() || slugify(draft.title),
         description: draft.description.trim(),
       }
-      const res = editingId
-        ? await fetch(`/api/admin/collections/${editingId}`, {
+      const res = currentEditingId
+        ? await fetch(`/api/admin/collections/${currentEditingId}`, {
             method:  'PUT',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify(body),
@@ -123,17 +124,17 @@ export default function CollectionsPage() {
       }
       const saved: AdminCollection = await res.json()
       setCollections(cs =>
-        editingId
-          ? cs.map(c => c.id === editingId ? saved : c)
+        currentEditingId
+          ? cs.map(c => c.id === currentEditingId ? saved : c)
           : [...cs, saved]
       )
       setSuccess(true)
-      setToast({ message: editingId ? 'Collection updated.' : 'Collection created.', type: 'success' })
+      setToast({ message: currentEditingId ? 'Collection updated.' : 'Collection created.', type: 'success' })
       setTimeout(() => {
         setSuccess(false)
         setModalOpen(false)
         setDraft(EMPTY_DRAFT)
-        setEditingId(null)
+        if (editingId === currentEditingId) setEditingId(null)
       }, 1200)
     } catch (err) {
       setToast({ message: err instanceof Error ? err.message : 'Failed to save collection', type: 'error' })
