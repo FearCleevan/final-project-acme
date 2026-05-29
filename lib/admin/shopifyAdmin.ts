@@ -727,6 +727,20 @@ function toAdminCollection(c: ShopifyCollectionNode): AdminCollection {
 
 const COLLECTION_FIELDS = `id title handle description productsCount { count }`
 
+export async function getAdminCollections(first = 50): Promise<AdminCollection[]> {
+  const data = await adminFetch<{
+    collections: { edges: { node: ShopifyCollectionNode }[] }
+  }>(
+    `query GetCollections($first: Int!) {
+      collections(first: $first) {
+        edges { node { ${COLLECTION_FIELDS} } }
+      }
+    }`,
+    { first }
+  )
+  return data.collections.edges.map(e => toAdminCollection(e.node))
+}
+
 export async function createAdminCollection(input: {
   title: string
   handle?: string

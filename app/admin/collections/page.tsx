@@ -372,7 +372,7 @@ export default function CollectionsPage() {
         <ConfirmModal
           isOpen
           title="Delete collection?"
-          message={`"${deleteTarget.title}" will be removed. This cannot be undone. In Plan 1 this only affects your current session.`}
+          message={`"${deleteTarget.title}" will be removed from Shopify. This cannot be undone.`}
           confirmLabel="Delete"
           dangerous
           onConfirm={() => handleDelete(deleteTarget)}
