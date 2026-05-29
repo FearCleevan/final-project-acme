@@ -782,7 +782,6 @@ export async function deleteAdminCollection(shopifyId: string): Promise<void> {
   }>(
     `mutation DeleteCollection($id: ID!) {
       collectionDelete(input: { id: $id }) {
-        deletedCollectionId
         userErrors { field message }
       }
     }`,
