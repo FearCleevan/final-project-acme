@@ -4,7 +4,8 @@ import { useState, useRef, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { BiSearch, BiBell, BiX, BiPackage, BiCog, BiLogOut, BiBox, BiReceipt, BiUser } from 'react-icons/bi'
 import LogoutModal from '@/components/admin/shared/LogoutModal'
-import { mockInventoryAlerts, mockAdminProducts, mockOrders, mockCustomers } from '@/lib/admin/mockData'
+import { mockInventoryAlerts, mockAdminProducts, mockCustomers } from '@/lib/admin/mockData'
+import type { AdminOrder } from '@/lib/admin/types'
 import { formatCurrency } from '@/lib/admin/utils'
 
 function useClickOutside(ref: React.RefObject<HTMLElement | null>, onClose: () => void) {
@@ -21,7 +22,7 @@ const MAX_RESULTS = 3
 
 type SearchResult = {
   products: typeof mockAdminProducts
-  orders:   typeof mockOrders
+  orders:   AdminOrder[]
   customers: typeof mockCustomers
 }
 
@@ -146,9 +147,7 @@ export default function AdminTopbar() {
     const products = mockAdminProducts.filter(p =>
       p.title.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q)
     ).slice(0, MAX_RESULTS)
-    const orders = mockOrders.filter(o =>
-      o.id.toLowerCase().includes(q) || o.customer.name.toLowerCase().includes(q)
-    ).slice(0, MAX_RESULTS)
+    const orders: AdminOrder[] = [] // live order search — wired in a future sprint
     const customers = mockCustomers.filter(c =>
       c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q)
     ).slice(0, MAX_RESULTS)

@@ -1,9 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { BiArrowBack, BiCheck, BiPackage, BiPlus } from 'react-icons/bi'
-import { mockOrders } from '@/lib/admin/mockData'
 import { formatCurrency, formatDate, getNextFulfillmentStage } from '@/lib/admin/utils'
 import PageHeader from '@/components/admin/shared/PageHeader'
 import SectionCard from '@/components/admin/shared/SectionCard'
@@ -15,13 +14,35 @@ import { AdminOrder, FulfillmentEvent } from '@/lib/admin/types'
 export default function OrderDetailPage() {
   const { id }   = useParams<{ id: string }>()
   const router   = useRouter()
-  const order    = mockOrders.find(o => o.id === id) as AdminOrder | undefined
 
-  const [events, setEvents]       = useState<FulfillmentEvent[]>(order?.fulfillmentEvents ?? [])
-  const [notes, setNotes]         = useState(order?.notes ?? '')
-  const [showModal, setShowModal] = useState(false)
+  const [order,       setOrder]       = useState<AdminOrder | null | undefined>(undefined)
+  const [events,      setEvents]      = useState<FulfillmentEvent[]>([])
+  const [notes,       setNotes]       = useState('')
+  const [showModal,   setShowModal]   = useState(false)
 
-  if (!order) {
+  useEffect(() => {
+    fetch(`/api/admin/orders/${encodeURIComponent(id)}`)
+      .then(r => r.ok ? r.json() : null)
+      .then((data: AdminOrder | null) => {
+        setOrder(data)
+        setEvents(data?.fulfillmentEvents ?? [])
+        setNotes(data?.notes ?? '')
+      })
+  }, [id])
+
+  // Loading
+  if (order === undefined) {
+    return (
+      <div className="space-y-4 animate-pulse">
+        <div className="h-8 w-48 bg-(--admin-border) rounded" />
+        <div className="h-4 w-32 bg-(--admin-border) rounded" />
+        <div className="h-64 bg-(--admin-border) rounded-xl mt-6" />
+      </div>
+    )
+  }
+
+  // Not found
+  if (order === null) {
     return (
       <div className="text-center py-24">
         <p className="text-[14px] text-(--admin-text-soft)">Order not found.</p>
@@ -76,13 +97,16 @@ export default function OrderDetailPage() {
             <div className="divide-y divide-(--admin-border)">
               {order.items.map(item => (
                 <div key={item.id} className="flex items-center gap-4 px-5 py-3.5">
-                  <div className="w-10 h-10 rounded-md bg-(--admin-surface-2) border border-(--admin-border) shrink-0 flex items-center justify-center">
-                    <BiPackage size={16} className="text-(--admin-text-muted)" />
+                  <div className="w-10 h-10 rounded-md bg-(--admin-surface-2) border border-(--admin-border) shrink-0 flex items-center justify-center overflow-hidden">
+                    {item.image
+                      ? <img src={item.image} alt="" className="w-full h-full object-cover" />
+                      : <BiPackage size={16} className="text-(--admin-text-muted)" />
+                    }
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[13px] text-(--admin-text) truncate">{item.title}</p>
                     <p className="text-[11px] text-(--admin-text-muted) mt-0.5">
-                      SKU: {item.sku} · Qty: {item.quantity}
+                      {item.sku ? `SKU: ${item.sku} · ` : ''}Qty: {item.quantity}
                     </p>
                   </div>
                   <div className="text-right shrink-0">
@@ -122,7 +146,7 @@ export default function OrderDetailPage() {
               placeholder="Add a note visible only to you…"
               className="w-full px-3 py-2 text-[12px] text-(--admin-text) bg-(--admin-surface-2) border border-(--admin-border) rounded-md resize-none focus:outline-none focus:border-(--admin-accent) focus:ring-1 focus:ring-(--admin-accent)/20 placeholder:text-(--admin-text-muted) transition-colors"
             />
-            <p className="text-[10px] text-(--admin-text-muted) mt-1.5">Notes are local to this dashboard — not synced to Shopify in Plan 1.</p>
+            <p className="text-[10px] text-(--admin-text-muted) mt-1.5">Notes are local to this session — syncing to Shopify order notes coming in a future sprint.</p>
           </SectionCard>
         </div>
 
@@ -143,7 +167,7 @@ export default function OrderDetailPage() {
               </div>
               {order.trackingRef && (
                 <div className="flex items-center justify-between">
-                  <span className="text-[12px] text-(--admin-text-soft)">Ref</span>
+                  <span className="text-[12px] text-(--admin-text-soft)">Tracking</span>
                   <span className="text-[11px] text-(--admin-text-muted)">{order.trackingRef}</span>
                 </div>
               )}
@@ -172,7 +196,7 @@ export default function OrderDetailPage() {
             <FulfillmentTimeline events={events} fulfillmentStatus={order.fulfillmentStatus} />
             {order.estimatedDelivery && !isDelivered && !isCancelled && (
               <p className="text-[10px] text-(--admin-text-muted) mt-4 pt-3 border-t border-(--admin-border)">
-                Est. delivery: {order.estimatedDelivery}
+                Est. delivery: {formatDate(order.estimatedDelivery)}
               </p>
             )}
           </SectionCard>
@@ -183,7 +207,9 @@ export default function OrderDetailPage() {
             <div className="space-y-1.5">
               <p className="text-[13px] font-medium text-(--admin-text)">{order.customer.name}</p>
               <p className="text-[12px] text-(--admin-text-soft)">{order.customer.email}</p>
-              <p className="text-[12px] text-(--admin-text-soft)">{order.customer.phone}</p>
+              {order.customer.phone && (
+                <p className="text-[12px] text-(--admin-text-soft)">{order.customer.phone}</p>
+              )}
             </div>
           </SectionCard>
 
@@ -192,13 +218,13 @@ export default function OrderDetailPage() {
             <p className="text-[12px] font-semibold text-(--admin-text) mb-3">Shipping Address</p>
             <div className="text-[12px] text-(--admin-text-soft) space-y-0.5">
               <p>{order.customer.name}</p>
-              <p>{order.customer.address}</p>
-              <p>{order.customer.city}, {order.customer.province}</p>
+              {order.customer.address && <p>{order.customer.address}</p>}
+              <p>{[order.customer.city, order.customer.province].filter(Boolean).join(', ')}</p>
               <p>{order.customer.country}</p>
             </div>
           </SectionCard>
 
-          {/* Order summary */}
+          {/* Summary */}
           <SectionCard>
             <p className="text-[12px] font-semibold text-(--admin-text) mb-3">Summary</p>
             <div className="space-y-1.5 text-[12px]">

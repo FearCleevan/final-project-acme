@@ -31,21 +31,19 @@ export default function ProvenanceSection() {
         >
           {/* Large plate — Workshop Interior 1940s (355x592 dimension profile) */}
           <PlateImage
-            src="/assets/HeroSampleImage1.webp"
+            src="/assets/HeroSampleImage1.1.webp"
             alt="Pune brass furnaces at the lathe, 1940s"
             aspectRatio="3/5"
             dark
-            label="Workshop Interior · Pune, 1940s"
           />
           
           {/* Smaller plate — Office Furnace Press Shop (237x296 dimension profile) */}
           <div className="pt-12">
             <PlateImage
-              src="/assets/HeroSampleImage2.webp"
+              src="/assets/HeroSampleImage2.1.webp"
               alt="Office furnace before, Pune workshop"
               aspectRatio="4/5"
               dark
-              label="Office Furnace · Press Shop 4"
             />
           </div>
         </div>

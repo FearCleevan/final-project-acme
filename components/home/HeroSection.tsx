@@ -62,11 +62,10 @@ export default function HeroSection() {
             className="w-full max-w-150" // Constraint ensures it sits exactly right on desktop
           >
             <PlateImage
-              src="/assets/HeroSampleImage.webp"
+              src="/assets/HeroSampleImage0.webp"
               alt="An authentic, realistic reproduction antique brass oil lamp with a hand-blown glass chimney."
               aspectRatio="4/5"
               dark={false}
-              label="Standard Issue Brass Lamp No. 2 · Precision Reproduction"
               objectFit="cover"
               className="w-full h-auto"
               priority

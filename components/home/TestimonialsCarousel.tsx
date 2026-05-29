@@ -22,7 +22,7 @@ export default function TestimonialsCarousel() {
   return (
     <section
       className="relative bg-ink-charcoal py-16 sm:py-24 overflow-hidden"
-      style={{ backgroundImage: 'url(/assets/HeroSampleImage3.webp)', backgroundSize: 'cover', backgroundPosition: 'center' }}
+      style={{ backgroundImage: 'url(/assets/TestimonialImage.webp)', backgroundSize: 'cover', backgroundPosition: 'center' }}
     >
       <div className="absolute inset-0 bg-ink-charcoal/85" />
       <div className="relative z-10 max-w-7xl mx-auto px-6">

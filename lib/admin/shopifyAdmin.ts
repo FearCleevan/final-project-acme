@@ -514,3 +514,170 @@ export async function uploadProductImage(productId: string, imageUrl: string): P
   }
   return data.productCreateMedia.media[0]?.preview?.image?.url ?? ''
 }
+
+// ─── Orders ───────────────────────────────────────────────────────────────────
+
+import type { AdminOrder, AdminOrderItem, OrderStatus, PaymentStatus } from './types'
+
+interface ShopifyOrderNode {
+  id: string
+  name: string
+  createdAt: string
+  email: string
+  phone: string | null
+  displayFinancialStatus: string
+  displayFulfillmentStatus: string
+  note: string | null
+  totalPriceSet:    { shopMoney: { amount: string } }
+  subtotalPriceSet: { shopMoney: { amount: string } } | null
+  totalShippingPriceSet: { shopMoney: { amount: string } }
+  totalTaxSet:      { shopMoney: { amount: string } }
+  shippingAddress: {
+    firstName: string
+    lastName:  string
+    phone:     string | null
+    address1:  string | null
+    address2:  string | null
+    city:      string
+    province:  string
+    country:   string
+  } | null
+  lineItems: {
+    edges: {
+      node: {
+        id: string
+        title: string
+        sku: string | null
+        quantity: number
+        originalUnitPriceSet: { shopMoney: { amount: string } }
+        variant: { image: { url: string } | null } | null
+      }
+    }[]
+  }
+  fulfillments: {
+    trackingInfo: { number: string | null }[]
+    estimatedDeliveryAt: string | null
+  }[]
+}
+
+function toAdminOrder(o: ShopifyOrderNode): AdminOrder {
+  const addr = o.shippingAddress
+
+  const payMap: Record<string, PaymentStatus> = {
+    PAID:               'paid',
+    PENDING:            'pending',
+    REFUNDED:           'refunded',
+    PARTIALLY_REFUNDED: 'partially_paid',
+    PARTIALLY_PAID:     'partially_paid',
+    VOIDED:             'refunded',
+  }
+  const fulMap: Record<string, OrderStatus> = {
+    FULFILLED:          'fulfilled',
+    UNFULFILLED:        'unfulfilled',
+    PARTIALLY_FULFILLED:'unfulfilled',
+    RESTOCKED:          'cancelled',
+    CANCELLED:          'cancelled',
+    IN_PROGRESS:        'unfulfilled',
+  }
+
+  const items: AdminOrderItem[] = o.lineItems.edges.map(e => ({
+    id:        e.node.id.replace('gid://shopify/LineItem/', ''),
+    title:     e.node.title,
+    sku:       e.node.sku ?? '',
+    quantity:  e.node.quantity,
+    unitPrice: parseFloat(e.node.originalUnitPriceSet.shopMoney.amount),
+    image:     e.node.variant?.image?.url ?? '',
+  }))
+
+  const trackingRef = o.fulfillments[0]?.trackingInfo[0]?.number ?? ''
+  const estimatedDelivery = o.fulfillments[0]?.estimatedDeliveryAt ?? undefined
+
+  return {
+    id:               o.name,
+    customer: {
+      name:     `${addr?.firstName ?? ''} ${addr?.lastName ?? ''}`.trim() || o.email,
+      email:    o.email,
+      phone:    addr?.phone ?? o.phone ?? '',
+      address:  [addr?.address1, addr?.address2].filter(Boolean).join(', '),
+      city:     addr?.city ?? '',
+      province: addr?.province ?? '',
+      country:  addr?.country ?? '',
+    },
+    date:              o.createdAt,
+    items,
+    subtotal:          parseFloat(o.subtotalPriceSet?.shopMoney.amount ?? '0'),
+    shipping:          parseFloat(o.totalShippingPriceSet.shopMoney.amount),
+    tax:               parseFloat(o.totalTaxSet.shopMoney.amount),
+    total:             parseFloat(o.totalPriceSet.shopMoney.amount),
+    paymentStatus:     payMap[o.displayFinancialStatus]    ?? 'pending',
+    fulfillmentStatus: fulMap[o.displayFulfillmentStatus]  ?? 'unfulfilled',
+    notes:             o.note ?? '',
+    trackingRef,
+    estimatedDelivery,
+    fulfillmentEvents: [],
+  }
+}
+
+const ORDER_FIELDS = `
+  id name createdAt email phone
+  displayFinancialStatus displayFulfillmentStatus
+  note
+  totalPriceSet    { shopMoney { amount } }
+  subtotalPriceSet { shopMoney { amount } }
+  totalShippingPriceSet { shopMoney { amount } }
+  totalTaxSet      { shopMoney { amount } }
+  shippingAddress {
+    firstName lastName phone address1 address2 city province country
+  }
+  lineItems(first: 20) {
+    edges { node {
+      id title sku quantity
+      originalUnitPriceSet { shopMoney { amount } }
+      variant { image { url } }
+    } }
+  }
+  fulfillments(first: 5) {
+    trackingInfo { number }
+    estimatedDeliveryAt
+  }
+`
+
+export async function getAdminOrders(first = 50): Promise<AdminOrder[]> {
+  const data = await adminFetch<{ orders: { edges: { node: ShopifyOrderNode }[] } }>(
+    `query GetOrders($first: Int!) {
+      orders(first: $first, sortKey: CREATED_AT, reverse: true) {
+        edges { node { ${ORDER_FIELDS} } }
+      }
+    }`,
+    { first }
+  )
+  return data.orders.edges.map(e => toAdminOrder(e.node))
+}
+
+export async function getAdminOrderById(orderId: string): Promise<AdminOrder | null> {
+  // orderId can be the display name (#1001) or a numeric Shopify ID
+  const isGid = orderId.startsWith('gid://')
+  const isNumeric = /^\d+$/.test(orderId)
+
+  if (isGid || isNumeric) {
+    const gid = isGid ? orderId : `gid://shopify/Order/${orderId}`
+    const data = await adminFetch<{ order: ShopifyOrderNode | null }>(
+      `query GetOrder($id: ID!) { order(id: $id) { ${ORDER_FIELDS} } }`,
+      { id: gid }
+    )
+    return data.order ? toAdminOrder(data.order) : null
+  }
+
+  // Search by name (#1001)
+  const name = orderId.startsWith('#') ? orderId : `#${orderId}`
+  const data = await adminFetch<{ orders: { edges: { node: ShopifyOrderNode }[] } }>(
+    `query GetOrderByName($query: String!) {
+      orders(first: 1, query: $query) {
+        edges { node { ${ORDER_FIELDS} } }
+      }
+    }`,
+    { query: `name:${name}` }
+  )
+  const node = data.orders.edges[0]?.node
+  return node ? toAdminOrder(node) : null
+}

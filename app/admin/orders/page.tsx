@@ -1,8 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { mockOrders } from '@/lib/admin/mockData'
 import { formatCurrency, formatDate } from '@/lib/admin/utils'
 import { OrderStatus, PaymentStatus } from '@/lib/admin/types'
 import PageHeader from '@/components/admin/shared/PageHeader'
@@ -127,12 +126,21 @@ const COLUMNS: Column<AdminOrder>[] = [
 
 export default function OrdersPage() {
   const router  = useRouter()
-  const [tab, setTab]       = useState<TabFilter>('all')
-  const [search, setSearch] = useState('')
-  const [page, setPage]     = useState(1)
+  const [orders,  setOrders]  = useState<AdminOrder[]>([])
+  const [loading, setLoading] = useState(true)
+  const [tab, setTab]         = useState<TabFilter>('all')
+  const [search, setSearch]   = useState('')
+  const [page, setPage]       = useState(1)
+
+  useEffect(() => {
+    fetch('/api/admin/orders')
+      .then(r => r.ok ? r.json() : [])
+      .then(setOrders)
+      .finally(() => setLoading(false))
+  }, [])
 
   const filtered = useMemo(() => {
-    let list = mockOrders
+    let list = orders
     if (tab !== 'all') list = list.filter(o => o.fulfillmentStatus === tab)
     if (search.trim()) {
       const q = search.toLowerCase()
@@ -143,13 +151,13 @@ export default function OrdersPage() {
       )
     }
     return list
-  }, [tab, search])
+  }, [tab, search, orders])
 
   const totalPages  = Math.ceil(filtered.length / PAGE_SIZE)
   const paginated   = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   const tabCount = (v: TabFilter) =>
-    v === 'all' ? mockOrders.length : mockOrders.filter(o => o.fulfillmentStatus === v).length
+    v === 'all' ? orders.length : orders.filter(o => o.fulfillmentStatus === v).length
 
   const handleTabChange = (v: TabFilter) => { setTab(v); setPage(1) }
   const handleSearch    = (v: string)    => { setSearch(v); setPage(1) }
@@ -158,7 +166,7 @@ export default function OrdersPage() {
     <div>
       <PageHeader
         title="Orders"
-        subtitle={`${mockOrders.length} total orders`}
+        subtitle={loading ? 'Loading…' : `${orders.length} total orders`}
         actions={
           <button
             onClick={() => exportOrdersCSV(filtered)}
@@ -206,8 +214,24 @@ export default function OrdersPage() {
           </div>
         </div>
 
+        {/* Loading skeleton */}
+        {loading && (
+          <div className="divide-y divide-(--admin-border)">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3 px-5 py-3">
+                <div className="flex-1 space-y-1.5">
+                  <div className="h-3 w-24 bg-(--admin-border) rounded animate-pulse" />
+                  <div className="h-2.5 w-40 bg-(--admin-border) rounded animate-pulse" />
+                </div>
+                <div className="h-3 w-16 bg-(--admin-border) rounded animate-pulse hidden sm:block" />
+                <div className="h-5 w-14 bg-(--admin-border) rounded-full animate-pulse hidden sm:block" />
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Mobile card list */}
-        <div className="sm:hidden divide-y divide-(--admin-border)">
+        {!loading && <div className="sm:hidden divide-y divide-(--admin-border)">
           {paginated.length === 0 ? (
             <div className="px-5 py-16 text-center">
               <p className="text-[13px] text-(--admin-text-soft)">No orders found</p>
@@ -233,10 +257,10 @@ export default function OrdersPage() {
               </div>
             </div>
           ))}
-        </div>
+        </div>}
 
         {/* Desktop table */}
-        <div className="hidden sm:block">
+        {!loading && <div className="hidden sm:block">
           <DataTable
             columns={COLUMNS as unknown as Column<Record<string, unknown>>[]}
             data={paginated as unknown as Record<string, unknown>[]}
@@ -245,7 +269,7 @@ export default function OrdersPage() {
             emptyMessage="No orders found"
             emptyDescription="Try adjusting your filters or search."
           />
-        </div>
+        </div>}
 
         {/* Pagination */}
         <div className="px-5 pb-4">

@@ -130,14 +130,14 @@
 }
 
 .dark {
-  --admin-bg:           #0F0F0E;
+  --admin-bg:           #090909;
   --admin-surface:      #151617;
   --admin-surface-2:    #242320;
-  --admin-border:       #2E2C29;
-  --admin-text:         #F0EDE8;
-  --admin-text-soft:    #9B9590;
+  --admin-border:       #2f2f2f;
+  --admin-text:         #ececec;
+  --admin-text-soft:    #9a9a9a;
   --admin-text-muted:   #62666D;
-  --admin-accent:       #F0EDE8;
+  --admin-accent:       #ededed;
   --admin-accent-text:  #151617;
   /* State — dark mode */
   --admin-green:        #4ADE80;
