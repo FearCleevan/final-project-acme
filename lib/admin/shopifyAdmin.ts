@@ -540,7 +540,7 @@ export async function uploadProductImage(productId: string, imageUrl: string): P
 
 // ─── Orders ───────────────────────────────────────────────────────────────────
 
-import type { AdminOrder, AdminOrderItem, OrderStatus, PaymentStatus, AdminCollection } from './types'
+import type { AdminOrder, AdminOrderItem, OrderStatus, PaymentStatus, AdminCollection, AdminNotification } from './types'
 
 interface ShopifyOrderNode {
   id: string
@@ -808,4 +808,89 @@ export async function deleteAdminCollection(shopifyId: string): Promise<void> {
   if (data.collectionDelete.userErrors.length) {
     throw new Error(data.collectionDelete.userErrors[0].message)
   }
+}
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+export async function getAdminNotifications(): Promise<AdminNotification[]> {
+  const notifications: AdminNotification[] = []
+
+  // ── New orders (last 48 h) ────────────────────────────────────────────────
+  try {
+    const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()
+    const data = await adminFetch<{ orders: { edges: { node: ShopifyOrderNode }[] } }>(
+      `query GetRecentOrders($first: Int!, $query: String!) {
+        orders(first: $first, query: $query, sortKey: CREATED_AT, reverse: true) {
+          edges { node { ${ORDER_FIELDS} } }
+        }
+      }`,
+      { first: 5, query: `created_at:>'${cutoff}'` }
+    )
+    for (const { node } of data.orders.edges) {
+      const order = toAdminOrder(node)
+      const itemCount = order.items.reduce((s, i) => s + i.quantity, 0)
+      notifications.push({
+        id:        `order-${order.id}`,
+        type:      'new_order',
+        title:     `New order from ${order.customer.name || order.customer.email}`,
+        subtitle:  `${order.id} · $${order.total.toFixed(2)} · ${itemCount} ${itemCount === 1 ? 'item' : 'items'}`,
+        href:      `/admin/orders/${order.id.replace('#', '')}`,
+        amount:    order.total,
+        timestamp: order.date,
+      })
+    }
+  } catch { /* Shopify not configured */ }
+
+  // ── Low stock (≤ 3 units) ─────────────────────────────────────────────────
+  try {
+    const products = await getAdminProducts(100)
+    for (const p of products.filter(p => p.stock <= 3)) {
+      notifications.push({
+        id:        `stock-${p.id}`,
+        type:      'low_stock',
+        title:     p.title,
+        subtitle:  `${p.sku} · ${p.stock === 0 ? 'Out of stock' : `${p.stock} left`}`,
+        href:      '/admin/inventory',
+        timestamp: new Date().toISOString(),
+      })
+    }
+  } catch { /* Shopify not configured */ }
+
+  // ── New customers (last 7 days) ───────────────────────────────────────────
+  try {
+    const cutoff7d = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+    const data = await adminFetch<{
+      customers: {
+        edges: {
+          node: {
+            id: string; firstName: string; lastName: string
+            email: string; createdAt: string; numberOfOrders: number
+          }
+        }[]
+      }
+    }>(
+      `query GetRecentCustomers($first: Int!, $query: String!) {
+        customers(first: $first, query: $query, sortKey: CREATED_AT, reverse: true) {
+          edges { node { id firstName lastName email createdAt numberOfOrders } }
+        }
+      }`,
+      { first: 5, query: `created_at:>'${cutoff7d}'` }
+    )
+    for (const { node } of data.customers.edges) {
+      const name = `${node.firstName} ${node.lastName}`.trim() || node.email
+      notifications.push({
+        id:        `customer-${node.id}`,
+        type:      'new_customer',
+        title:     `New customer: ${name}`,
+        subtitle:  `${node.email} · ${node.numberOfOrders} ${node.numberOfOrders === 1 ? 'order' : 'orders'}`,
+        href:      '/admin/customers',
+        timestamp: node.createdAt,
+      })
+    }
+  } catch { /* Shopify not configured */ }
+
+  // Sort all notifications newest-first
+  return notifications.sort(
+    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+  )
 }

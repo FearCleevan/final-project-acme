@@ -4,8 +4,8 @@ import { useState, useRef, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { BiSearch, BiBell, BiX, BiPackage, BiCog, BiLogOut, BiBox, BiReceipt, BiUser } from 'react-icons/bi'
 import LogoutModal from '@/components/admin/shared/LogoutModal'
-import { mockInventoryAlerts, mockAdminProducts, mockCustomers } from '@/lib/admin/mockData'
-import type { AdminOrder } from '@/lib/admin/types'
+import { mockAdminProducts, mockCustomers } from '@/lib/admin/mockData'
+import type { AdminOrder, AdminNotification } from '@/lib/admin/types'
 import { formatCurrency } from '@/lib/admin/utils'
 
 function useClickOutside(ref: React.RefObject<HTMLElement | null>, onClose: () => void) {
@@ -120,15 +120,37 @@ export default function AdminTopbar() {
   const [searchOpen,  setSearchOpen]  = useState(false)
   const [notifOpen,   setNotifOpen]   = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
-  const [showLogout,  setShowLogout]  = useState(false)
-  const [loggingOut,  setLoggingOut]  = useState(false)
-  const [ownerName,   setOwnerName]   = useState('')
-  const [ownerEmail,  setOwnerEmail]  = useState('')
+  const [showLogout,    setShowLogout]    = useState(false)
+  const [loggingOut,    setLoggingOut]    = useState(false)
+  const [ownerName,     setOwnerName]     = useState('')
+  const [ownerEmail,    setOwnerEmail]    = useState('')
+  const [notifications, setNotifications] = useState<(AdminNotification & { age: string })[]>([])
 
   useEffect(() => {
     fetch('/api/admin/shop')
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d) { setOwnerName(d.name); setOwnerEmail(d.email) } })
+  }, [])
+
+  useEffect(() => {
+    function toAge(ts: string): string {
+      const mins = Math.floor((Date.now() - new Date(ts).getTime()) / 60_000)
+      if (mins < 1)    return 'just now'
+      if (mins < 60)   return `${mins}m ago`
+      if (mins < 1440) return `${Math.floor(mins / 60)}h ago`
+      return `${Math.floor(mins / 1440)}d ago`
+    }
+    function fetchNotifications() {
+      fetch('/api/admin/notifications')
+        .then(r => r.ok ? r.json() : [])
+        .then((d: AdminNotification[]) => {
+          if (Array.isArray(d)) setNotifications(d.map(n => ({ ...n, age: toAge(n.timestamp) })))
+        })
+        .catch(() => {})
+    }
+    fetchNotifications()
+    const interval = setInterval(fetchNotifications, 60_000)
+    return () => clearInterval(interval)
   }, [])
 
   const notifRef    = useRef<HTMLDivElement>(null)
@@ -139,7 +161,7 @@ export default function AdminTopbar() {
   useClickOutside(profileRef, () => setProfileOpen(false))
   useClickOutside(searchRef,  () => setSearch(''))
 
-  const alertCount = mockInventoryAlerts.length
+  const notifCount = notifications.length
 
   const searchResults = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -244,55 +266,76 @@ export default function AdminTopbar() {
             aria-label="Notifications"
           >
             <BiBell size={18} />
-            {alertCount > 0 && (
-              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-(--admin-amber)" />
+            {notifCount > 0 && (
+              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-(--admin-green)" />
             )}
           </button>
 
           {notifOpen && (
-            <div className="absolute right-0 top-full mt-2 w-80 bg-(--admin-surface) border border-(--admin-border) rounded-xl shadow-xl z-50 overflow-hidden">
+            <div className="absolute right-0 top-full mt-2 w-88 bg-(--admin-surface) border border-(--admin-border) rounded-xl shadow-xl z-50 overflow-hidden">
+              {/* Header */}
               <div className="flex items-center justify-between px-4 py-3 border-b border-(--admin-border)">
-                <p className="text-[13px] font-semibold text-(--admin-text)">Notifications</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-[13px] font-semibold text-(--admin-text)">Notifications</p>
+                  {notifCount > 0 && (
+                    <span className="px-1.5 py-0.5 rounded-full bg-(--admin-green-bg) text-[10px] font-semibold text-(--admin-green)">
+                      {notifCount}
+                    </span>
+                  )}
+                </div>
                 <button onClick={() => setNotifOpen(false)} className="w-6 h-6 flex items-center justify-center rounded-md text-(--admin-text-muted) hover:bg-(--admin-surface-2) transition-colors">
                   <BiX size={15} />
                 </button>
               </div>
 
-              {alertCount === 0 ? (
+              {/* Body */}
+              {notifCount === 0 ? (
                 <div className="py-10 text-center">
-                  <p className="text-[13px] text-(--admin-text-soft)">No new notifications</p>
+                  <p className="text-[13px] text-(--admin-text-soft)">All caught up</p>
+                  <p className="text-[11px] text-(--admin-text-muted) mt-1">No new orders, alerts, or customers.</p>
                 </div>
               ) : (
-                <>
-                  <p className="px-4 pt-3 pb-1 text-[10px] font-medium uppercase tracking-wider text-(--admin-text-muted)">
-                    Low Stock Alerts
-                  </p>
-                  <div className="divide-y divide-(--admin-border) max-h-72 overflow-y-auto">
-                    {mockInventoryAlerts.map(p => (
+                <div className="divide-y divide-(--admin-border) max-h-80 overflow-y-auto">
+                  {notifications.map(n => {
+                    const Icon      = n.type === 'new_order' ? BiReceipt : n.type === 'new_customer' ? BiUser : BiPackage
+                    const iconBg    = n.type === 'new_order' ? 'bg-(--admin-green-bg)' : n.type === 'new_customer' ? 'bg-(--admin-accent)/10' : 'bg-(--admin-amber-bg)'
+                    const iconColor = n.type === 'new_order' ? 'text-(--admin-green)' : n.type === 'new_customer' ? 'text-(--admin-accent)' : 'text-(--admin-amber)'
+                    return (
                       <button
-                        key={p.id}
-                        onClick={() => { setNotifOpen(false); router.push('/admin/inventory') }}
+                        key={n.id}
+                        onClick={() => { setNotifOpen(false); router.push(n.href) }}
                         className="w-full flex items-center gap-3 px-4 py-3 hover:bg-(--admin-surface-2) transition-colors text-left"
                       >
-                        <div className="w-8 h-8 rounded-md bg-(--admin-amber-bg) border border-(--admin-amber)/20 flex items-center justify-center shrink-0">
-                          <BiPackage size={14} className="text-(--admin-amber)" />
+                        <div className={`w-8 h-8 rounded-md flex items-center justify-center shrink-0 ${iconBg}`}>
+                          <Icon size={14} className={iconColor} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-[12px] font-medium text-(--admin-text) truncate">{p.title}</p>
-                          <p className="text-[11px] text-(--admin-text-muted)">{p.sku} · {p.stock === 0 ? 'Out of stock' : `${p.stock} left`}</p>
+                          <p className="text-[12px] font-medium text-(--admin-text) truncate">{n.title}</p>
+                          <p className="text-[11px] text-(--admin-text-muted) truncate">{n.subtitle}</p>
                         </div>
+                        <span className="text-[10px] text-(--admin-text-muted) shrink-0 ml-2">{n.age}</span>
                       </button>
-                    ))}
-                  </div>
-                  <div className="px-4 py-3 border-t border-(--admin-border)">
-                    <button
-                      onClick={() => { setNotifOpen(false); router.push('/admin/inventory') }}
-                      className="text-[12px] text-(--admin-accent) hover:opacity-80 transition-opacity"
-                    >
-                      View all in Inventory →
-                    </button>
-                  </div>
-                </>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* Footer */}
+              {notifCount > 0 && (
+                <div className="px-4 py-3 border-t border-(--admin-border) flex gap-4">
+                  <button onClick={() => { setNotifOpen(false); router.push('/admin/orders') }}
+                    className="text-[12px] text-(--admin-accent) hover:opacity-70 transition-opacity">
+                    Orders →
+                  </button>
+                  <button onClick={() => { setNotifOpen(false); router.push('/admin/inventory') }}
+                    className="text-[12px] text-(--admin-accent) hover:opacity-70 transition-opacity">
+                    Inventory →
+                  </button>
+                  <button onClick={() => { setNotifOpen(false); router.push('/admin/customers') }}
+                    className="text-[12px] text-(--admin-accent) hover:opacity-70 transition-opacity">
+                    Customers →
+                  </button>
+                </div>
               )}
             </div>
           )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { BiCheck, BiRevision, BiTag, BiEnvelope } from "react-icons/bi";
 import { Product } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
@@ -29,10 +29,14 @@ export default function ProductInfo({ product }: ProductInfoProps) {
   const [qty, setQty] = useState(existingQty || 1);
   const [added, setAdded] = useState(false);
 
-  // Keep qty in sync with the crate store (covers hydration and cross-component updates)
-  useEffect(() => {
+  // Sync qty when existingQty changes (e.g. post-hydration or drawer update).
+  // React's recommended pattern: track last synced value and setState during render
+  // so the reset happens in the same cycle, not as a cascading effect.
+  const [lastSyncedQty, setLastSyncedQty] = useState(existingQty);
+  if (lastSyncedQty !== existingQty) {
+    setLastSyncedQty(existingQty);
     setQty(existingQty > 0 ? existingQty : 1);
-  }, [existingQty]);
+  }
 
   const reviews = getReviewsForProduct(product.id, product.category);
   const { average, count } = getAggregateRating(reviews);

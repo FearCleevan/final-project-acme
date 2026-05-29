@@ -143,3 +143,15 @@ export interface AbandonedCheckout {
   value: number
   abandonedAt: string
 }
+
+export type NotificationType = 'new_order' | 'low_stock' | 'new_customer'
+
+export interface AdminNotification {
+  id:        string
+  type:      NotificationType
+  title:     string
+  subtitle:  string
+  href:      string
+  amount?:   number
+  timestamp: string
+}
