@@ -405,13 +405,11 @@ export async function setInventoryQuantity(
   const level  = levels.find(e => e.node.location.id === locationId)
   const changeFromQuantity = level?.node?.quantities?.find(q => q.name === 'on_hand')?.quantity ?? 0
 
-  const idempotencyKey = `inv-${inventoryItemId.split('/').pop()}-${Date.now()}`
-
   const data = await adminFetch<{
     inventorySetQuantities: { userErrors: { field: string; message: string }[] }
   }>(
     `mutation SetInventory($input: InventorySetQuantitiesInput!) {
-      inventorySetQuantities(input: $input) @idempotent(key: "${idempotencyKey}") {
+      inventorySetQuantities(input: $input) {
         userErrors { field message }
       }
     }`,
@@ -426,6 +424,29 @@ export async function setInventoryQuantity(
 
   const errs = data.inventorySetQuantities?.userErrors
   if (errs?.length) throw new Error(`Inventory error: ${errs[0].message}`)
+}
+
+/**
+ * Returns the inventoryItem GID for a product's first variant.
+ * Returns null if the product has no variant or no inventory item.
+ */
+export async function getInventoryItemIdForProduct(shopifyId: string): Promise<string | null> {
+  const gid = shopifyId.startsWith('gid://') ? shopifyId : `gid://shopify/Product/${shopifyId}`
+  const data = await adminFetch<{
+    product: {
+      variants: { edges: { node: { inventoryItem: { id: string } | null } }[] }
+    } | null
+  }>(
+    `query GetInventoryItem($id: ID!) {
+      product(id: $id) {
+        variants(first: 1) {
+          edges { node { inventoryItem { id } } }
+        }
+      }
+    }`,
+    { id: gid }
+  )
+  return data.product?.variants.edges[0]?.node?.inventoryItem?.id ?? null
 }
 
 export async function deleteAdminProduct(shopifyId: string): Promise<void> {
