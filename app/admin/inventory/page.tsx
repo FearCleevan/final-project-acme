@@ -9,6 +9,8 @@ import SearchInput from '@/components/admin/shared/SearchInput'
 import Badge from '@/components/admin/shared/Badge'
 import { cn } from '@/lib/utils'
 import { BiEditAlt, BiCheck, BiX } from 'react-icons/bi'
+import Toast, { ToastType } from '@/components/admin/shared/Toast'
+import { BiLoader } from 'react-icons/bi'
 
 const LOW_STOCK_THRESHOLD = 5
 
@@ -42,6 +44,8 @@ export default function InventoryPage() {
   const [editVal,      setEditVal]      = useState('')
   const [tab,          setTab]          = useState<TabFilter>('all')
   const [search,       setSearch]       = useState('')
+  const [savingId,     setSavingId]     = useState<string | null>(null)
+  const [toast,        setToast]        = useState<{ message: string; type: ToastType } | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -80,10 +84,28 @@ export default function InventoryPage() {
     setTimeout(() => inputRef.current?.select(), 0)
   }
 
-  function commitEdit(id: string) {
+  async function commitEdit(id: string) {
     const n = parseInt(editVal, 10)
-    if (!isNaN(n) && n >= 0) setStocks(s => ({ ...s, [id]: n }))
+    if (isNaN(n) || n < 0) { setEditing(null); return }
+    const prev = stocks[id] ?? 0
     setEditing(null)
+    setSavingId(id)
+    try {
+      const res = await fetch(`/api/admin/inventory/${id}`, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ quantity: n }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Failed to update stock')
+      setStocks(s => ({ ...s, [id]: n }))
+      setToast({ message: 'Stock updated in Shopify.', type: 'success' })
+    } catch (err) {
+      setStocks(s => ({ ...s, [id]: prev }))
+      setToast({ message: err instanceof Error ? err.message : 'Failed to update stock', type: 'error' })
+    } finally {
+      setSavingId(null)
+    }
   }
 
   function cancelEdit() { setEditing(null) }
@@ -204,7 +226,9 @@ export default function InventoryPage() {
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[11px] text-(--admin-text-muted)">{p.sku}</span>
                 <div className="flex items-center gap-2">
-                  {editing === p.id ? (
+                  {savingId === p.id ? (
+                    <BiLoader size={14} className="animate-spin text-(--admin-text-muted)" />
+                  ) : editing === p.id ? (
                     <div className="flex items-center gap-1.5">
                       <input
                         ref={inputRef}
@@ -293,7 +317,13 @@ export default function InventoryPage() {
                     <Badge label={stockLabel(p.stock)} variant={stockVariant(p.stock)} />
                   </td>
                   <td className="px-5 py-3">
-                    {editing === p.id ? (
+                    {savingId === p.id ? (
+                      <span className={cn(
+                        'text-[13px] font-semibold text-(--admin-text-muted)'
+                      )}>
+                        {stocks[p.id] ?? p.stock}
+                      </span>
+                    ) : editing === p.id ? (
                       <div className="flex items-center gap-1.5">
                         <input
                           ref={inputRef}
@@ -320,7 +350,9 @@ export default function InventoryPage() {
                     )}
                   </td>
                   <td className="px-5 py-3 text-right">
-                    {editing !== p.id && (
+                    {savingId === p.id ? (
+                      <BiLoader size={14} className="animate-spin text-(--admin-text-muted) ml-auto" />
+                    ) : editing !== p.id && (
                       <button
                         onClick={() => startEdit(p.id, p.stock)}
                         className="flex items-center gap-1 h-7 px-2.5 text-[11px] text-(--admin-text-muted) bg-(--admin-surface-2) border border-(--admin-border) rounded hover:bg-(--admin-border) hover:text-(--admin-text) transition-colors"
@@ -337,10 +369,17 @@ export default function InventoryPage() {
 
         <div className="px-5 py-3 border-t border-(--admin-border)">
           <p className="text-[11px] text-(--admin-text-muted)">
-            Stock levels are pulled live from Shopify. Adjustments here are local — full inventory write API in next sprint.
+            Stock levels are pulled live from Shopify. Adjustments are saved directly to Shopify inventory.
           </p>
         </div>
       </SectionCard>
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   )
 }
