@@ -236,7 +236,8 @@ function CrateItemStepper({ item }: { item: ReturnType<typeof useCrateStore.getS
       </span>
       <button
         onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-        className="w-10 h-10 flex items-center justify-center text-ink-iron hover:bg-parchment-2 transition-colors text-[17px] font-mono border-l border-ink-rule"
+        disabled={item.quantity >= item.product.stockQuantity}
+        className="w-10 h-10 flex items-center justify-center text-ink-iron hover:bg-parchment-2 transition-colors text-[17px] font-mono border-l border-ink-rule disabled:opacity-30 disabled:pointer-events-none"
         aria-label="Increase quantity"
       >
         +

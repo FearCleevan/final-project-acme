@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BiCheck, BiRevision, BiTag, BiEnvelope } from "react-icons/bi";
 import { Product } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
@@ -16,14 +16,23 @@ const selectClass =
   "w-full h-[44px] pl-3 pr-8 bg-parchment-2 border border-ink-rule rounded-sm text-[14px] font-sans text-ink-iron appearance-none focus:outline-none focus:border-brass-deep focus:ring-1 focus:ring-brass/20 transition-colors cursor-pointer";
 
 export default function ProductInfo({ product }: ProductInfoProps) {
-  const addItem = useCrateStore((s) => s.addItem);
+  const addItem        = useCrateStore((s) => s.addItem);
+  const updateQuantity = useCrateStore((s) => s.updateQuantity);
+  const existingQty    = useCrateStore((s) =>
+    s.items.find((i) => i.product.id === product.id)?.quantity ?? 0
+  );
 
   const [selectedFinish, setSelectedFinish] = useState(product.finish[0] ?? "");
   const [selectedBurner, setSelectedBurner] = useState(
     product.burnerSize ?? "",
   );
-  const [qty, setQty] = useState(1);
+  const [qty, setQty] = useState(existingQty || 1);
   const [added, setAdded] = useState(false);
+
+  // Keep qty in sync with the crate store (covers hydration and cross-component updates)
+  useEffect(() => {
+    setQty(existingQty > 0 ? existingQty : 1);
+  }, [existingQty]);
 
   const reviews = getReviewsForProduct(product.id, product.category);
   const { average, count } = getAggregateRating(reviews);
@@ -31,8 +40,13 @@ export default function ProductInfo({ product }: ProductInfoProps) {
   const lineTotal = product.price * qty;
 
   function handleAdd() {
-    for (let i = 0; i < qty; i++) {
-      addItem(product, selectedFinish, selectedBurner);
+    if (existingQty > 0) {
+      // Already in crate — set total quantity instead of adding on top
+      updateQuantity(product.id, qty);
+    } else {
+      for (let i = 0; i < qty; i++) {
+        addItem(product, selectedFinish, selectedBurner);
+      }
     }
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);

@@ -1,5 +1,8 @@
 ﻿import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+
+// Debounce timers keyed by productId — module-level so they survive re-renders
+const _syncTimers = new Map<string, ReturnType<typeof setTimeout>>()
 import { CrateItem, Product } from '@/lib/types'
 import {
   cartCreate,
@@ -40,8 +43,9 @@ export const useCrateStore = create<CrateStore>()(
         const existing = get().items.find(i => i.product.id === product.id)
 
         if (existing) {
-          // ── Item already in cart — increment quantity ──────────────────────
-          const newQty = existing.quantity + 1
+          // ── Item already in cart — increment quantity (capped at stock) ────
+          const newQty = Math.min(existing.quantity + 1, existing.product.stockQuantity)
+          if (newQty === existing.quantity) return // already at stock limit
           set({
             items: get().items.map(i =>
               i.product.id === product.id ? { ...i, quantity: newQty } : i
@@ -50,7 +54,17 @@ export const useCrateStore = create<CrateStore>()(
           // Background sync: update the Shopify line quantity
           const { cartId } = get()
           if (cartId && existing.cartLineId) {
-            cartLinesUpdate(cartId, [{ id: existing.cartLineId, quantity: newQty }])
+            const lineId = existing.cartLineId
+            cartLinesUpdate(cartId, [{ id: lineId, quantity: newQty }]).then(result => {
+              if (!result) {
+                set(state => ({
+                  items: state.items.map(i =>
+                    i.product.id === product.id ? { ...i, cartLineId: null } : i
+                  ),
+                }))
+                get().initCart()
+              }
+            })
           }
         } else {
           // ── New item — add to Zustand immediately ──────────────────────────
@@ -118,18 +132,35 @@ export const useCrateStore = create<CrateStore>()(
       },
 
       updateQuantity: (productId, quantity) => {
-        const item   = get().items.find(i => i.product.id === productId)
-        const cartId = get().cartId
-        // Update Zustand immediately
+        const item = get().items.find(i => i.product.id === productId)
+        if (!item) return
+        const capped = Math.min(quantity, item.product.stockQuantity)
+        // Update Zustand immediately for instant UI feedback
         set({
           items: get().items.map(i =>
-            i.product.id === productId ? { ...i, quantity } : i
+            i.product.id === productId ? { ...i, quantity: capped } : i
           ),
         })
-        // Background sync — only if line is already synced to Shopify
-        if (cartId && item?.cartLineId) {
-          cartLinesUpdate(cartId, [{ id: item.cartLineId, quantity }])
-        }
+        // Debounce Shopify sync — rapid clicks collapse into one request
+        const existing = _syncTimers.get(productId)
+        if (existing) clearTimeout(existing)
+        const timer = setTimeout(() => {
+          _syncTimers.delete(productId)
+          const { cartId, items } = get()
+          const current = items.find(i => i.product.id === productId)
+          if (!current || !cartId || !current.cartLineId) return
+          cartLinesUpdate(cartId, [{ id: current.cartLineId, quantity: current.quantity }]).then(result => {
+            if (!result) {
+              set(state => ({
+                items: state.items.map(i =>
+                  i.product.id === productId ? { ...i, cartLineId: null } : i
+                ),
+              }))
+              get().initCart()
+            }
+          })
+        }, 400)
+        _syncTimers.set(productId, timer)
       },
 
       clearCrate: () => set({ items: [], cartId: null }),
