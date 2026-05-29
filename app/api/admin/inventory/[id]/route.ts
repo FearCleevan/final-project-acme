@@ -41,7 +41,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     }
 
     await setInventoryQuantity(inventoryItemId, quantity)
-    revalidateTag('products', 'max')
+    revalidateTag('products', 'layout')
     return NextResponse.json({ ok: true, stock: quantity })
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 })
