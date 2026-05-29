@@ -1,11 +1,13 @@
 'use client'
 
+import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import Nav from '@/components/nav/Nav'
 import CrateDrawer from '@/components/crate/CrateDrawer'
 import SearchOverlay from '@/components/shared/SearchOverlay'
 import Footer from '@/components/shared/Footer'
 import { useSearchOverlay } from '@/hooks/useSearchOverlay'
+import { useCrateStore } from '@/store/crateStore'
 
 interface ShellClientProps {
   children: React.ReactNode
@@ -14,6 +16,10 @@ interface ShellClientProps {
 export default function ShellClient({ children }: ShellClientProps) {
   const pathname = usePathname()
   const { isOpen, open, close, query, setQuery } = useSearchOverlay()
+
+  useEffect(() => {
+    useCrateStore.getState().initCart()
+  }, [])
 
   // Admin routes manage their own layout — skip the storefront shell entirely
   if (pathname.startsWith('/admin')) return <>{children}</>
