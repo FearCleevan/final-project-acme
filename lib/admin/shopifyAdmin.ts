@@ -711,7 +711,7 @@ interface ShopifyCollectionNode {
   id: string
   title: string
   handle: string
-  description: string
+  description: string | null
   productsCount: { count: number } | null
 }
 
@@ -724,6 +724,8 @@ function toAdminCollection(c: ShopifyCollectionNode): AdminCollection {
     productCount: c.productsCount?.count ?? 0,
   }
 }
+
+const COLLECTION_FIELDS = `id title handle description productsCount { count }`
 
 export async function createAdminCollection(input: {
   title: string
@@ -738,7 +740,7 @@ export async function createAdminCollection(input: {
   }>(
     `mutation CreateCollection($input: CollectionInput!) {
       collectionCreate(input: $input) {
-        collection { id title handle description productsCount { count } }
+        collection { ${COLLECTION_FIELDS} }
         userErrors { field message }
       }
     }`,
@@ -747,7 +749,8 @@ export async function createAdminCollection(input: {
   if (data.collectionCreate.userErrors.length) {
     throw new Error(data.collectionCreate.userErrors[0].message)
   }
-  return toAdminCollection(data.collectionCreate.collection!)
+  if (!data.collectionCreate.collection) throw new Error('collectionCreate returned no collection')
+  return toAdminCollection(data.collectionCreate.collection)
 }
 
 export async function updateAdminCollection(
@@ -763,7 +766,7 @@ export async function updateAdminCollection(
   }>(
     `mutation UpdateCollection($input: CollectionInput!) {
       collectionUpdate(input: $input) {
-        collection { id title handle description productsCount { count } }
+        collection { ${COLLECTION_FIELDS} }
         userErrors { field message }
       }
     }`,
@@ -772,7 +775,8 @@ export async function updateAdminCollection(
   if (data.collectionUpdate.userErrors.length) {
     throw new Error(data.collectionUpdate.userErrors[0].message)
   }
-  return toAdminCollection(data.collectionUpdate.collection!)
+  if (!data.collectionUpdate.collection) throw new Error('collectionUpdate returned no collection')
+  return toAdminCollection(data.collectionUpdate.collection)
 }
 
 export async function deleteAdminCollection(shopifyId: string): Promise<void> {
