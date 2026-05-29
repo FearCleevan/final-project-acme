@@ -32,7 +32,7 @@ export interface Product {
   inStock: boolean
   featured: boolean
   collection: string
-  variantId: string
+  variantId: string | null
 }
 
 export interface CrateItem {

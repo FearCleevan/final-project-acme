@@ -232,7 +232,7 @@ export function shopifyProductToProduct(p: ShopifyProduct): Product {
     inStock:          p.availableForSale,
     featured:         p.tags.includes('featured'),
     collection:       colHandle,
-    variantId:        firstVar?.id ?? '',
+    variantId:        firstVar?.id ?? null,
   }
 }
 

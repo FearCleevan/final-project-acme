@@ -35,7 +35,7 @@ export const mockProducts: Product[] = [
     inStock: true,
     featured: true,
     collection: '',
-    variantId: '',
+    variantId: null,
   },
   {
     id: 'eb-002',
@@ -73,7 +73,7 @@ export const mockProducts: Product[] = [
     inStock: true,
     featured: false,
     collection: '',
-    variantId: '',
+    variantId: null,
   },
   {
     id: 'eb-003',
@@ -110,7 +110,7 @@ export const mockProducts: Product[] = [
     inStock: true,
     featured: false,
     collection: '',
-    variantId: '',
+    variantId: null,
   },
   {
     id: 'eb-004',
@@ -147,7 +147,7 @@ export const mockProducts: Product[] = [
     inStock: true,
     featured: false,
     collection: '',
-    variantId: '',
+    variantId: null,
   },
   {
     id: 'eb-005',
@@ -184,7 +184,7 @@ export const mockProducts: Product[] = [
     inStock: true,
     featured: false,
     collection: '',
-    variantId: '',
+    variantId: null,
   },
   {
     id: 'eb-006',
@@ -223,7 +223,7 @@ export const mockProducts: Product[] = [
     inStock: true,
     featured: true,
     collection: '',
-    variantId: '',
+    variantId: null,
   },
   {
     id: 'eb-007',
@@ -261,7 +261,7 @@ export const mockProducts: Product[] = [
     inStock: true,
     featured: false,
     collection: '',
-    variantId: '',
+    variantId: null,
   },
   {
     id: 'eb-008',
@@ -298,7 +298,7 @@ export const mockProducts: Product[] = [
     inStock: true,
     featured: false,
     collection: '',
-    variantId: '',
+    variantId: null,
   },
   {
     id: 'eb-009',
@@ -336,7 +336,7 @@ export const mockProducts: Product[] = [
     inStock: true,
     featured: true,
     collection: '',
-    variantId: '',
+    variantId: null,
   },
   {
     id: 'eb-010',
@@ -373,7 +373,7 @@ export const mockProducts: Product[] = [
     inStock: true,
     featured: false,
     collection: '',
-    variantId: '',
+    variantId: null,
   },
   {
     id: 'eb-011',
@@ -412,7 +412,7 @@ export const mockProducts: Product[] = [
     inStock: true,
     featured: false,
     collection: '',
-    variantId: '',
+    variantId: null,
   },
   {
     id: 'eb-012',
@@ -451,7 +451,7 @@ export const mockProducts: Product[] = [
     inStock: true,
     featured: false,
     collection: '',
-    variantId: '',
+    variantId: null,
   },
   {
     id: 'eb-013',
@@ -490,7 +490,7 @@ export const mockProducts: Product[] = [
     inStock: true,
     featured: false,
     collection: '',
-    variantId: '',
+    variantId: null,
   },
   {
     id: 'eb-014',
@@ -527,7 +527,7 @@ export const mockProducts: Product[] = [
     inStock: true,
     featured: false,
     collection: '',
-    variantId: '',
+    variantId: null,
   },
   {
     id: 'eb-015',
@@ -566,7 +566,7 @@ export const mockProducts: Product[] = [
     inStock: true,
     featured: false,
     collection: '',
-    variantId: '',
+    variantId: null,
   },
   {
     id: 'eb-016',
@@ -603,6 +603,6 @@ export const mockProducts: Product[] = [
     inStock: true,
     featured: false,
     collection: '',
-    variantId: '',
+    variantId: null,
   },
 ]
