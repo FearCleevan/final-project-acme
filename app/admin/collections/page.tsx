@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { mockCollections } from '@/lib/admin/mockData'
+import Toast, { ToastType } from '@/components/admin/shared/Toast'
 import { AdminCollection } from '@/lib/admin/types'
 import { slugify } from '@/lib/admin/utils'
 import PageHeader from '@/components/admin/shared/PageHeader'
@@ -24,7 +24,9 @@ interface DraftState {
 const EMPTY_DRAFT: DraftState = { title: '', handle: '', description: '', handleLocked: false }
 
 export default function CollectionsPage() {
-  const [collections, setCollections]     = useState<AdminCollection[]>(mockCollections)
+  const [collections, setCollections] = useState<AdminCollection[]>([])
+  const [loading,     setLoading]     = useState(true)
+  const [toast,       setToast]       = useState<{ message: string; type: ToastType } | null>(null)
 
   // Modal visibility
   const [modalOpen, setModalOpen]         = useState(false)
@@ -40,6 +42,13 @@ export default function CollectionsPage() {
 
   // Delete modal
   const [deleteTarget, setDeleteTarget]   = useState<AdminCollection | null>(null)
+
+  useEffect(() => {
+    fetch('/api/admin/collections')
+      .then(r => r.ok ? r.json() : [])
+      .then(setCollections)
+      .finally(() => setLoading(false))
+  }, [])
 
   // Auto-slug title → handle unless manually locked
   useEffect(() => {
@@ -88,43 +97,65 @@ export default function CollectionsPage() {
     return Object.keys(errs).length === 0
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!validate()) return
     setSaving(true)
-
-    setTimeout(() => {
-      if (editingId) {
-        setCollections(cs => cs.map(c =>
-          c.id === editingId
-            ? { ...c, title: draft.title.trim(), handle: draft.handle.trim() || slugify(draft.title), description: draft.description.trim() }
-            : c
-        ))
-      } else {
-        const newCol: AdminCollection = {
-          id: `col-${Date.now()}`,
-          title: draft.title.trim(),
-          handle: draft.handle.trim() || slugify(draft.title),
-          description: draft.description.trim(),
-          productCount: 0,
-        }
-        setCollections(cs => [...cs, newCol])
+    try {
+      const body = {
+        title:       draft.title.trim(),
+        handle:      draft.handle.trim() || slugify(draft.title),
+        description: draft.description.trim(),
       }
-
-      setSaving(false)
+      const res = editingId
+        ? await fetch(`/api/admin/collections/${editingId}`, {
+            method:  'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify(body),
+          })
+        : await fetch('/api/admin/collections', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify(body),
+          })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error ?? 'Failed to save collection')
+      }
+      const saved: AdminCollection = await res.json()
+      setCollections(cs =>
+        editingId
+          ? cs.map(c => c.id === editingId ? saved : c)
+          : [...cs, saved]
+      )
       setSuccess(true)
-
+      setToast({ message: editingId ? 'Collection updated.' : 'Collection created.', type: 'success' })
       setTimeout(() => {
         setSuccess(false)
         setModalOpen(false)
         setDraft(EMPTY_DRAFT)
         setEditingId(null)
       }, 1200)
-    }, 700)
+    } catch (err) {
+      setToast({ message: err instanceof Error ? err.message : 'Failed to save collection', type: 'error' })
+    } finally {
+      setSaving(false)
+    }
   }
 
-  function handleDelete(col: AdminCollection) {
-    setCollections(cs => cs.filter(c => c.id !== col.id))
-    setDeleteTarget(null)
+  async function handleDelete(col: AdminCollection) {
+    try {
+      const res = await fetch(`/api/admin/collections/${col.id}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error ?? 'Failed to delete collection')
+      }
+      setCollections(cs => cs.filter(c => c.id !== col.id))
+      setDeleteTarget(null)
+      setToast({ message: 'Collection deleted.', type: 'success' })
+    } catch (err) {
+      setDeleteTarget(null)
+      setToast({ message: err instanceof Error ? err.message : 'Failed to delete collection', type: 'error' })
+    }
   }
 
   const isEditing = editingId !== null
@@ -145,7 +176,19 @@ export default function CollectionsPage() {
       />
 
       {/* Grid */}
-      {collections.length === 0 ? (
+      {loading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <SectionCard key={i}>
+              <div className="space-y-3 animate-pulse">
+                <div className="h-4 w-32 bg-(--admin-border) rounded" />
+                <div className="h-3 w-48 bg-(--admin-border) rounded" />
+                <div className="h-3 w-24 bg-(--admin-border) rounded" />
+              </div>
+            </SectionCard>
+          ))}
+        </div>
+      ) : collections.length === 0 ? (
         <SectionCard>
           <div className="py-16 text-center">
             <BiCollection size={32} className="mx-auto text-(--admin-border) mb-3" />
@@ -280,12 +323,6 @@ export default function CollectionsPage() {
                 />
               </div>
 
-              {/* Plan 2 note */}
-              <div className="p-3 rounded-md bg-(--admin-surface-2) border border-(--admin-border)">
-                <p className="text-[11px] text-(--admin-text-muted)">
-                  Product assignment, sort order, and image upload available in Plan 2.
-                </p>
-              </div>
 
             </div>
 
@@ -339,6 +376,14 @@ export default function CollectionsPage() {
           dangerous
           onConfirm={() => handleDelete(deleteTarget)}
           onCancel={() => setDeleteTarget(null)}
+        />
+      )}
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
         />
       )}
     </div>
