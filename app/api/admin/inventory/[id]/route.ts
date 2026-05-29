@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import { revalidateTag } from 'next/cache'
 import { getIronSession } from 'iron-session'
 import { sessionOptions } from '@/lib/admin/session'
 import type { AdminSession } from '@/lib/admin/auth'
@@ -20,14 +21,15 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   const { id } = await params
 
   const body = await req.json().catch(() => ({}))
-  const quantity = Number(body.quantity)
+  const raw = body.quantity
 
-  if (!Number.isInteger(quantity) || quantity < 0) {
+  if (typeof raw !== 'number' || !Number.isInteger(raw) || raw < 0) {
     return NextResponse.json(
       { error: 'quantity must be a non-negative integer' },
       { status: 400 }
     )
   }
+  const quantity = raw
 
   try {
     const inventoryItemId = await getInventoryItemIdForProduct(id)
@@ -39,6 +41,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     }
 
     await setInventoryQuantity(inventoryItemId, quantity)
+    revalidateTag('products', 'max')
     return NextResponse.json({ ok: true, stock: quantity })
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 })
