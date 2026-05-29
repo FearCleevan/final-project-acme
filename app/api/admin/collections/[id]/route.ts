@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import { revalidateTag } from 'next/cache'
 import { getIronSession } from 'iron-session'
 import { sessionOptions } from '@/lib/admin/session'
 import type { AdminSession } from '@/lib/admin/auth'
@@ -20,12 +21,12 @@ export async function PUT(req: NextRequest, { params }: Params) {
   try {
     const body = await req.json()
     const { title, handle, description } = body as {
-      title: string
+      title?: unknown
       handle?: string
       description?: string
     }
 
-    if (!title?.trim()) {
+    if (typeof title !== 'string' || !title.trim()) {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 })
     }
 
@@ -34,6 +35,8 @@ export async function PUT(req: NextRequest, { params }: Params) {
       handle: handle?.trim() || undefined,
       descriptionHtml: description?.trim() || undefined,
     })
+
+    revalidateTag('products', 'layout')
 
     return NextResponse.json(collection)
   } catch (err) {
@@ -48,6 +51,7 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
 
   try {
     await deleteAdminCollection(id)
+    revalidateTag('products', 'layout')
     return NextResponse.json({ ok: true })
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 })

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import { revalidateTag } from 'next/cache'
 import { getIronSession } from 'iron-session'
 import { sessionOptions } from '@/lib/admin/session'
 import type { AdminSession } from '@/lib/admin/auth'
@@ -46,12 +47,12 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const { title, handle, description } = body as {
-      title: string
+      title?: unknown
       handle?: string
       description?: string
     }
 
-    if (!title?.trim()) {
+    if (typeof title !== 'string' || !title.trim()) {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 })
     }
 
@@ -60,6 +61,8 @@ export async function POST(req: NextRequest) {
       handle: handle?.trim() || undefined,
       descriptionHtml: description?.trim() || undefined,
     })
+
+    revalidateTag('products', 'layout')
 
     return NextResponse.json(collection, { status: 201 })
   } catch (err) {
