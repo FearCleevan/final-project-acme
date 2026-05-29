@@ -267,6 +267,7 @@ export const mockAdminProducts: AdminProduct[] = [
   {
     id: 'sp-001',
     title: 'Embossed Satin Glass Shade — Powder Blue 5 1/4"',
+    category: { id: 'col-2', name: 'Oil Lamp Shades' },   // oil-lamp-shades
     shortDescription: 'A superb reproduction made in the tradition of the original antique shade of Victorian period.',
     fullDescription: 'A superb reproduction made in the tradition of the original antique shade of Victorian period. This shade will fit a shade ring of dimensions 5 1/4" as seen on small lamps such as Piano / Peg Lamps. Occasional bubbles, specks and ripples within the surface sometimes exist in hand blown or handcrafted glass. These reflect the individuality of these hand made items.',
     price: 175.00,
@@ -300,6 +301,7 @@ export const mockAdminProducts: AdminProduct[] = [
   {
     id: 'sp-002',
     title: 'Open Tulip Etched Shade — Magenta 4"',
+    category: { id: 'col-2', name: 'Oil Lamp Shades' },
     shortDescription: 'Victorian and Edwardian oil lamp shade, beautifully etched in a deep magenta cranberry glass.',
     fullDescription: 'Open tulip form, hand-etched with a floral tulip pattern. Fits a standard 4" duplex gallery. Cranberry to white gradient — deep pink at the rim fading to frosted white at the base.',
     price: 175.00,
@@ -333,6 +335,7 @@ export const mockAdminProducts: AdminProduct[] = [
   {
     id: 'sp-003',
     title: 'No. 2 Duplex Burner Wick',
+    category: { id: 'col-6', name: 'Oil Lamp Wicks' },   // oil-lamp-wicks
     shortDescription: 'Cotton wick for No. 2 duplex oil lamp burners. Cut to fit, ready to install.',
     fullDescription: 'Cotton wick for No. 2 duplex oil lamp burners. Cut to fit, ready to install. Sourced to match original burner specifications.',
     price: 18.00,
@@ -366,6 +369,7 @@ export const mockAdminProducts: AdminProduct[] = [
   {
     id: 'sp-004',
     title: 'Brass Gallery Ring — 4 inch',
+    category: { id: 'col-5', name: 'Oil Lamp Spreaders' },   // oil-lamp-spreaders
     shortDescription: 'Antique-style brass gallery ring for 4" shade fit oil lamps.',
     fullDescription: 'Solid brass gallery ring. Fits standard 4" shade opening. Sourced from original Victorian lamp hardware.',
     price: 34.00,
@@ -399,6 +403,7 @@ export const mockAdminProducts: AdminProduct[] = [
   {
     id: 'sp-005',
     title: 'Oil Lamp Collector — Volume 2',
+    category: { id: 'col-4', name: 'Oil Lamp Books' },   // oil-lamp-books
     shortDescription: 'Reference guide on antique oil lamps, burners, and Victorian lighting history.',
     fullDescription: 'Essential reading for collectors and restorers. Covers burner types, shade identification, era dating, and restoration techniques.',
     price: 48.00,
