@@ -405,11 +405,13 @@ export async function setInventoryQuantity(
   const level  = levels.find(e => e.node.location.id === locationId)
   const changeFromQuantity = level?.node?.quantities?.find(q => q.name === 'on_hand')?.quantity ?? 0
 
+  const idempotencyKey = `inv-${inventoryItemId.split('/').pop()}-${Date.now()}`
+
   const data = await adminFetch<{
     inventorySetQuantities: { userErrors: { field: string; message: string }[] }
   }>(
     `mutation SetInventory($input: InventorySetQuantitiesInput!) {
-      inventorySetQuantities(input: $input) {
+      inventorySetQuantities(input: $input) @idempotent(key: "${idempotencyKey}") {
         userErrors { field message }
       }
     }`,
