@@ -540,7 +540,7 @@ export async function uploadProductImage(productId: string, imageUrl: string): P
 
 // ─── Orders ───────────────────────────────────────────────────────────────────
 
-import type { AdminOrder, AdminOrderItem, OrderStatus, PaymentStatus } from './types'
+import type { AdminOrder, AdminOrderItem, OrderStatus, PaymentStatus, AdminCollection } from './types'
 
 interface ShopifyOrderNode {
   id: string
@@ -703,4 +703,92 @@ export async function getAdminOrderById(orderId: string): Promise<AdminOrder | n
   )
   const node = data.orders.edges[0]?.node
   return node ? toAdminOrder(node) : null
+}
+
+// ─── Collections ──────────────────────────────────────────────────────────────
+
+interface ShopifyCollectionNode {
+  id: string
+  title: string
+  handle: string
+  description: string
+  productsCount: { count: number } | null
+}
+
+function toAdminCollection(c: ShopifyCollectionNode): AdminCollection {
+  return {
+    id:           c.id.replace('gid://shopify/Collection/', ''),
+    title:        c.title,
+    handle:       c.handle,
+    description:  c.description ?? '',
+    productCount: c.productsCount?.count ?? 0,
+  }
+}
+
+export async function createAdminCollection(input: {
+  title: string
+  handle?: string
+  descriptionHtml?: string
+}): Promise<AdminCollection> {
+  const data = await adminFetch<{
+    collectionCreate: {
+      collection: ShopifyCollectionNode | null
+      userErrors: { field: string; message: string }[]
+    }
+  }>(
+    `mutation CreateCollection($input: CollectionInput!) {
+      collectionCreate(input: $input) {
+        collection { id title handle description productsCount { count } }
+        userErrors { field message }
+      }
+    }`,
+    { input }
+  )
+  if (data.collectionCreate.userErrors.length) {
+    throw new Error(data.collectionCreate.userErrors[0].message)
+  }
+  return toAdminCollection(data.collectionCreate.collection!)
+}
+
+export async function updateAdminCollection(
+  shopifyId: string,
+  input: { title: string; handle?: string; descriptionHtml?: string }
+): Promise<AdminCollection> {
+  const gid = shopifyId.startsWith('gid://') ? shopifyId : `gid://shopify/Collection/${shopifyId}`
+  const data = await adminFetch<{
+    collectionUpdate: {
+      collection: ShopifyCollectionNode | null
+      userErrors: { field: string; message: string }[]
+    }
+  }>(
+    `mutation UpdateCollection($input: CollectionInput!) {
+      collectionUpdate(input: $input) {
+        collection { id title handle description productsCount { count } }
+        userErrors { field message }
+      }
+    }`,
+    { input: { id: gid, ...input } }
+  )
+  if (data.collectionUpdate.userErrors.length) {
+    throw new Error(data.collectionUpdate.userErrors[0].message)
+  }
+  return toAdminCollection(data.collectionUpdate.collection!)
+}
+
+export async function deleteAdminCollection(shopifyId: string): Promise<void> {
+  const gid = shopifyId.startsWith('gid://') ? shopifyId : `gid://shopify/Collection/${shopifyId}`
+  const data = await adminFetch<{
+    collectionDelete: { userErrors: { field: string; message: string }[] }
+  }>(
+    `mutation DeleteCollection($id: ID!) {
+      collectionDelete(input: { id: $id }) {
+        deletedCollectionId
+        userErrors { field message }
+      }
+    }`,
+    { id: gid }
+  )
+  if (data.collectionDelete.userErrors.length) {
+    throw new Error(data.collectionDelete.userErrors[0].message)
+  }
 }
