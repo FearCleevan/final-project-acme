@@ -1,8 +1,9 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { getIronSession } from 'iron-session'
 import { sessionOptions } from '@/lib/admin/session'
 import type { AdminSession } from '@/lib/admin/auth'
+import { createAdminCollection } from '@/lib/admin/shopifyAdmin'
 
 const DOMAIN  = process.env.SHOPIFY_STORE_DOMAIN!
 const TOKEN   = process.env.SHOPIFY_ADMIN_TOKEN!
@@ -36,4 +37,32 @@ export async function GET() {
   }))
 
   return NextResponse.json(collections)
+}
+
+export async function POST(req: NextRequest) {
+  const session = await getIronSession<AdminSession>(await cookies(), sessionOptions)
+  if (!session.isLoggedIn) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  try {
+    const body = await req.json()
+    const { title, handle, description } = body as {
+      title: string
+      handle?: string
+      description?: string
+    }
+
+    if (!title?.trim()) {
+      return NextResponse.json({ error: 'Title is required' }, { status: 400 })
+    }
+
+    const collection = await createAdminCollection({
+      title: title.trim(),
+      handle: handle?.trim() || undefined,
+      descriptionHtml: description?.trim() || undefined,
+    })
+
+    return NextResponse.json(collection, { status: 201 })
+  } catch (err) {
+    return NextResponse.json({ error: String(err) }, { status: 500 })
+  }
 }
