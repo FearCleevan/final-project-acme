@@ -109,43 +109,44 @@
 
 /* ─── Admin Dashboard Design Tokens ─────────────────────────────────────── */
 :root {
-  --admin-bg:           #FAFAF9;
+  --admin-bg:           #F6F6F7;
   --admin-surface:      #FFFFFF;
-  --admin-surface-2:    #F4F3F1;
-  --admin-border:       #E5E4E1;
-  --admin-text:         #151617;
-  --admin-text-soft:    #6B6966;
-  --admin-text-muted:   #A39F9A;
-  --admin-accent:       #151617;
+  --admin-surface-2:    #EDEDEF;
+  --admin-border:       #E1E1E4;
+  --admin-text:         #09090B;
+  --admin-text-soft:    #62626A;
+  --admin-text-muted:   #9898A3;
+  --admin-accent:       #09090B;
   --admin-accent-text:  #FFFFFF;
-  /* State — refined: warm orange (not raw Tailwind yellow) */
-  --admin-green:        #1E7A4A;
-  --admin-red:          #C0392B;
-  --admin-amber:        #B45309;
-  --admin-green-bg:     rgba(30, 122, 74, 0.07);
-  --admin-red-bg:       rgba(192, 57, 43, 0.06);
-  --admin-amber-bg:     rgba(180, 83, 9, 0.06);
+  /* State — pure, no warm tint */
+  --admin-green:        #16A34A;
+  --admin-red:          #DC2626;
+  --admin-amber:        #D97706;
+  --admin-green-bg:     rgba(22, 163, 74, 0.08);
+  --admin-red-bg:       rgba(220, 38, 38, 0.07);
+  --admin-amber-bg:     rgba(217, 119, 6, 0.07);
   --admin-sidebar-w:    240px;
   --admin-topbar-h:     56px;
 }
 
 .dark {
-  --admin-bg:           #090909;
-  --admin-surface:      #151617;
-  --admin-surface-2:    #242320;
-  --admin-border:       #2f2f2f;
-  --admin-text:         #ececec;
-  --admin-text-soft:    #9a9a9a;
-  --admin-text-muted:   #62666D;
-  --admin-accent:       #ededed;
-  --admin-accent-text:  #151617;
-  /* State — dark mode */
-  --admin-green:        #4ADE80;
-  --admin-red:          #F87171;
-  --admin-amber:        #FBB040;
-  --admin-green-bg:     rgba(74, 222, 128, 0.08);
-  --admin-red-bg:       rgba(248, 113, 113, 0.08);
-  --admin-amber-bg:     rgba(251, 176, 64, 0.08);
+  /* True black for OLED — zero warm tint */
+  --admin-bg:           #000000;
+  --admin-surface:      #0C0C0E;
+  --admin-surface-2:    #161618;
+  --admin-border:       #232326;
+  --admin-text:         #F4F4F5;
+  --admin-text-soft:    #A0A0AB;
+  --admin-text-muted:   #62626A;
+  --admin-accent:       #F4F4F5;
+  --admin-accent-text:  #0C0C0E;
+  /* State — bright & pure on black */
+  --admin-green:        #22C55E;
+  --admin-red:          #EF4444;
+  --admin-amber:        #F59E0B;
+  --admin-green-bg:     rgba(34, 197, 94, 0.1);
+  --admin-red-bg:       rgba(239, 68, 68, 0.1);
+  --admin-amber-bg:     rgba(245, 158, 11, 0.1);
 }
 
 /* ─── Admin root: scope Inter as the only font (no JetBrains Mono) ───────── */
