@@ -7,7 +7,7 @@ import Eyebrow from '@/components/shared/Eyebrow'
 import PlateImage from '@/components/shared/PlateImage'
 
 export default function HeroSection() {
-  const { ref, y } = useParallax(0.4)
+  const { ref, y } = useParallax(0.2)
 
   return (
     <section className="relative min-h-[90vh] flex items-center bg-parchment px-4 sm:px-6 py-12 sm:py-20 overflow-hidden">

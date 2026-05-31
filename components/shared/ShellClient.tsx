@@ -8,6 +8,7 @@ import SearchOverlay from '@/components/shared/SearchOverlay'
 import Footer from '@/components/shared/Footer'
 import { useSearchOverlay } from '@/hooks/useSearchOverlay'
 import { useCrateStore } from '@/store/crateStore'
+import { useLenis } from '@/hooks/useLenis'
 
 interface ShellClientProps {
   children: React.ReactNode
@@ -16,6 +17,8 @@ interface ShellClientProps {
 export default function ShellClient({ children }: ShellClientProps) {
   const pathname = usePathname()
   const { isOpen, open, close, query, setQuery } = useSearchOverlay()
+
+  useLenis()
 
   useEffect(() => {
     useCrateStore.getState().initCart()

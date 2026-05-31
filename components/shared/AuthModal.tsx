@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useScrollLock } from '@/hooks/useScrollLock'
 import { AnimatePresence, motion } from 'framer-motion'
 import { BiX } from 'react-icons/bi'
 import { useAuthStore, DEMO_EMAIL, DEMO_PASSWORD } from '@/store/authStore'
@@ -41,12 +42,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, hint }: AuthModa
     return () => document.removeEventListener('keydown', onKey)
   }, [isOpen, onClose])
 
-  /* Lock body scroll while open */
-  useEffect(() => {
-    if (isOpen) document.body.style.overflow = 'hidden'
-    else document.body.style.overflow = ''
-    return () => { document.body.style.overflow = '' }
-  }, [isOpen])
+  useScrollLock(isOpen)
 
   function handleSignIn(e: React.FormEvent) {
     e.preventDefault()

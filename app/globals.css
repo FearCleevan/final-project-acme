@@ -69,6 +69,7 @@
 
 @layer base {
   html {
+    scroll-behavior: smooth;
     scroll-padding-top: 4rem; /* offset fixed nav on anchor jumps */
   }
 

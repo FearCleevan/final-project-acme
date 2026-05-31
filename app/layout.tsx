@@ -134,7 +134,6 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      data-scroll-behavior="smooth"
       suppressHydrationWarning
       className={`${playfair.variable} ${inter.variable} ${jetbrainsMono.variable}`}
       style={

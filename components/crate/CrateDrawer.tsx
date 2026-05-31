@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { useScrollLock } from '@/hooks/useScrollLock'
 import { AnimatePresence, motion } from 'framer-motion'
 import { BiX } from 'react-icons/bi'
 import { useCrateStore } from '@/store/crateStore'
@@ -26,11 +27,7 @@ export default function CrateDrawer() {
     return () => window.removeEventListener('keydown', handler)
   }, [isOpen, closeCrate])
 
-  /* Lock body scroll while open */
-  useEffect(() => {
-    document.body.style.overflow = isOpen ? 'hidden' : ''
-    return () => { document.body.style.overflow = '' }
-  }, [isOpen])
+  useScrollLock(isOpen)
 
   return (
     <AnimatePresence>
