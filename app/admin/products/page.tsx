@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useMemo, useRef, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { BiPlus, BiPencil, BiTrash, BiExport, BiImport, BiX, BiFile, BiCheck, BiRefresh } from 'react-icons/bi'
 import { formatCurrency, collectionLabel } from '@/lib/admin/utils'
 import { AdminCollection } from '@/lib/admin/types'
@@ -67,8 +66,6 @@ function exportProductsCSV(products: AdminProduct[]) {
 interface ParsedRow { [key: string]: string }
 
 export default function ProductsPage() {
-  const router = useRouter()
-
   const [products,     setProducts]     = useState<AdminProduct[]>([])
   const [collections,  setCollections]  = useState<AdminCollection[]>([])
   const [loading,      setLoading]      = useState(true)
@@ -126,7 +123,14 @@ export default function ProductsPage() {
   const [addSaving,      setAddSaving]      = useState(false)
   const [addSuccess,     setAddSuccess]     = useState(false)
   const [addFormKey,     setAddFormKey]     = useState(0)
-  const [toast,          setToast]          = useState<{ message: string; type: ToastType } | null>(null)  // increment to reset form
+  const [toast,          setToast]          = useState<{ message: string; type: ToastType } | null>(null)
+
+  // Edit Product modal
+  const [editModalOpen,  setEditModalOpen]  = useState(false)
+  const [editProduct,    setEditProduct]    = useState<AdminProduct | null>(null)
+  const [editSaving,     setEditSaving]     = useState(false)
+  const [editSuccess,    setEditSuccess]    = useState(false)
+  const [editFormKey,    setEditFormKey]    = useState(0)
 
   const filtered = useMemo(() => {
     let list = products
@@ -175,6 +179,43 @@ export default function ProductsPage() {
 
   function handleImportConfirm() {
     setImportDone(true)
+  }
+
+  function handleEditOpen(product: AdminProduct) {
+    setEditProduct(product)
+    setEditModalOpen(true)
+    setEditSuccess(false)
+  }
+
+  function handleEditDiscard() {
+    setEditModalOpen(false)
+    setEditFormKey(k => k + 1)
+  }
+
+  async function handleEditSave(data: AdminProduct) {
+    if (!editProduct) return
+    setEditSaving(true)
+    try {
+      const res = await fetch(`/api/admin/products/${editProduct.id}`, {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(data),
+      })
+      if (!res.ok) throw new Error(await res.text())
+      setEditSuccess(true)
+      setToast({ message: 'Product saved successfully.', type: 'success' })
+      await loadProducts()
+      setTimeout(() => {
+        setEditSuccess(false)
+        setEditModalOpen(false)
+        setEditFormKey(k => k + 1)
+      }, 1200)
+    } catch (err) {
+      console.error('Failed to update product:', err)
+      setToast({ message: 'Failed to save product. Please try again.', type: 'error' })
+    } finally {
+      setEditSaving(false)
+    }
   }
 
   async function handleAddSave(data: AdminProduct) {
@@ -275,7 +316,7 @@ export default function ProductsPage() {
       render: row => (
         <div className="flex items-center gap-1 justify-end" onClick={e => e.stopPropagation()}>
           <button
-            onClick={() => router.push(`/admin/products/${row.id}`)}
+            onClick={() => handleEditOpen(row as unknown as AdminProduct)}
             className="p-1.5 rounded-md text-(--admin-text-muted) hover:bg-(--admin-surface-2) hover:text-(--admin-text) transition-colors"
             aria-label="Edit product"
           >
@@ -429,7 +470,7 @@ export default function ProductsPage() {
           ) : paginated.map(p => (
             <div
               key={p.id}
-              onClick={() => router.push(`/admin/products/${p.id}`)}
+              onClick={() => handleEditOpen(p)}
               className="flex items-center gap-3 px-4 py-3 hover:bg-(--admin-surface-2) cursor-pointer transition-colors"
             >
               <div className="w-10 h-10 rounded-md bg-(--admin-surface-2) border border-(--admin-border) shrink-0 flex items-center justify-center overflow-hidden">
@@ -459,7 +500,7 @@ export default function ProductsPage() {
             selectable
             selectedIds={selectedIds}
             onSelectChange={setSelectedIds}
-            onRowClick={row => router.push(`/admin/products/${(row as unknown as AdminProduct).id}`)}
+            onRowClick={row => handleEditOpen(row as unknown as AdminProduct)}
             emptyMessage="No products found"
             emptyDescription="Try adjusting your filters or add a new product."
           />
@@ -678,6 +719,89 @@ export default function ProductsPage() {
                       Saving…
                     </>
                   ) : 'Save product'}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Edit Product Modal ── */}
+      <div
+        className={cn(
+          'fixed inset-0 z-50 flex items-start justify-center p-4 pt-6 transition-opacity duration-200',
+          editModalOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        )}
+      >
+        <div className="absolute inset-0 bg-black/50" onClick={handleEditDiscard} />
+        <div className="relative w-full max-w-5xl max-h-[calc(100vh-3rem)] flex flex-col bg-(--admin-surface) border border-(--admin-border) rounded-xl shadow-2xl">
+
+          <div className="flex items-center justify-between px-6 py-4 border-b border-(--admin-border) shrink-0">
+            <div className="min-w-0">
+              <p className="text-[15px] font-semibold text-(--admin-text) truncate">{editProduct?.title ?? 'Edit product'}</p>
+              {editProduct?.sku && (
+                <p className="text-[11px] text-(--admin-text-muted) mt-0.5">SKU: {editProduct.sku}</p>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => { handleEditDiscard(); setDeleteTarget([editProduct!.id]) }}
+                className="flex items-center gap-1.5 h-8 px-3 text-[12px] text-(--admin-red) bg-(--admin-red-bg) border border-(--admin-red)/20 rounded-md hover:opacity-80 transition-opacity"
+              >
+                <BiTrash size={13} /> Delete
+              </button>
+              <button
+                type="button"
+                aria-label="Close"
+                onClick={handleEditDiscard}
+                className="w-8 h-8 flex items-center justify-center rounded-md text-(--admin-text-muted) hover:bg-(--admin-surface-2) hover:text-(--admin-text) transition-colors"
+              >
+                <BiX size={18} />
+              </button>
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto px-6 py-6">
+            {editProduct && (
+              <ProductForm
+                key={editFormKey}
+                hideFooter
+                formId="edit-product-form"
+                defaultValues={editProduct}
+                onSave={handleEditSave}
+                onDiscard={handleEditDiscard}
+              />
+            )}
+          </div>
+
+          <div className="shrink-0 border-t border-(--admin-border) px-6 py-4 flex items-center justify-end gap-3">
+            {editSuccess ? (
+              <div className="flex items-center gap-2 text-(--admin-green)">
+                <BiCheck size={16} />
+                <span className="text-[13px] font-medium">Product saved</span>
+              </div>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={handleEditDiscard}
+                  className="h-9 px-4 text-[12px] text-(--admin-text-soft) bg-(--admin-surface-2) border border-(--admin-border) rounded-md hover:bg-(--admin-border) transition-colors"
+                >
+                  Discard
+                </button>
+                <button
+                  form="edit-product-form"
+                  type="submit"
+                  disabled={editSaving}
+                  className="h-9 px-5 text-[12px] font-medium bg-(--admin-accent) text-(--admin-accent-text) rounded-md hover:opacity-90 transition-opacity disabled:opacity-60 flex items-center gap-2"
+                >
+                  {editSaving ? (
+                    <>
+                      <span className="w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                      Saving…
+                    </>
+                  ) : 'Save changes'}
                 </button>
               </>
             )}
