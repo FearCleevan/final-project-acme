@@ -11,6 +11,7 @@ import {
   uploadProductImage,
   getProductMediaWithIds,
   deleteProductMedia,
+  reorderProductMedia,
   collectionHandlesToGids,
   getProductCollectionGids,
 } from '@/lib/admin/shopifyAdmin'
@@ -68,7 +69,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
       tags: Array.isArray(tags) ? tags : [],
       collectionsToJoin,
       collectionsToLeave,
-      category: category?.id ? { id: category.id } : null,
+      category: category?.id ?? null,
       stock: stock != null ? Number(stock) : undefined,
       variants: [
         {
@@ -101,13 +102,40 @@ export async function PUT(req: NextRequest, { params }: Params) {
     })
 
     const incomingImages: string[] = Array.isArray(body.images) ? body.images : []
-    const incomingSet = new Set(incomingImages)
 
-    const toDelete = existingMedia.filter(m => !incomingSet.has(m.url))
+    // Strip query-params (Shopify CDN ?v= version tokens) before comparing so
+    // product.images URLs and product.media URLs always match.
+    const stripQ = (url: string) => url.split('?')[0]
+
+    const existingByBase = new Map(existingMedia.map(m => [stripQ(m.url), m]))
+
+    const toDelete = existingMedia.filter(m => !incomingImages.some(u => stripQ(u) === stripQ(m.url)))
     if (toDelete.length) await deleteProductMedia(id, toDelete.map(m => m.id))
 
-    const newImages = incomingImages.filter(url => !existingImageUrls.has(url))
-    await Promise.all(newImages.map(url => uploadProductImage(id, url)))
+    // Upload genuinely new images; collect their GIDs immediately so we don't
+    // need a second round-trip to get them for the reorder step.
+    const uploadedById = new Map<string, string>() // baseUrl → mediaGid
+    const trulyNew = incomingImages.filter(url => !existingByBase.has(stripQ(url)))
+    await Promise.all(
+      trulyNew.map(async url => {
+        const { id: mediaGid, url: cdnUrl } = await uploadProductImage(id, url)
+        if (mediaGid) uploadedById.set(stripQ(url), mediaGid)
+        // If CDN URL differs from original source URL, map that too
+        if (cdnUrl && stripQ(cdnUrl) !== stripQ(url)) uploadedById.set(stripQ(cdnUrl), mediaGid)
+      })
+    )
+
+    // Reorder: build GID list in the user's intended sequence using the
+    // already-fetched existingMedia + the just-uploaded GIDs — no extra fetch.
+    if (incomingImages.length > 1) {
+      const orderedGids = incomingImages
+        .map(url => {
+          const base = stripQ(url)
+          return existingByBase.get(base)?.id ?? uploadedById.get(base)
+        })
+        .filter((gid): gid is string => Boolean(gid))
+      if (orderedGids.length > 1) await reorderProductMedia(id, orderedGids)
+    }
 
     revalidateTag('products', 'layout')
     return NextResponse.json(product)

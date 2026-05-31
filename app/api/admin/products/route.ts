@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
       status: status === 'active' ? 'ACTIVE' : 'DRAFT',
       tags: Array.isArray(tags) ? tags : [],
       collectionsToJoin: collectionGids,
-      category: category?.id ? { id: category.id } : null,
+      category: category?.id ?? null,
       stock: stock != null ? Number(stock) : undefined,
       variants: [
         {

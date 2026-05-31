@@ -31,9 +31,9 @@ export async function GET(req: NextRequest) {
         }
       } | null
     }>(
-      `query TaxonomySearch($query: String!) {
+      `query TaxonomySearch($search: String) {
         taxonomy {
-          categories(first: 50, query: $query) {
+          categories(first: 50, search: $search) {
             edges {
               node {
                 id
@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
           }
         }
       }`,
-      { query: q || 'lamp' }
+      { search: q || null }
     )
 
     const categories = data.taxonomy?.categories?.edges?.map(e => ({

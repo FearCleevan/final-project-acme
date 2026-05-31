@@ -159,7 +159,7 @@ type ProductInput = {
   tags?:               string[]
   collectionsToJoin?:  string[]
   collectionsToLeave?: string[]
-  category?:           { id: string } | null
+  category?:           string | null
   stock?:              number
   variants?:           { price: string; compareAtPrice?: string; inventoryPolicy?: string }[]
   metafields?:         { namespace: string; key: string; value: string; type: string }[]
@@ -503,6 +503,20 @@ export async function getProductMediaWithIds(shopifyId: string): Promise<{ id: s
     .filter(m => m.url)
 }
 
+export async function reorderProductMedia(shopifyId: string, orderedMediaIds: string[]): Promise<void> {
+  if (orderedMediaIds.length < 2) return
+  const gid = shopifyId.startsWith('gid://') ? shopifyId : `gid://shopify/Product/${shopifyId}`
+  const moves = orderedMediaIds.map((mediaId, idx) => ({ id: mediaId, newPosition: String(idx) }))
+  await adminFetch(
+    `mutation ReorderMedia($id: ID!, $moves: [MoveInput!]!) {
+      productReorderMedia(id: $id, moves: $moves) {
+        mediaUserErrors { field message }
+      }
+    }`,
+    { id: gid, moves }
+  )
+}
+
 export async function deleteProductMedia(shopifyId: string, mediaIds: string[]): Promise<void> {
   if (!mediaIds.length) return
   const gid = shopifyId.startsWith('gid://') ? shopifyId : `gid://shopify/Product/${shopifyId}`
@@ -518,12 +532,20 @@ export async function deleteProductMedia(shopifyId: string, mediaIds: string[]):
 
 // ─── Image upload via Staged Uploads ─────────────────────────────────────────
 
-export async function uploadProductImage(productId: string, imageUrl: string): Promise<string> {
+export async function uploadProductImage(
+  productId: string,
+  imageUrl: string,
+): Promise<{ id: string; url: string }> {
   const gid = productId.startsWith('gid://') ? productId : `gid://shopify/Product/${productId}`
-  const data = await adminFetch<{ productCreateMedia: { media: { preview: { image: { url: string } } }[]; mediaUserErrors: { message: string }[] } }>(
+  const data = await adminFetch<{
+    productCreateMedia: {
+      media: { id: string; preview: { image: { url: string } } | null }[]
+      mediaUserErrors: { message: string }[]
+    }
+  }>(
     `mutation AddProductImage($productId: ID!, $media: [CreateMediaInput!]!) {
       productCreateMedia(productId: $productId, media: $media) {
-        media { preview { image { url } } }
+        media { id preview { image { url } } }
         mediaUserErrors { field message }
       }
     }`,
@@ -535,7 +557,8 @@ export async function uploadProductImage(productId: string, imageUrl: string): P
   if (data.productCreateMedia.mediaUserErrors.length) {
     throw new Error(data.productCreateMedia.mediaUserErrors[0].message)
   }
-  return data.productCreateMedia.media[0]?.preview?.image?.url ?? ''
+  const m = data.productCreateMedia.media[0]
+  return { id: m?.id ?? '', url: m?.preview?.image?.url ?? '' }
 }
 
 // ─── Orders ───────────────────────────────────────────────────────────────────
