@@ -1,18 +1,16 @@
-import { BiTrendingUp, BiTrendingDown } from 'react-icons/bi'
-import { cn } from '@/lib/utils'
+// components/admin/shared/StatCard.tsx
 import SectionCard from './SectionCard'
+import TrendChip from './TrendChip'
 
 interface StatCardProps {
-  label: string
-  value: string
+  label:  string
+  value:  string
   change: number
   period: string
-  icon: React.ReactNode
+  icon:   React.ReactNode
 }
 
 export default function StatCard({ label, value, change, period, icon }: StatCardProps) {
-  const positive = change >= 0
-
   return (
     <SectionCard className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
@@ -27,16 +25,7 @@ export default function StatCard({ label, value, change, period, icon }: StatCar
       </p>
 
       <div className="flex items-center justify-between">
-        <div className={cn(
-          'flex items-center gap-1 text-[11px]',
-          positive ? 'text-(--admin-green)' : 'text-(--admin-red)'
-        )}>
-          {positive
-            ? <BiTrendingUp size={13} />
-            : <BiTrendingDown size={13} />
-          }
-          <span>{positive ? '+' : ''}{change}%</span>
-        </div>
+        <TrendChip change={change} />
         <p className="text-[11px] text-(--admin-text-muted)">{period}</p>
       </div>
     </SectionCard>
