@@ -126,6 +126,11 @@
   --admin-green-bg:     rgba(22, 163, 74, 0.08);
   --admin-red-bg:       rgba(220, 38, 38, 0.07);
   --admin-amber-bg:     rgba(217, 119, 6, 0.07);
+  --admin-chart:           #16a34a;
+  --admin-chip-green-bg:   #dcfce7;
+  --admin-chip-green-text: #15803d;
+  --admin-chip-red-bg:     #fee2e2;
+  --admin-chip-red-text:   #b91c1c;
   --admin-sidebar-w:    240px;
   --admin-topbar-h:     56px;
 }
@@ -148,6 +153,11 @@
   --admin-green-bg:     rgba(34, 197, 94, 0.1);
   --admin-red-bg:       rgba(239, 68, 68, 0.1);
   --admin-amber-bg:     rgba(245, 158, 11, 0.1);
+  --admin-chart:           #22C55E;
+  --admin-chip-green-bg:   rgba(34, 197, 94, 0.15);
+  --admin-chip-green-text: #22C55E;
+  --admin-chip-red-bg:     rgba(239, 68, 68, 0.15);
+  --admin-chip-red-text:   #EF4444;
 }
 
 /* ─── Admin root: scope Inter as the only font (no JetBrains Mono) ───────── */
