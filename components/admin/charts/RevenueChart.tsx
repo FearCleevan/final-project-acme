@@ -97,10 +97,10 @@ export default function RevenueChart() {
           <Line
             type="monotone"
             dataKey="revenue"
-            stroke="var(--admin-accent)"
+            stroke="var(--admin-chart)"
             strokeWidth={1.5}
             dot={false}
-            activeDot={{ r: 4, fill: 'var(--admin-accent)', strokeWidth: 0 }}
+            activeDot={{ r: 4, fill: 'var(--admin-chart)', strokeWidth: 0 }}
           />
         </LineChart>
       </ResponsiveContainer>
