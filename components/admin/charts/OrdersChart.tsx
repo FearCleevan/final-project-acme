@@ -58,7 +58,7 @@ export default function OrdersChart() {
           <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--admin-surface-2)' }} />
           <Bar
             dataKey="orders"
-            fill="var(--admin-accent)"
+            fill="var(--admin-chart)"
             radius={[2, 2, 0, 0]}
             maxBarSize={20}
             opacity={0.75}
