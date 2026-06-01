@@ -12,7 +12,6 @@ import {
   mockChartData,
 } from '@/lib/admin/mockData'
 import { formatCurrency } from '@/lib/admin/utils'
-import { BiTrendingUp, BiTrendingDown, BiMinus } from 'react-icons/bi'
 import PageHeader         from '@/components/admin/shared/PageHeader'
 import SectionCard        from '@/components/admin/shared/SectionCard'
 import RevenueChart       from '@/components/admin/charts/RevenueChart'
@@ -21,6 +20,7 @@ import DonutChart         from '@/components/admin/charts/DonutChart'
 import HorizontalBarChart from '@/components/admin/charts/HorizontalBarChart'
 import MiniLineChart      from '@/components/admin/charts/MiniLineChart'
 import ConversionFunnel   from '@/components/admin/charts/ConversionFunnel'
+import TrendChip from '@/components/admin/shared/TrendChip'
 
 // ─── Derived values ───────────────────────────────────────────────────────────
 
@@ -80,23 +80,6 @@ const topProductsBar = mockTopProducts.slice(0, 5).map(p => ({
   label: p.title.split('—')[0].trim(),
   value: p.revenue,
 }))
-
-// ─── Stat card trend chip ─────────────────────────────────────────────────────
-
-function TrendChip({ change }: { change: number }) {
-  if (change === 0) return (
-    <span className="inline-flex items-center gap-0.5 text-[11px] text-(--admin-text-muted)">
-      <BiMinus size={11} /> 0%
-    </span>
-  )
-  const up = change > 0
-  return (
-    <span className={`inline-flex items-center gap-0.5 text-[11px] ${up ? 'text-(--admin-green)' : 'text-(--admin-red)'}`}>
-      {up ? <BiTrendingUp size={12} /> : <BiTrendingDown size={12} />}
-      {up ? '+' : ''}{change}%
-    </span>
-  )
-}
 
 // ─── Top stat cards ───────────────────────────────────────────────────────────
 
