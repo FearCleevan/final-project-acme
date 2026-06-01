@@ -20,17 +20,6 @@ import { useTheme } from 'next-themes'
 import { cn } from '@/lib/utils'
 import LogoutModal from '@/components/admin/shared/LogoutModal'
 
-const NAV_MAIN = [
-  { label: 'Overview',       href: '/admin/overview',       icon: BiHomeAlt },
-  { label: 'Orders',         href: '/admin/orders',         icon: BiCart,        badge: 4 },
-  { label: 'Products',       href: '/admin/products',       icon: BiPackage },
-  { label: 'Inventory',      href: '/admin/inventory',      icon: BiArchive },
-  { label: 'Collections',    href: '/admin/collections',    icon: BiCollection },
-  { label: 'Customers',      href: '/admin/customers',      icon: BiUser },
-  { label: 'Analytics',      href: '/admin/analytics',      icon: BiBarChartAlt2 },
-  // { label: 'Import / Export', href: '/admin/import-export',  icon: BiImport },      // disabled — export already inline on Products/Orders/Customers
-]
-
 const NAV_STORE = [
   { label: 'Settings', href: '/admin/settings', icon: BiCog },
 ]
@@ -80,12 +69,32 @@ export default function AdminSidebar() {
   const [loggingOut,   setLoggingOut]   = useState(false)
   const [ownerName,    setOwnerName]    = useState('')
   const [ownerEmail,   setOwnerEmail]   = useState('')
+  const [unfulfilledCount, setUnfulfilledCount] = useState(0)
 
   useEffect(() => {
     fetch('/api/admin/shop')
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d) { setOwnerName(d.name); setOwnerEmail(d.email) } })
   }, [])
+
+  useEffect(() => {
+    fetch('/api/admin/orders')
+      .then(r => r.ok ? r.json() : [])
+      .then((orders: { fulfillmentStatus: string }[]) => {
+        setUnfulfilledCount(orders.filter(o => o.fulfillmentStatus === 'unfulfilled').length)
+      })
+      .catch(() => {})
+  }, [])
+
+  const NAV_MAIN = [
+    { label: 'Overview',    href: '/admin/overview',    icon: BiHomeAlt                                         },
+    { label: 'Orders',      href: '/admin/orders',      icon: BiCart,        badge: unfulfilledCount || undefined },
+    { label: 'Products',    href: '/admin/products',    icon: BiPackage                                         },
+    { label: 'Inventory',   href: '/admin/inventory',   icon: BiArchive                                         },
+    { label: 'Collections', href: '/admin/collections', icon: BiCollection                                      },
+    { label: 'Customers',   href: '/admin/customers',   icon: BiUser                                            },
+    { label: 'Analytics',   href: '/admin/analytics',   icon: BiBarChartAlt2                                    },
+  ]
 
   async function handleLogout() {
     setLoggingOut(true)
