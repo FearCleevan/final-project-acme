@@ -10,6 +10,7 @@ import {
   BiArchive,
   BiCollection,
   BiUser,
+  BiBarChartAlt2,
   BiCog,
   BiLogOut,
   BiSun,
@@ -26,7 +27,7 @@ const NAV_MAIN = [
   { label: 'Inventory',      href: '/admin/inventory',      icon: BiArchive },
   { label: 'Collections',    href: '/admin/collections',    icon: BiCollection },
   { label: 'Customers',      href: '/admin/customers',      icon: BiUser },
-  // { label: 'Analytics',      href: '/admin/analytics',      icon: BiBarChartAlt2 }, // disabled — overlaps with Overview
+  { label: 'Analytics',      href: '/admin/analytics',      icon: BiBarChartAlt2 },
   // { label: 'Import / Export', href: '/admin/import-export',  icon: BiImport },      // disabled — export already inline on Products/Orders/Customers
 ]
 
