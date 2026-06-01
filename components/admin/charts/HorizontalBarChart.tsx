@@ -51,7 +51,7 @@ export default function HorizontalBarChart({ title, data, formatValue = formatCu
           />
           <Bar
             dataKey="value"
-            fill="var(--admin-accent)"
+            fill="var(--admin-chart)"
             radius={[0, 3, 3, 0]}
             maxBarSize={12}
           />
