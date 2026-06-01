@@ -32,7 +32,7 @@ export default function OverviewPage() {
     <div>
       <PageHeader
         title="Overview"
-        subtitle={`${new Date().toLocaleDateString('en-CA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`}
+        subtitle={`${new Date().toLocaleDateString('en-CA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} - Demo Data`}
       />
 
       {/* Stat Cards */}

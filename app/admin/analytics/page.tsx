@@ -117,7 +117,7 @@ export default function AnalyticsPage() {
     <div>
       <PageHeader
         title="Analytics"
-        subtitle="Store performance overview — demo data"
+        subtitle="Store performance overview — Demo Data"
       />
 
       {/* ── Row 1: 4 small stat cards ── */}
