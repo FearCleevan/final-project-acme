@@ -12,6 +12,7 @@ import {
   BiDotsHorizontalRounded,
   BiArchive,
   BiCollection,
+  BiBarChartAlt2,
   BiCog,
   BiX,
 } from 'react-icons/bi'
@@ -25,9 +26,10 @@ const TABS = [
 ]
 
 const MORE_ITEMS = [
-  { label: 'Inventory',   href: '/admin/inventory',   icon: BiArchive    },
-  { label: 'Collections', href: '/admin/collections', icon: BiCollection },
-  { label: 'Settings',    href: '/admin/settings',    icon: BiCog        },
+  { label: 'Inventory',   href: '/admin/inventory',   icon: BiArchive       },
+  { label: 'Collections', href: '/admin/collections', icon: BiCollection    },
+  { label: 'Analytics',   href: '/admin/analytics',   icon: BiBarChartAlt2  },
+  { label: 'Settings',    href: '/admin/settings',    icon: BiCog           },
 ]
 
 export default function AdminBottomNav() {
