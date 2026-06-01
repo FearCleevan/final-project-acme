@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useAuthStore, SavedAddress } from '@/store/authStore'
 import AuthModal from '@/components/shared/AuthModal'
 
-interface ShippingData {
+export interface ShippingData {
   fullName: string
   email: string
   phone: string

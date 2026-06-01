@@ -7,7 +7,7 @@ import { formatPrice } from '@/lib/utils'
 import Breadcrumb from '@/components/shared/Breadcrumb'
 import Eyebrow from '@/components/shared/Eyebrow'
 import CheckoutSteps from '@/components/checkout/CheckoutSteps'
-import ContactShippingForm from '@/components/checkout/ContactShippingForm'
+import ContactShippingForm, { ShippingData } from '@/components/checkout/ContactShippingForm'
 import PaymentForm from '@/components/checkout/PaymentForm'
 import OrderSummary from '@/components/checkout/OrderSummary'
 
@@ -19,6 +19,7 @@ export default function CheckoutPage() {
   const clearCrate = useCrateStore(s => s.clearCrate)
   const [step, setStep] = useState<Step>(1)
   const [mounted, setMounted] = useState(false)
+  const [shippingData, setShippingData] = useState<ShippingData | null>(null)
 
   useEffect(() => { setMounted(true) }, [])
 
@@ -30,7 +31,7 @@ export default function CheckoutPage() {
 
   if (!mounted) return null
 
-  function handleShippingComplete() { setStep(2) }
+  function handleShippingComplete(data: ShippingData) { setShippingData(data); setStep(2) }
 
   function handlePaymentComplete() { setStep(3) }
 
@@ -129,6 +130,34 @@ export default function CheckoutPage() {
 
             {accordionPanel(3, 'Review & place order', (
               <div className="space-y-6">
+
+                {/* Shipping address review */}
+                {shippingData && (
+                  <div className="border border-ink-rule rounded-sm p-4">
+                    <p className="text-[10px] font-mono uppercase tracking-eyebrow text-ink-soft mb-3">
+                      Shipping to
+                    </p>
+                    <p className="font-sans text-[14px] text-ink-iron font-medium leading-snug">
+                      {shippingData.fullName}
+                    </p>
+                    <p className="font-sans text-[13px] text-ink-soft mt-0.5">
+                      {shippingData.street}{shippingData.apt ? `, ${shippingData.apt}` : ''}
+                    </p>
+                    <p className="font-sans text-[13px] text-ink-soft">
+                      {shippingData.city}, {shippingData.state} {shippingData.zip}
+                    </p>
+                    <p className="font-sans text-[13px] text-ink-soft">{shippingData.country}</p>
+                    <p className="font-sans text-[12px] text-ink-soft mt-1.5">
+                      {shippingData.email} · {shippingData.phone}
+                    </p>
+                    {shippingData.notes && (
+                      <p className="font-sans text-[12px] text-ink-soft italic mt-1.5">
+                        &ldquo;{shippingData.notes}&rdquo;
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 <p className="font-sans text-[15px] text-ink-soft leading-relaxed">
                   Review your order summary on the right. When everything looks right, place your order —
                   we'll have it straw-packed and on its way within two business days.

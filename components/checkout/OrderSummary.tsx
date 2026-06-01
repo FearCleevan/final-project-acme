@@ -66,9 +66,15 @@ export default function OrderSummary() {
             {freeFreight ? 'Free' : formatPrice(18)}
           </span>
         </div>
+        <div className="flex justify-between items-baseline">
+          <span className="text-[12px] font-mono uppercase tracking-eyebrow text-ink-soft">
+            Taxes &amp; duties
+          </span>
+          <span className="font-sans text-[13px] text-ink-soft italic">Calculated at checkout</span>
+        </div>
         <div className="flex justify-between items-baseline pt-3 border-t border-ink-rule">
           <span className="text-[13px] font-mono uppercase tracking-eyebrow text-ink-charcoal font-medium">
-            Total · USD
+            Total · CAD
           </span>
           <span className="font-serif text-[22px] text-brass-deep leading-none">
             {formatPrice(freeFreight ? total : total + 18)}
