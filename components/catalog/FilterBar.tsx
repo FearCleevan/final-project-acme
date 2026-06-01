@@ -27,7 +27,7 @@ export default function FilterBar({ filters, onFiltersChange, count, onRefineOpe
   const set = (patch: Partial<FilterState>) => onFiltersChange({ ...filters, ...patch })
 
   return (
-    <div className="max-w-[1280px] mx-auto px-6">
+    <div className="max-w-[1280px] mx-auto px-4 sm:px-6">
       {/* Category pills — horizontal scroll with fade-edge hints */}
       <div className="relative py-4 sm:py-5">
         <div

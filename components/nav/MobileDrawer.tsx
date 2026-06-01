@@ -8,10 +8,12 @@ import NavLinks from './NavLinks'
 import Button from '@/components/shared/Button'
 
 const catalogLinks = [
-  { label: 'Lighting Fixtures', href: '/catalog?category=lighting' },
-  { label: 'Glass & Chimneys', href: '/catalog?category=glass-chimneys' },
-  { label: 'Burners & Hardware', href: '/catalog?category=hardware' },
-  { label: 'Advertising Signs', href: '/catalog?category=signs' },
+  { label: 'Oil Lamp Chimneys',    href: '/catalog?category=oil-lamp-chimneys'       },
+  { label: 'Oil Lamp Shades',      href: '/catalog?category=oil-lamp-shades'         },
+  { label: 'Pressure Lamps',       href: '/catalog?category=oil-lamp-pressure-lamps' },
+  { label: 'Books & Guides',       href: '/catalog?category=oil-lamp-books'          },
+  { label: 'Spreaders & Hardware', href: '/catalog?category=oil-lamp-spreaders'      },
+  { label: 'Wicks',                href: '/catalog?category=oil-lamp-wicks'          },
 ]
 
 interface MobileDrawerProps {
