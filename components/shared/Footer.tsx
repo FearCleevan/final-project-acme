@@ -9,7 +9,7 @@ const catalogLinks = [
   { label: 'Lighting Fixtures', href: '/catalog?category=lighting' },
   { label: 'Glass & Chimneys', href: '/catalog?category=glass-chimneys' },
   { label: 'Burners & Wicks', href: '/catalog?category=hardware' },
-  { label: 'Advertising Signs', href: '/catalog?category=signs' },
+  { label: 'Signs', href: '/catalog?category=signs' },
   { label: 'The Full Catalog →', href: '/catalog' },
 ]
 

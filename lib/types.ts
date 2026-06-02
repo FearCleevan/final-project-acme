@@ -7,7 +7,7 @@ export interface Product {
   shortDescription: string
   fullDescription: string
   price: number
-  category: 'oil-lamp-chimneys' | 'oil-lamp-shades' | 'oil-lamp-pressure-lamps' | 'oil-lamp-books' | 'oil-lamp-spreaders' | 'oil-lamp-wicks'
+  category: 'oil-lamp-chimneys' | 'oil-lamp-shades' | 'oil-lamp-pressure-lamps' | 'oil-lamp-books' | 'oil-lamp-spreaders' | 'oil-lamp-wicks' | 'signs'
   // Phase B: migrate to string[] to support multi-fit products (e.g. ['No. 2', 'No. 3'])
   burnerSize: 'No. 1' | 'No. 2' | 'No. 3' | 'Universal' | null
   // Phase B: replace with Shopify variant.quantityAvailable

@@ -14,7 +14,7 @@ const catalogLinks = [
   { label: 'Spreaders & Hardware', href: '/catalog?category=oil-lamp-spreaders'      },
   { label: 'Wicks',                href: '/catalog?category=oil-lamp-wicks'          },
   { label: 'Books & Guides',       href: '/catalog?category=oil-lamp-books'          },
-  { label: 'Advertising Signs',    href: '/signs'                                    },
+  { label: 'Signs',                href: '/signs'                                    },
 ]
 
 const workshopLinks = [

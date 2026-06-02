@@ -76,7 +76,7 @@ export async function shopifyFetch<T>({
       body: query && variables
         ? JSON.stringify({ query, variables })
         : JSON.stringify({ query }),
-      next: { revalidate: 60, tags: ['products'] },
+      cache: 'no-store',
     })
 
     return {
@@ -167,6 +167,7 @@ const CATEGORY_MAP: Record<string, Product['category']> = {
   'oil-lamp-books':         'oil-lamp-books',
   'oil-lamp-spreaders':     'oil-lamp-spreaders',
   'oil-lamp-wicks':         'oil-lamp-wicks',
+  'signs':                  'signs',
 }
 
 const VALID_BURNER_SIZES = ['No. 1', 'No. 2', 'No. 3', 'Universal'] as const

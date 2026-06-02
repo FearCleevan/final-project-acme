@@ -13,7 +13,7 @@ const PIECE_TYPES = [
   { label: 'Spreaders & Hardware',    value: 'oil-lamp-spreaders' },
   { label: 'Wicks',                   value: 'oil-lamp-wicks' },
   { label: 'Books & Guides',          value: 'oil-lamp-books' },
-  { label: 'Advertising Signs',       value: 'signs' },
+  { label: 'Signs',                   value: 'signs' },
 ]
 
 const BURNER_SIZES = [

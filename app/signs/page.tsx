@@ -3,9 +3,9 @@ import { getAllProducts } from '@/lib/shopify'
 import CatalogClient from '@/app/catalog/CatalogClient'
 
 export const metadata: Metadata = {
-  title: 'Advertising Signs | Acme Vintage Supply',
+  title: 'Signs | Acme Vintage Supply',
   description:
-    'Triple-fired porcelain advertising signs. Original dies, original process. Each piece bench-inspected before dispatch.',
+    'Triple-fired porcelain signs. Original dies, original process. Each piece bench-inspected before dispatch.',
 }
 
 export default async function SignsPage() {
@@ -14,7 +14,7 @@ export default async function SignsPage() {
     <CatalogClient
       products={products}
       initialCategory="signs"
-      title="Advertising Signs"
+      title="Signs"
       crumbs={[
         { label: 'Storefront', href: '/' },
         { label: 'Signs' },

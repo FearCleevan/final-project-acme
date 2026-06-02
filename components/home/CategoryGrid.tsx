@@ -41,7 +41,7 @@ const categories = [
     span: 'lg:col-span-1',
   },
   {
-    label: 'Vintage Reproduction Advertising Signs',
+    label: 'Vintage Reproduction Signs',
     href: '/catalog?category=signs',
     description: 'Triple-fired porcelain signs from the 1873–1967 petroleum and lamp trade.',
     src: '/assets/HeroSampleImage6.webp',
