@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { BiChevronRight, BiTrash, BiCheck } from 'react-icons/bi'
 import Link from 'next/link'
@@ -10,19 +10,19 @@ import Toast, { ToastType } from '@/components/admin/shared/Toast'
 import Spinner from '@/components/admin/shared/Spinner'
 import { AdminProduct } from '@/lib/admin/types'
 
-export default function EditProductPage() {
+function EditProductInner() {
   const { id }       = useParams<{ id: string }>()
   const router       = useRouter()
   const searchParams = useSearchParams()
   const from         = searchParams.get('from') ?? ''
   const backHref     = `/admin/products${from}`
 
-  const [product,     setProduct]     = useState<AdminProduct | null | undefined>(undefined)
-  const [saving,      setSaving]      = useState(false)
-  const [success,     setSuccess]     = useState(false)
-  const [showDelete,  setShowDelete]  = useState(false)
-  const [deleting,    setDeleting]    = useState(false)
-  const [toast,       setToast]       = useState<{ message: string; type: ToastType } | null>(null)
+  const [product,    setProduct]    = useState<AdminProduct | null | undefined>(undefined)
+  const [saving,     setSaving]     = useState(false)
+  const [success,    setSuccess]    = useState(false)
+  const [showDelete, setShowDelete] = useState(false)
+  const [deleting,   setDeleting]   = useState(false)
+  const [toast,      setToast]      = useState<{ message: string; type: ToastType } | null>(null)
 
   useEffect(() => {
     fetch(`/api/admin/products/${id}`)
@@ -64,7 +64,6 @@ export default function EditProductPage() {
     }
   }
 
-  // Loading skeleton
   if (product === undefined) {
     return (
       <div className="space-y-4 animate-pulse px-4 sm:px-5 lg:px-6 py-6">
@@ -74,15 +73,11 @@ export default function EditProductPage() {
     )
   }
 
-  // Not found
   if (product === null) {
     return (
       <div className="text-center py-24">
         <p className="text-[14px] text-(--admin-text-soft)">Product not found.</p>
-        <Link
-          href={backHref}
-          className="mt-4 inline-block text-[12px] text-(--admin-text-muted) hover:text-(--admin-text) transition-colors"
-        >
+        <Link href={backHref} className="mt-4 inline-block text-[12px] text-(--admin-text-muted) hover:text-(--admin-text) transition-colors">
           ← Back to products
         </Link>
       </div>
@@ -91,24 +86,18 @@ export default function EditProductPage() {
 
   return (
     <div>
-      {/* ── Sticky topbar ── */}
       <div
         className="sticky z-30 flex items-center justify-between px-4 sm:px-5 lg:px-6 py-3 border-b border-(--admin-border) bg-(--admin-surface) -mx-4 sm:-mx-5 lg:-mx-6 -mt-4 sm:-mt-5 lg:-mt-6 mb-6"
         style={{ top: 'var(--admin-topbar-h)' }}
       >
-        {/* Breadcrumb */}
         <nav className="flex items-center gap-1 text-[13px] min-w-0">
-          <Link
-            href={backHref}
-            className="text-(--admin-text-muted) hover:text-(--admin-text) transition-colors shrink-0"
-          >
+          <Link href={backHref} className="text-(--admin-text-muted) hover:text-(--admin-text) transition-colors shrink-0">
             Products
           </Link>
           <BiChevronRight size={14} className="text-(--admin-text-muted) shrink-0" />
           <span className="text-(--admin-text) font-medium truncate">{product.title}</span>
         </nav>
 
-        {/* Actions */}
         <div className="flex items-center gap-2 shrink-0 ml-4">
           {success && (
             <span className="flex items-center gap-1.5 text-[12px] text-(--admin-green) font-medium">
@@ -139,7 +128,6 @@ export default function EditProductPage() {
         </div>
       </div>
 
-      {/* ── Form ── */}
       <div>
         <ProductForm
           key={product.id}
@@ -166,5 +154,13 @@ export default function EditProductPage() {
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
+  )
+}
+
+export default function EditProductPage() {
+  return (
+    <Suspense>
+      <EditProductInner />
+    </Suspense>
   )
 }

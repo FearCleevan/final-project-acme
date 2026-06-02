@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { BiChevronRight, BiCheck } from 'react-icons/bi'
 import Link from 'next/link'
@@ -15,7 +15,7 @@ function clearDraft() {
   try { localStorage.removeItem(DRAFT_KEY) } catch { /* ignore */ }
 }
 
-export default function NewProductPage() {
+function NewProductInner() {
   const router       = useRouter()
   const searchParams = useSearchParams()
   const from         = searchParams.get('from') ?? ''
@@ -53,24 +53,18 @@ export default function NewProductPage() {
 
   return (
     <div>
-      {/* ── Sticky topbar ── */}
       <div
         className="sticky z-30 flex items-center justify-between px-4 sm:px-5 lg:px-6 py-3 border-b border-(--admin-border) bg-(--admin-surface) -mx-4 sm:-mx-5 lg:-mx-6 -mt-4 sm:-mt-5 lg:-mt-6 mb-6"
         style={{ top: 'var(--admin-topbar-h)' }}
       >
-        {/* Breadcrumb */}
         <nav className="flex items-center gap-1 text-[13px]">
-          <Link
-            href={backHref}
-            className="text-(--admin-text-muted) hover:text-(--admin-text) transition-colors"
-          >
+          <Link href={backHref} className="text-(--admin-text-muted) hover:text-(--admin-text) transition-colors">
             Products
           </Link>
           <BiChevronRight size={14} className="text-(--admin-text-muted)" />
           <span className="text-(--admin-text) font-medium">New Product</span>
         </nav>
 
-        {/* Actions */}
         <div className="flex items-center gap-2">
           {success && (
             <span className="flex items-center gap-1.5 text-[12px] text-(--admin-green) font-medium">
@@ -95,7 +89,6 @@ export default function NewProductPage() {
         </div>
       </div>
 
-      {/* ── Form ── */}
       <div>
         <ProductForm
           formId="new-product-form"
@@ -109,5 +102,13 @@ export default function NewProductPage() {
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
+  )
+}
+
+export default function NewProductPage() {
+  return (
+    <Suspense>
+      <NewProductInner />
+    </Suspense>
   )
 }
