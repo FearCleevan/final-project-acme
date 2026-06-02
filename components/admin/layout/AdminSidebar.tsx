@@ -114,7 +114,7 @@ export default function AdminSidebar() {
             <span className="text-(--admin-accent-text) text-[10px] font-bold">A</span>
           </div>
           <div className="min-w-0">
-            <p className="text-[12px] font-semibold text-(--admin-text) leading-tight truncate">Acme Lamp & Sign</p>
+            <p className="text-[12px] font-semibold text-(--admin-text) leading-tight truncate">Acme Vintage Supply</p>
             <p className="text-[10px] text-(--admin-text-muted) uppercase tracking-wider">Admin</p>
           </div>
         </div>

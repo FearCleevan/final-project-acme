@@ -387,7 +387,7 @@ export default function AccountPage() {
                 ))}
               </div>
               <p className="font-sans text-[11px] text-ink-soft/70 border-t border-ink-rule pt-3 leading-relaxed">
-                Acme Lamp &amp; Sign Co. is an authorised Shopify merchant. Transactions are governed by{' '}
+                Acme Vintage Supply is an authorised Shopify merchant. Transactions are governed by{' '}
                 <a href="https://www.shopify.com/legal/privacy" target="_blank" rel="noopener noreferrer"
                   className="text-brass-deep hover:text-brass transition-colors underline">
                   Shopify&rsquo;s Privacy Policy

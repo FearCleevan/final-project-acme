@@ -1,37 +1,5 @@
 import Eyebrow from '@/components/shared/Eyebrow'
-
-const entries = [
-  {
-    year: '1873',
-    title: 'Cattaraugus patent filed',
-    body: 'Bradley & Hubbard file the center-draft burner patent that anchors our entire fixtures collection.',
-  },
-  {
-    year: '1881',
-    title: 'Pittsburgh railroad order',
-    body: 'First gimbal-mounted caboose lamps roll out of the Pune works for the Indian railway.',
-  },
-  {
-    year: '1898',
-    title: 'British Indian Lamp Co. closes',
-    body: "The dies stay. The Patel family buys the press shop for ₹140 and a promise.",
-  },
-  {
-    year: '1934',
-    title: 'Porcelain signage line opens',
-    body: 'A third firing process is developed for the advertising-sign trade.',
-  },
-  {
-    year: '2003',
-    title: 'Australian distribution begins',
-    body: 'The first containers cross the Indian Ocean. The pieces find their first Western collectors through partners in Australia.',
-  },
-  {
-    year: '2026',
-    title: 'North American launch',
-    body: 'Fifty pieces cross into North America for the first time. This is the website you are reading. No catalog will repeat exactly.',
-  },
-]
+import entries from '@/data/heritage.json'
 
 export default function Timeline() {
   return (

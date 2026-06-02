@@ -50,17 +50,16 @@ const ProductCard = memo(function ProductCard({
           alt={product.name}
           aspectRatio={aspectRatio}
           dark={isDark}
-          label={product.collection}
           className="transition-transform duration-500 ease-out group-hover:scale-[1.04]"
         />
         {/* Hover brightness overlay — visible even on placeholder */}
-        <div className="absolute inset-0 bg-brass/0 group-hover:bg-brass/[0.06] transition-colors duration-300 pointer-events-none rounded-sm" />
+        {/* <div className="absolute inset-0 bg-brass/0 transition-colors duration-300 pointer-events-none rounded-sm" /> */}
         {/* Second-image hint: darkens edges on hover to suggest depth */}
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-400 pointer-events-none"
+        {/* <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-400 pointer-events-none"
           style={{
             background: 'radial-gradient(ellipse at center, transparent 55%, rgba(30,32,34,0.18) 100%)',
           }}
-        />
+        /> */}
         {/* Stock badges */}
         {!product.inStock && (
           <div className="absolute top-2.5 left-2.5 px-2.5 py-1 bg-ink-charcoal/80 backdrop-blur-sm rounded-pill text-[9px] font-mono uppercase tracking-eyebrow text-canvas-dim pointer-events-none">
@@ -77,19 +76,19 @@ const ProductCard = memo(function ProductCard({
       {/* ── Meta ──────────────────────────────────────────────── */}
       <div className="flex flex-col flex-1 pt-2 sm:pt-3">
         {/* SKU row — hidden on mobile to save vertical space */}
-        <div className="hidden sm:flex items-center justify-between mb-2">
-          <span className="text-[10px] font-mono uppercase tracking-eyebrow text-brass-deep">
+        {/* <div className="hidden sm:flex items-center justify-between mb-2">
+          <span className="text-[10px] font-mono uppercase tracking-eyebrow text-ink-iron">
             {product.sku}
           </span>
-          <span className="text-[10px] font-mono uppercase tracking-eyebrow text-brass-deep/70">
+          <span className="text-[10px] font-mono uppercase tracking-eyebrow text-ink-soft">
             {product.patent}
           </span>
-        </div>
+        </div> */}
 
         {/* Product name */}
         <Link href={`/catalog/${product.slug}`}>
           <h3
-            className={`font-serif font-medium text-ink-iron group-hover:text-brass-deep transition-colors leading-snug mb-1 sm:mb-2 ${
+            className={`font-serif font-bold text-ink-iron group-hover:text-brass-deep transition-colors leading-snug mb-1 sm:mb-2 ${
               large ? 'text-[14px] sm:text-[22px]' : 'text-[12px] sm:text-[18px]'
             }`}
           >
@@ -98,9 +97,9 @@ const ProductCard = memo(function ProductCard({
         </Link>
 
         {/* Short description — hidden on mobile */}
-        <p className="hidden sm:block font-sans text-[13px] text-ink-soft italic leading-snug mb-3 border-l-2 border-ink-rule pl-3 line-clamp-2">
+        {/* <p className="hidden sm:block font-sans font-medium text-[13px] text-ink-iron leading-snug mb-3 border-l-2 border-brass-deep pl-3 line-clamp-2">
           {product.shortDescription.split('—')[0].trim()}
-        </p>
+        </p> */}
 
         {/* Divider */}
         <div className="border-t border-ink-rule mt-auto pt-2 sm:pt-3" />

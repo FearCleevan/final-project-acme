@@ -28,11 +28,11 @@ export default async function PickedOffTheBench() {
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-3 sm:gap-x-5 gap-y-6 sm:gap-y-10 lg:gap-10 items-start">
-          {featured.map((product, i) => (
+          {featured.map((product) => (
             <ProductCard
               key={product.id}
               product={product}
-              aspectRatio={(['3/5', '4/5', '5/4'] as const)[i % 3]}
+              aspectRatio="4/5"
             />
           ))}
         </div>

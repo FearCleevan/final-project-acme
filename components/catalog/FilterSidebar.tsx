@@ -9,10 +9,11 @@ import { cn } from '@/lib/utils'
 const PIECE_TYPES = [
   { label: 'Oil Lamp Chimneys',       value: 'oil-lamp-chimneys' },
   { label: 'Oil Lamp Shades',         value: 'oil-lamp-shades' },
-  { label: 'Oil Lamp Pressure Lamps', value: 'oil-lamp-pressure-lamps' },
-  { label: 'Oil Lamp Books',          value: 'oil-lamp-books' },
-  { label: 'Oil Lamp Spreaders',      value: 'oil-lamp-spreaders' },
-  { label: 'Oil Lamp Wicks',          value: 'oil-lamp-wicks' },
+  { label: 'Pressure Lamps',          value: 'oil-lamp-pressure-lamps' },
+  { label: 'Spreaders & Hardware',    value: 'oil-lamp-spreaders' },
+  { label: 'Wicks',                   value: 'oil-lamp-wicks' },
+  { label: 'Books & Guides',          value: 'oil-lamp-books' },
+  { label: 'Advertising Signs',       value: 'signs' },
 ]
 
 const BURNER_SIZES = [

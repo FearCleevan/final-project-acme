@@ -6,7 +6,7 @@ const testimonials = [
   },
   {
     quote:
-      'Acme Lamp & Sign\'s chimneys are the only ones we still recommend without an asterisk.',
+      'Acme Vintage Supply\'s chimneys are the only ones we still recommend without an asterisk.',
     attribution: 'Adelaide Interiors Trade / SA 5000',
   },
   {

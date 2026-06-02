@@ -3,20 +3,27 @@
 import { useState, useMemo } from 'react'
 import { Product, FilterState } from '@/lib/types'
 import CatalogHeader from '@/components/catalog/CatalogHeader'
-import FilterBar from '@/components/catalog/FilterBar'
+import CatalogSidebar from '@/components/catalog/CatalogSidebar'
 import FilterSidebar from '@/components/catalog/FilterSidebar'
 import ProductGrid from '@/components/catalog/ProductGrid'
 
-const defaultFilters: FilterState = {
-  category: 'all',
-  burnerSize: '',
-  material: '',
-  sortBy: 'curator',
+function buildDefaults(initialCategory = 'all'): FilterState {
+  return { category: initialCategory, burnerSize: '', material: '', sortBy: 'curator' }
 }
 
-export default function CatalogClient({ products }: { products: Product[] }) {
-  const [filters, setFilters] = useState<FilterState>(defaultFilters)
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+export default function CatalogClient({
+  products,
+  initialCategory = 'all',
+  title,
+  crumbs,
+}: {
+  products: Product[]
+  initialCategory?: string
+  title?: string
+  crumbs?: { label: string; href?: string }[]
+}) {
+  const [filters, setFilters] = useState<FilterState>(() => buildDefaults(initialCategory))
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
   const filteredProducts = useMemo(() => {
     let items = [...products]
@@ -49,23 +56,46 @@ export default function CatalogClient({ products }: { products: Product[] }) {
   }, [filters, products])
 
   return (
-    <div className="min-h-screen">
-      <CatalogHeader />
-
-      <FilterBar
-        filters={filters}
-        onFiltersChange={setFilters}
-        count={filteredProducts.length}
-        onRefineOpen={() => setSidebarOpen(true)}
-      />
+    <div className="min-h-screen bg-parchment">
+      <CatalogHeader title={title} crumbs={crumbs} />
 
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-8 sm:py-10">
-        <ProductGrid products={filteredProducts} />
+        <div className="flex gap-10 items-start">
+
+          {/* ── Left sidebar — desktop only ─────────────────────── */}
+          <div className="hidden lg:block w-52 shrink-0 sticky top-24">
+            <CatalogSidebar
+              filters={filters}
+              onFiltersChange={setFilters}
+              count={filteredProducts.length}
+            />
+          </div>
+
+          {/* ── Main content ────────────────────────────────────── */}
+          <div className="flex-1 min-w-0">
+
+            {/* Mobile top bar — count + filter trigger */}
+            <div className="lg:hidden flex items-center justify-between mb-5 pb-4 border-b border-ink-rule">
+              <span className="text-[11px] font-mono uppercase tracking-eyebrow text-ink-soft">
+                {filteredProducts.length} {filteredProducts.length === 1 ? 'piece' : 'pieces'}
+              </span>
+              <button
+                onClick={() => setDrawerOpen(true)}
+                className="h-9 px-4 border border-ink-rule rounded-sm text-[11px] font-mono uppercase tracking-eyebrow text-ink-iron hover:border-ink-iron hover:bg-parchment-2 transition-colors"
+              >
+                Filters ↓
+              </button>
+            </div>
+
+            <ProductGrid products={filteredProducts} />
+          </div>
+        </div>
       </div>
 
+      {/* Mobile filter drawer */}
       <FilterSidebar
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
+        isOpen={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
         filters={filters}
         onFiltersChange={setFilters}
         count={filteredProducts.length}

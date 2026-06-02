@@ -2,24 +2,7 @@ import Link from 'next/link'
 import PlateImage from '@/components/shared/PlateImage'
 import Eyebrow from '@/components/shared/Eyebrow'
 import Button from '@/components/shared/Button'
-
-const pillars = [
-  {
-    n: '01.',
-    title: 'Craft over convenience.',
-    body: "Every burner is hand-fitted. Every shade is mouth-blown. Every sign is triple-fired. If a piece fails the 8-hour bench test, it never leaves the bench. We don't ship near-misses.",
-  },
-  {
-    n: '02.',
-    title: 'Provenance over inventory.',
-    body: "We make 50 pieces a season, then we stop, then we make 50 more. There is no warehouse of yellowing surplus, no algorithmic restock. When this crate is empty, it's empty.",
-  },
-  {
-    n: '03.',
-    title: 'Honesty over marketing.',
-    body: "Our invoices are plain paper. Our phone rings to a person. Our returns policy fits in one sentence: if it arrives less than whole, send it back, on us, for thirty days.",
-  },
-]
+import storyData from '@/data/story.json'
 
 export default function OurStoryPage() {
   return (
@@ -98,7 +81,7 @@ export default function OurStoryPage() {
             What we'll do for you, and what we won't.
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            {pillars.map(({ n, title, body }) => (
+            {storyData.pillars.map(({ n, title, body }) => (
               <div key={n} className="border-t-2 border-brass-deep pt-6">
                 <span className="font-mono text-[11px] text-brass-deep tracking-eyebrow block mb-3">{n}</span>
                 <h3 className="font-serif text-[20px] text-ink-charcoal font-medium mb-3 leading-snug">

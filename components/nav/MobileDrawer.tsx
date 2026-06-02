@@ -11,9 +11,16 @@ const catalogLinks = [
   { label: 'Oil Lamp Chimneys',    href: '/catalog?category=oil-lamp-chimneys'       },
   { label: 'Oil Lamp Shades',      href: '/catalog?category=oil-lamp-shades'         },
   { label: 'Pressure Lamps',       href: '/catalog?category=oil-lamp-pressure-lamps' },
-  { label: 'Books & Guides',       href: '/catalog?category=oil-lamp-books'          },
   { label: 'Spreaders & Hardware', href: '/catalog?category=oil-lamp-spreaders'      },
   { label: 'Wicks',                href: '/catalog?category=oil-lamp-wicks'          },
+  { label: 'Books & Guides',       href: '/catalog?category=oil-lamp-books'          },
+  { label: 'Advertising Signs',    href: '/signs'                                    },
+]
+
+const workshopLinks = [
+  { label: 'Our Story',         href: '/our-story' },
+  { label: 'Heritage Timeline', href: '/heritage'  },
+  { label: 'Bench Notes',       href: '/journal'   },
 ]
 
 interface MobileDrawerProps {
@@ -53,11 +60,11 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-ink-rule shrink-0">
               <div>
-                <p className="font-serif text-[20px] font-medium text-ink-charcoal">
-                  Acme Lamp<em className="italic text-brass-deep">&amp;</em>Sign
+                <p className="font-serif text-[20px] font-bold text-ink-charcoal">
+                  Acme Vintage Supply
                 </p>
                 <p className="text-[9px] font-mono uppercase tracking-eyebrow-wide text-ink-soft mt-0.5">
-                  Est. for the long burn
+                  Antique Oil Lamps &amp; Signs
                 </p>
               </div>
               <button
@@ -75,12 +82,33 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
             </div>
 
             {/* Catalog sub-links */}
+            {/* Catalog sub-links */}
             <div className="px-6 py-5 border-b border-ink-rule">
               <p className="text-[9px] font-mono uppercase tracking-eyebrow-wide text-ink-soft mb-3">
                 Browse by Category
               </p>
               <ul className="space-y-2">
                 {catalogLinks.map(({ label, href }) => (
+                  <li key={href}>
+                    <Link
+                      href={href}
+                      onClick={onClose}
+                      className="text-[14px] font-sans text-ink-soft hover:text-brass-deep transition-colors"
+                    >
+                      {label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Workshop sub-links */}
+            <div className="px-6 py-5 border-b border-ink-rule">
+              <p className="text-[9px] font-mono uppercase tracking-eyebrow-wide text-ink-soft mb-3">
+                The Workshop
+              </p>
+              <ul className="space-y-2">
+                {workshopLinks.map(({ label, href }) => (
                   <li key={href}>
                     <Link
                       href={href}

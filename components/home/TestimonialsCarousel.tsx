@@ -1,5 +1,7 @@
 'use client'
 
+import testimonials from '@/data/testimonials.json'
+
 function StarIcon() {
   return (
     <svg className="w-4 h-4" viewBox="0 0 16 16" fill="#AA9077" aria-hidden="true">
@@ -7,16 +9,6 @@ function StarIcon() {
     </svg>
   )
 }
-
-
-const testimonials = [
-  { name: 'Sarah M.', location: 'Baltimore', quote: 'Finally — a supplier who knows a No. 2 chimney is not the same as a No. 3.' },
-  { name: 'James R.', location: 'Annapolis', quote: 'Our charcuterie board was a perfect wedding gift. They even engraved the couple’s initials.' },
-  { name: 'Maria & Tom L.', location: 'Columbia', quote: 'The live edge coffee table is the centerpiece of our living room. Worth every penny.' },
-  { name: 'Denise K.', location: 'Bethesda', quote: 'Michael walked us through every step of the design process. We felt heard and the final piece exceeded every expectation.' },
-  { name: 'Chris P.', location: 'Washington, DC', quote: 'Incredible craftsmanship and attention to detail. Our charcuterie board is both beautiful and functional.' },
-  { name: 'Robert & Anne W.', location: 'Frederick', quote: 'The river table we commissioned is a true heirloom. We’ll be passing it down for generations.' },
-]
 
 export default function TestimonialsCarousel() {
   return (

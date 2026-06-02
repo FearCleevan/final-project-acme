@@ -122,8 +122,8 @@ export default function Footer() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
             {/* Col 1 — Brand */}
             <div>
-              <p className="font-serif text-[20px] font-medium text-canvas-heading mb-2">
-                Acme Lamp<em className="italic text-brass-deep">&amp;</em> Sign
+              <p className="font-serif text-[20px] font-bold text-canvas-heading mb-2">
+                Acme Vintage Supply
               </p>
               <p className="text-[13px] text-canvas-muted leading-relaxed mb-5">
                 Precision-reproduced antique oil lamp parts, hand-blown glass, and
@@ -197,7 +197,7 @@ export default function Footer() {
           {/* Bottom micro-bar */}
           <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <p className="text-[11px] font-mono uppercase tracking-eyebrow text-canvas-dim">
-              © 1873–2026 · Acme Lamp &amp; Sign Co. · All marks honoured.
+              © 1873–2026 · Acme Vintage Supply · All marks honoured.
             </p>
             <nav aria-label="Legal links" className="flex flex-wrap gap-x-4 gap-y-1">
               {[

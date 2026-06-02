@@ -35,7 +35,7 @@ export default function ForgotPasswordPage() {
             <span className="text-(--admin-accent-text) text-[14px] font-bold">A</span>
           </div>
           <h1 className="text-[18px] font-semibold text-(--admin-text)">Forgot Password</h1>
-          <p className="text-[12px] uppercase tracking-widest text-(--admin-text-muted) mt-0.5">Acme Lamp &amp; Sign</p>
+          <p className="text-[12px] uppercase tracking-widest text-(--admin-text-muted) mt-0.5">Acme Vintage Supply</p>
         </div>
 
         <div className="bg-(--admin-surface) border border-(--admin-border) rounded-lg p-6">

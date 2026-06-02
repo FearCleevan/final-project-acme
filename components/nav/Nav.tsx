@@ -31,12 +31,12 @@ export default function Nav({ onSearchOpen }: NavProps) {
       >
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           {/* Brand mark */}
-          <Link href="/" className="flex flex-col leading-none group shrink-0" aria-label="Acme Lamp & Sign — Home">
-            <span className="font-serif text-[18px] sm:text-[22px] lg:text-[24px] font-medium text-ink-charcoal group-hover:text-brass-deep transition-colors whitespace-nowrap">
-              Acme Lamp<em className="italic text-brass-deep">&amp;</em> Sign
+          <Link href="/" className="flex flex-col leading-none group shrink-0" aria-label="Acme Vintage Supply — Home">
+            <span className="font-serif text-[22px] sm:text-[26px] lg:text-[30px] font-bold text-ink-charcoal group-hover:text-brass-deep transition-colors whitespace-nowrap">
+              Acme Vintage Supply
             </span>
             <span className="hidden sm:block text-[10px] font-mono uppercase tracking-eyebrow-wide text-ink-soft mt-0.5">
-              Est. for the long burn
+              Antique Oil Lamps &amp; Signs
             </span>
           </Link>
 

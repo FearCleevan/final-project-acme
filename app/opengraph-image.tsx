@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og'
 
-export const alt = 'Acme Lamp & Sign Co. — Authentic Antique Oil Lamp Parts'
+export const alt = 'Acme Vintage Supply — Authentic Antique Oil Lamp Parts'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -70,27 +70,14 @@ export default function Image() {
           <span
             style={{
               color: '#FAF5EC',
-              fontSize: 88,
+              fontSize: 72,
               fontFamily: 'Georgia, serif',
-              fontWeight: 500,
+              fontWeight: 700,
               lineHeight: 1.05,
               display: 'flex',
             }}
           >
-            Acme Lamp
-          </span>
-          <span
-            style={{
-              color: '#C29B47',
-              fontSize: 88,
-              fontFamily: 'Georgia, serif',
-              fontWeight: 500,
-              fontStyle: 'italic',
-              lineHeight: 1.05,
-              display: 'flex',
-            }}
-          >
-            &amp; Sign Co.
+            Acme Vintage Supply
           </span>
         </div>
 

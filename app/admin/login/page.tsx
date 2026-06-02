@@ -41,7 +41,7 @@ export default function AdminLoginPage() {
           <div className="w-10 h-10 rounded-md bg-(--admin-accent) flex items-center justify-center mb-3">
             <span className="text-(--admin-accent-text) text-[14px] font-bold">A</span>
           </div>
-          <h1 className="text-[18px] font-semibold text-(--admin-text)">Acme Lamp &amp; Sign</h1>
+          <h1 className="text-[18px] font-semibold text-(--admin-text)">Acme Vintage Supply</h1>
           <p className="text-[12px] uppercase tracking-widest text-(--admin-text-muted) mt-0.5">Admin Dashboard</p>
         </div>
 
@@ -86,7 +86,7 @@ export default function AdminLoginPage() {
         </form>
 
         <p className="text-center text-[11px] text-(--admin-text-muted) mt-4">
-          Acme Lamp &amp; Sign Co. — Admin access only
+          Acme Vintage Supply Co. — Admin access only
         </p>
       </div>
     </div>

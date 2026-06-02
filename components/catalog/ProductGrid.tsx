@@ -9,17 +9,6 @@ interface ProductGridProps {
   products: Product[]
 }
 
-/* Varied, non-repeating-block sequence — 12-beat cycle that avoids any run of 3 identical ratios */
-const ASPECT_SEQ: Array<'4/5' | '5/4' | '3/5' | '1/1'> = [
-  '3/5', '4/5', '5/4',
-  '4/5', '3/5', '4/5',
-  '5/4', '3/5', '4/5',
-  '3/5', '5/4', '4/5',
-]
-
-/* Every 5th card gets the large treatment (slightly bigger title) */
-function isLarge(i: number) { return i % 5 === 4 }
-
 const ProductGrid = memo(function ProductGrid({ products }: ProductGridProps) {
   if (products.length === 0) {
     return (
@@ -45,8 +34,8 @@ const ProductGrid = memo(function ProductGrid({ products }: ProductGridProps) {
           >
             <ProductCard
               product={product}
-              aspectRatio={ASPECT_SEQ[i % ASPECT_SEQ.length]}
-              large={isLarge(i)}
+              aspectRatio="4/5"
+              large={false}
             />
           </motion.div>
         ))}

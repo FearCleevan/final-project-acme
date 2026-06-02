@@ -201,7 +201,7 @@ export default function AdminTopbar() {
       {/* Mobile: store name */}
       {!searchOpen && (
         <p className="lg:hidden text-[13px] font-semibold text-(--admin-text) truncate flex-1">
-          Acme Lamp &amp; Sign
+          Acme Vintage Supply
         </p>
       )}
 

@@ -2,7 +2,7 @@ import AdminThemeProvider from '@/components/admin/layout/AdminThemeProvider'
 import AdminShell from '@/components/admin/layout/AdminShell'
 
 export const metadata = {
-  title: 'Admin — Acme Lamp & Sign Co.',
+  title: 'Admin — Acme Vintage Supply',
   robots: { index: false, follow: false },
 }
 

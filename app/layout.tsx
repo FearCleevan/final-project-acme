@@ -5,14 +5,14 @@ import ShellClient from '@/components/shared/ShellClient'
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
-  weight: ['400', '500'],
+  weight: ['400', '500', '600', '700'],
   variable: '--font-playfair',
   display: 'swap',
 })
 
 const inter = Inter({
   subsets: ['latin'],
-  weight: ['400', '500', '600'],
+  weight: ['400', '500', '600', '700'],
   variable: '--font-inter',
   display: 'swap',
 })
@@ -25,9 +25,9 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://acmelamp.co'
-const SITE_NAME = 'Acme Lamp & Sign Co.'
+const SITE_NAME = 'Acme Vintage Supply'
 const DESCRIPTION =
-  'Fifty crates of precision-reproduced antique oil lamp parts, hand-blown chimneys, and porcelain advertising signs. Sourced from a 125-year Pune workshop, distributed from Adelaide. No second batch.'
+  'Precision-reproduced antique oil lamp parts, hand-blown chimneys, and porcelain advertising signs. Sourced from a 125-year Pune workshop, now available across North America.'
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
