@@ -185,12 +185,8 @@ function parseBurnerSize(val: string): Product['burnerSize'] {
 export function shopifyProductToProduct(p: ShopifyProduct): Product {
   const mf         = p.metafields
   const firstVar   = p.variants.edges[0]?.node
-  const allHandles = p.collections.edges.map(e => e.node.handle)
-  const colHandle  = allHandles.find(h => CATEGORY_MAP[h]) ?? ''
+  const colHandle  = p.collections.edges.map(e => e.node.handle).find(h => CATEGORY_MAP[h]) ?? ''
   const category   = CATEGORY_MAP[colHandle] ?? 'lighting'
-
-  // Temporary: log collection handles so we can see what Shopify returns
-  console.log(`[shopify] "${p.title}" → collections: [${allHandles.join(', ')}] → category: ${category}`)
 
   // Collect finish values from variant options named "Finish"
   const finishes = [
