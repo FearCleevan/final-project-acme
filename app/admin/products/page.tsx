@@ -663,14 +663,14 @@ export default function ProductsPage() {
           addModalOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         )}
       >
-        {/* Backdrop — covers full screen including sidebar */}
+        {/* Backdrop — absolute, no z-index (auto = stacking group 6) */}
         <div className="absolute inset-0 bg-black/50" onClick={() => setAddModalOpen(false)} />
 
-        {/* Dialog — wide to fit two-column layout */}
-        <div className="relative w-full max-w-5xl max-h-[calc(100vh-3rem)] flex flex-col bg-(--admin-surface) border border-(--admin-border) rounded-xl shadow-2xl">
+        {/* Dialog — the dialog itself scrolls; sticky header/footer stay in place */}
+        <div className="relative z-10 w-full max-w-5xl max-h-[calc(100vh-3rem)] overflow-y-auto bg-(--admin-surface) border border-(--admin-border) rounded-xl shadow-2xl flex flex-col">
 
-          {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-(--admin-border) shrink-0">
+          {/* Sticky header */}
+          <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-(--admin-border) bg-(--admin-surface) shrink-0">
             <p className="text-[15px] font-semibold text-(--admin-text)">New product</p>
             <button
               onClick={() => setAddModalOpen(false)}
@@ -680,8 +680,8 @@ export default function ProductsPage() {
             </button>
           </div>
 
-          {/* Scrollable form body */}
-          <div className="flex-1 overflow-y-auto px-6 py-6">
+          {/* Body — scrolls with the dialog */}
+          <div className="px-6 py-6 flex-1 overflow-y-auto min-h-0 h-full">
             <ProductForm
               key={addFormKey}
               hideFooter
@@ -691,8 +691,8 @@ export default function ProductsPage() {
             />
           </div>
 
-          {/* Footer */}
-          <div className="shrink-0 border-t border-(--admin-border) px-6 py-4 flex items-center justify-end gap-3">
+          {/* Sticky footer */}
+          <div className="sticky bottom-0 z-10 border-t border-(--admin-border) px-6 py-4 flex items-center justify-end gap-3 bg-(--admin-surface) shrink-0">
             {addSuccess ? (
               <div className="flex items-center gap-2 text-(--admin-green)">
                 <BiCheck size={16} />
@@ -734,9 +734,9 @@ export default function ProductsPage() {
         )}
       >
         <div className="absolute inset-0 bg-black/50" onClick={handleEditDiscard} />
-        <div className="relative w-full max-w-5xl max-h-[calc(100vh-3rem)] flex flex-col bg-(--admin-surface) border border-(--admin-border) rounded-xl shadow-2xl">
+        <div className="relative z-10 w-full max-w-5xl max-h-[calc(100vh-3rem)] overflow-y-auto bg-(--admin-surface) border border-(--admin-border) rounded-xl shadow-2xl flex flex-col">
 
-          <div className="flex items-center justify-between px-6 py-4 border-b border-(--admin-border) shrink-0">
+          <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-(--admin-border) bg-(--admin-surface) shrink-0">
             <div className="min-w-0">
               <p className="text-[15px] font-semibold text-(--admin-text) truncate">{editProduct?.title ?? 'Edit product'}</p>
               {editProduct?.sku && (
@@ -762,7 +762,7 @@ export default function ProductsPage() {
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-6 py-6">
+          <div className="px-6 py-6 flex-1 overflow-y-auto min-h-0 h-full">
             {editProduct && (
               <ProductForm
                 key={editFormKey}
@@ -775,7 +775,7 @@ export default function ProductsPage() {
             )}
           </div>
 
-          <div className="shrink-0 border-t border-(--admin-border) px-6 py-4 flex items-center justify-end gap-3">
+          <div className="sticky bottom-0 z-10 border-t border-(--admin-border) px-6 py-4 flex items-center justify-end gap-3 bg-(--admin-surface) shrink-0">
             {editSuccess ? (
               <div className="flex items-center gap-2 text-(--admin-green)">
                 <BiCheck size={16} />
