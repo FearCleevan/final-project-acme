@@ -1,10 +1,11 @@
 import Link from 'next/link'
 import { getFeaturedProducts } from '@/lib/shopify'
+import { mockProducts } from '@/lib/mockData'
 import Eyebrow from '@/components/shared/Eyebrow'
 import ProductCard from '@/components/catalog/ProductCard'
 
 export default async function PickedOffTheBench() {
-  const featured = await getFeaturedProducts()
+  const featured = await getFeaturedProducts().catch(() => mockProducts.slice(0, 3))
   return (
     <section className="bg-parchment-2 px-6 py-24 border-t border-ink-rule">
       <div className="max-w-[1280px] mx-auto">

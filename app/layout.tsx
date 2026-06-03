@@ -24,30 +24,36 @@ const jetbrainsMono = JetBrains_Mono({
   display: 'swap',
 })
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://acmelamp.co'
+// TODO: once domain is registered, set NEXT_PUBLIC_SITE_URL=https://acmevintagesupply.ca in Vercel env vars
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://acmelampandsign.vercel.app'
 const SITE_NAME = 'Acme Vintage Supply'
 const DESCRIPTION =
-  'Precision-reproduced antique oil lamp parts, hand-blown chimneys, and porcelain advertising signs. Sourced from a 125-year Pune workshop, now available across North America.'
+  'Antique oil lamp chimneys, shades, pressure lamps, burners, wicks, and original Victorian enamel advertising signs. Individually sourced, bench-tested, and shipped across North America.'
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
 
   title: {
     template: `%s | ${SITE_NAME}`,
-    default: `${SITE_NAME} — Authentic Antique Oil Lamp Parts`,
+    default: `${SITE_NAME} — Antique Oil Lamps & Signs`,
   },
   description: DESCRIPTION,
   keywords: [
-    'antique oil lamp parts',
+    'antique oil lamps',
     'oil lamp chimneys',
-    'brass burners',
-    'porcelain signs',
-    'antique lighting',
+    'oil lamp shades',
+    'pressure lamps',
+    'Victorian oil lamps',
+    'Edwardian oil lamps',
+    'enamel advertising signs',
+    'vintage advertising signs',
     'oil lamp restoration',
-    'vintage lamp parts',
-    'hand-blown chimneys',
-    'lamp burner sizes',
-    'antique lamp hardware',
+    'antique lamp parts',
+    'oil lamp burners',
+    'oil lamp wicks',
+    'porcelain signs',
+    'antique lighting Canada',
+    'vintage lamp hardware',
   ],
   authors: [{ name: SITE_NAME, url: SITE_URL }],
   creator: SITE_NAME,
@@ -55,24 +61,24 @@ export const metadata: Metadata = {
 
   openGraph: {
     type: 'website',
-    locale: 'en_AU',
+    locale: 'en_CA',
     url: SITE_URL,
     siteName: SITE_NAME,
-    title: `${SITE_NAME} — Authentic Antique Oil Lamp Parts`,
+    title: `${SITE_NAME} — Antique Oil Lamps & Signs`,
     description: DESCRIPTION,
     images: [
       {
         url: '/opengraph-image',
         width: 1200,
         height: 630,
-        alt: `${SITE_NAME} — Authentic Antique Oil Lamp Parts`,
+        alt: `${SITE_NAME} — Antique Oil Lamps & Signs`,
       },
     ],
   },
 
   twitter: {
     card: 'summary_large_image',
-    title: `${SITE_NAME} — Authentic Antique Oil Lamp Parts`,
+    title: `${SITE_NAME} — Antique Oil Lamps & Signs`,
     description: DESCRIPTION,
     images: ['/opengraph-image'],
   },
@@ -111,17 +117,15 @@ const jsonLd = {
   image: `${SITE_URL}/opengraph-image`,
   address: {
     '@type': 'PostalAddress',
-    addressLocality: 'Adelaide',
-    addressRegion: 'SA',
-    addressCountry: 'AU',
+    addressCountry: 'CA',
   },
   priceRange: '$$',
-  currenciesAccepted: 'AUD',
+  currenciesAccepted: 'CAD',
   paymentAccepted: 'Credit Card',
   hasOfferCatalog: {
     '@type': 'OfferCatalog',
-    name: 'Antique Oil Lamp Parts — Spring Release',
-    description: 'Fifty hand-numbered pieces. Precision-reproduced from original 19th-century dies.',
+    name: 'Antique Oil Lamps & Advertising Signs',
+    description: 'Individually sourced Victorian and Edwardian oil lamp parts and original enamel advertising signs. Each piece bench-inspected before dispatch.',
   },
   sameAs: [],
 }

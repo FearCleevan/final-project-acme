@@ -7,9 +7,10 @@
 
 Hi Scott,
 
-The revised version is live — here's the link:
+The revised version is live. Here are both versions for your comparison:
 
-**Storefront:** https://acmelampandsign.vercel.app/
+**Version 1 (Original):** https://acmelampandsign-54hk1w149-fearcleevans-projects.vercel.app
+**Version 2 (Revised — Current):** https://acmelampandsign.vercel.app
 **Signs Page:** https://acmelampandsign.vercel.app/signs
 
 Here's a quick summary of what's been updated based on your notes:
@@ -31,11 +32,10 @@ Everywhere the site said "Advertising Signs" now just says "Signs" — cleaner a
 
 Please take a look and let me know what other changes you had in mind. Happy to jump on a call whenever suits you.
 
+You also have access to the Admin Dashboard where you can view products, orders, and collections directly:
+
+**Admin Dashboard:** https://acmelampandsign.vercel.app/admin
+**Password:** acme2026
+
 Thanks,
 Peter
-
----
-
-*Admin Dashboard (for your reference):*
-*https://acmelampandsign.vercel.app/admin*
-*Password: [your admin password]*

@@ -98,20 +98,33 @@ export default function ProductsPage() {
     }
   }
 
+  async function fetchWithRetry(url: string, retries = 3): Promise<Response | null> {
+    for (let i = 1; i <= retries; i++) {
+      try {
+        const res = await fetch(url)
+        if (res.ok) return res
+        if (res.status === 401) return null  // auth failure — don't retry
+      } catch { /* network error — fall through to retry */ }
+      if (i < retries) await new Promise(r => setTimeout(r, i * 800))
+    }
+    return null
+  }
+
   async function loadProducts() {
     setLoading(true)
     try {
       const [pRes, cRes] = await Promise.all([
-        fetch('/api/admin/products'),
-        fetch('/api/admin/collections'),
+        fetchWithRetry('/api/admin/products'),
+        fetchWithRetry('/api/admin/collections'),
       ])
-      if (pRes.ok) setProducts(await pRes.json())
-      if (cRes.ok) setCollections(await cRes.json())
+      if (pRes) setProducts(await pRes.json())
+      if (cRes) setCollections(await cRes.json())
     } finally {
       setLoading(false)
     }
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadProducts() }, [])
 
   // Import modal state

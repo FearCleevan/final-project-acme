@@ -10,19 +10,41 @@ const GQL_URL = `https://${DOMAIN}/admin/api/${VERSION}/graphql.json`
 // ─── Core fetch ──────────────────────────────────────────────────────────────
 
 export async function adminFetch<T>(query: string, variables?: Record<string, unknown>): Promise<T> {
-  const res = await fetch(GQL_URL, {
-    method:  'POST',
-    headers: {
-      'Content-Type':              'application/json',
-      'X-Shopify-Access-Token':    TOKEN,
-    },
-    body: JSON.stringify({ query, variables }),
-    cache: 'no-store',
-  })
-  if (!res.ok) throw new Error(`Shopify Admin API error: ${res.status}`)
-  const { data, errors } = await res.json()
-  if (errors?.length) throw new Error(errors[0].message)
-  return data as T
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 15_000)
+
+  try {
+    const res = await fetch(GQL_URL, {
+      method:  'POST',
+      headers: {
+        'Content-Type':           'application/json',
+        'X-Shopify-Access-Token': TOKEN,
+      },
+      body:   JSON.stringify({ query, variables }),
+      cache:  'no-store',
+      signal: controller.signal,
+    })
+
+    if (!res.ok) {
+      const body = await res.text().catch(() => '')
+      console.error(`[shopifyAdmin] HTTP ${res.status}:`, body)
+      throw new Error(`Shopify Admin API error ${res.status}: ${body}`)
+    }
+
+    const { data, errors } = await res.json()
+    if (errors?.length) {
+      console.error('[shopifyAdmin] GraphQL errors:', errors)
+      throw new Error(errors[0].message)
+    }
+    return data as T
+  } catch (err) {
+    if ((err as Error).name === 'AbortError') {
+      throw new Error('Shopify Admin API timeout (15s) — check store domain and token')
+    }
+    throw err
+  } finally {
+    clearTimeout(timeout)
+  }
 }
 
 // ─── Metafield namespace ─────────────────────────────────────────────────────
@@ -469,13 +491,12 @@ export async function deleteAdminProduct(shopifyId: string): Promise<void> {
 // ─── Shop owner ──────────────────────────────────────────────────────────────
 
 export async function getShopOwner(): Promise<{ name: string; email: string }> {
-  const data = await adminFetch<{ shop: { contactEmail: string; name: string; owner: { firstName: string; lastName: string; email: string } } }>(
-    `{ shop { name contactEmail owner { firstName lastName email } } }`
+  const data = await adminFetch<{ shop: { contactEmail: string; name: string } }>(
+    `{ shop { name contactEmail } }`
   )
-  const owner = data.shop.owner
   return {
-    name:  `${owner.firstName} ${owner.lastName}`.trim() || data.shop.name,
-    email: owner.email || data.shop.contactEmail,
+    name:  data.shop.name,
+    email: data.shop.contactEmail,
   }
 }
 
@@ -602,7 +623,7 @@ interface ShopifyOrderNode {
   }
   fulfillments: {
     trackingInfo: { number: string | null }[]
-    estimatedDeliveryAt: string | null
+    status: string
   }[]
 }
 
@@ -636,7 +657,7 @@ function toAdminOrder(o: ShopifyOrderNode): AdminOrder {
   }))
 
   const trackingRef = o.fulfillments[0]?.trackingInfo[0]?.number ?? ''
-  const estimatedDelivery = o.fulfillments[0]?.estimatedDeliveryAt ?? undefined
+  const estimatedDelivery = undefined
 
   return {
     id:               o.name,
@@ -682,9 +703,9 @@ const ORDER_FIELDS = `
       variant { image { url } }
     } }
   }
-  fulfillments(first: 5) {
+  fulfillments {
     trackingInfo { number }
-    estimatedDeliveryAt
+    status
   }
 `
 

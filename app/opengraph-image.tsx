@@ -55,7 +55,7 @@ export default function Image() {
             opacity: 0.9,
           }}
         >
-          Spring Release · Fifty Pieces · Est. for the long burn
+          Antique Oil Lamps · Enamel Signs · North America
         </div>
 
         {/* Brand name */}
@@ -105,8 +105,8 @@ export default function Image() {
             display: 'flex',
           }}
         >
-          Precision-reproduced antique oil lamp parts, hand-blown chimneys &amp; porcelain signs —
-          sourced from a 125-year Pune workshop, distributed from Adelaide.
+          Antique oil lamp chimneys, shades, pressure lamps &amp; original Victorian enamel advertising signs —
+          individually sourced, bench-tested, and shipped across North America.
         </div>
       </div>
     ),
