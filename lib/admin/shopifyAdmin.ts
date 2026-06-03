@@ -617,7 +617,10 @@ interface ShopifyOrderNode {
         sku: string | null
         quantity: number
         originalUnitPriceSet: { shopMoney: { amount: string } }
-        variant: { image: { url: string } | null } | null
+        variant: {
+          image: { url: string } | null
+          product: { featuredImage: { url: string } | null } | null
+        } | null
       }
     }[]
   }
@@ -653,7 +656,7 @@ function toAdminOrder(o: ShopifyOrderNode): AdminOrder {
     sku:       e.node.sku ?? '',
     quantity:  e.node.quantity,
     unitPrice: parseFloat(e.node.originalUnitPriceSet.shopMoney.amount),
-    image:     e.node.variant?.image?.url ?? '',
+    image:     e.node.variant?.image?.url ?? e.node.variant?.product?.featuredImage?.url ?? '',
   }))
 
   const trackingRef = o.fulfillments[0]?.trackingInfo[0]?.number ?? ''
@@ -700,7 +703,10 @@ const ORDER_FIELDS = `
     edges { node {
       id title sku quantity
       originalUnitPriceSet { shopMoney { amount } }
-      variant { image { url } }
+      variant {
+        image { url }
+        product { featuredImage { url } }
+      }
     } }
   }
   fulfillments {
