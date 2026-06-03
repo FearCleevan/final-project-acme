@@ -722,11 +722,12 @@ export async function getAdminOrders(first = 50): Promise<AdminOrder[]> {
 }
 
 export async function getAdminOrderById(orderId: string): Promise<AdminOrder | null> {
-  // orderId can be the display name (#1001) or a numeric Shopify ID
+  // orderId can be a full GID, a large internal numeric ID (10+ digits), or a display name (e.g. "1001" or "#1001")
   const isGid = orderId.startsWith('gid://')
-  const isNumeric = /^\d+$/.test(orderId)
+  // Shopify internal numeric IDs are very large (10+ digits). Display order numbers are short (≤6 digits).
+  const isInternalId = /^\d{10,}$/.test(orderId)
 
-  if (isGid || isNumeric) {
+  if (isGid || isInternalId) {
     const gid = isGid ? orderId : `gid://shopify/Order/${orderId}`
     const data = await adminFetch<{ order: ShopifyOrderNode | null }>(
       `query GetOrder($id: ID!) { order(id: $id) { ${ORDER_FIELDS} } }`,
@@ -735,7 +736,7 @@ export async function getAdminOrderById(orderId: string): Promise<AdminOrder | n
     return data.order ? toAdminOrder(data.order) : null
   }
 
-  // Search by name (#1001)
+  // Search by display name (#1001, #1002, etc.)
   const name = orderId.startsWith('#') ? orderId : `#${orderId}`
   const data = await adminFetch<{ orders: { edges: { node: ShopifyOrderNode }[] } }>(
     `query GetOrderByName($query: String!) {
