@@ -16,6 +16,7 @@ interface CrateStore {
   items:          CrateItem[]
   isOpen:         boolean
   cartId:         string | null
+  checkoutUrl:    string | null
   _cartCreating:  boolean
   openCrate:      () => void
   closeCrate:     () => void
@@ -34,6 +35,7 @@ export const useCrateStore = create<CrateStore>()(
       items:         [],
       isOpen:        false,
       cartId:        null,
+      checkoutUrl:   null,
       _cartCreating: false,
 
       openCrate:  () => set({ isOpen: true }),
@@ -97,6 +99,7 @@ export const useCrateStore = create<CrateStore>()(
               set(state => ({
                 _cartCreating: false,
                 cartId:        result.cartId,
+                checkoutUrl:   result.checkoutUrl,
                 items:         state.items.map(item => {
                   const line = result.lines.find(l => l.merchandise.id === item.product.variantId)
                   return line ? { ...item, cartLineId: line.id } : item
@@ -163,7 +166,7 @@ export const useCrateStore = create<CrateStore>()(
         _syncTimers.set(productId, timer)
       },
 
-      clearCrate: () => set({ items: [], cartId: null }),
+      clearCrate: () => set({ items: [], cartId: null, checkoutUrl: null }),
       // No Shopify call on clear — cart expires naturally after 10 days.
 
       total: () =>
@@ -186,6 +189,7 @@ export const useCrateStore = create<CrateStore>()(
 
         // Patch Shopify cartLineIds into existing Zustand items
         set(state => ({
+          checkoutUrl: result.checkoutUrl,
           items: state.items.map(item => {
             const line = result.lines.find(l => l.merchandise.id === item.product.variantId)
             return { ...item, cartLineId: line?.id ?? null }

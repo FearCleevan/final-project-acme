@@ -16,6 +16,7 @@ export default function CratePage() {
   const items = useCrateStore(s => s.items)
   const total = useCrateStore(s => s.total())
   const clearCrate = useCrateStore(s => s.clearCrate)
+  const checkoutUrl = useCrateStore(s => s.checkoutUrl)
   const mounted = useSyncExternalStore(() => () => {}, () => true, () => false)
 
   if (!mounted) return null
@@ -187,7 +188,7 @@ export default function CratePage() {
             )}
 
             <div className="pt-2 space-y-3">
-              <Button href="/checkout" variant="primary" size="block">
+              <Button href={checkoutUrl ?? '/checkout'} variant="primary" size="block">
                 Proceed to checkout →
               </Button>
             </div>

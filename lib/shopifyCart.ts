@@ -83,16 +83,16 @@ function toLines(
  */
 export async function cartCreate(
   lines: { merchandiseId: string; quantity: number }[]
-): Promise<{ cartId: string; lines: ShopifyCartLine[] } | null> {
+): Promise<{ cartId: string; checkoutUrl: string; lines: ShopifyCartLine[] } | null> {
   const data = await cartFetch<{
     cartCreate: {
-      cart: { id: string; lines: { edges: { node: ShopifyCartLine }[] } } | null
+      cart: { id: string; checkoutUrl: string; lines: { edges: { node: ShopifyCartLine }[] } } | null
       userErrors: { field: string; message: string }[]
     }
   }>(
     `mutation cartCreate($lines: [CartLineInput!]!) {
       cartCreate(input: { lines: $lines }) {
-        cart { id ${CART_LINES} }
+        cart { id checkoutUrl ${CART_LINES} }
         userErrors { field message }
       }
     }`,
@@ -100,7 +100,7 @@ export async function cartCreate(
   )
   const cart = data?.cartCreate?.cart
   if (!cart) return null
-  return { cartId: cart.id, lines: toLines(cart) }
+  return { cartId: cart.id, checkoutUrl: cart.checkoutUrl, lines: toLines(cart) }
 }
 
 /**
@@ -184,13 +184,14 @@ export async function cartLinesRemove(
  */
 export async function fetchCart(
   cartId: string
-): Promise<{ cartId: string; lines: ShopifyCartLine[] } | null> {
+): Promise<{ cartId: string; checkoutUrl: string; lines: ShopifyCartLine[] } | null> {
   const data = await cartFetch<{
-    cart: { id: string; lines: { edges: { node: ShopifyCartLine }[] } } | null
+    cart: { id: string; checkoutUrl: string; lines: { edges: { node: ShopifyCartLine }[] } } | null
   }>(
     `query getCart($cartId: ID!) {
       cart(id: $cartId) {
         id
+        checkoutUrl
         ${CART_LINES}
       }
     }`,
@@ -198,5 +199,5 @@ export async function fetchCart(
   )
   const cart = data?.cart
   if (!cart) return null
-  return { cartId: cart.id, lines: toLines(cart) }
+  return { cartId: cart.id, checkoutUrl: cart.checkoutUrl, lines: toLines(cart) }
 }

@@ -11,6 +11,7 @@ interface CrateSummaryProps {
 export default function CrateSummary({ onClose }: CrateSummaryProps) {
   const total = useCrateStore(s => s.total())
   const itemCount = useCrateStore(s => s.itemCount())
+  const checkoutUrl = useCrateStore(s => s.checkoutUrl)
 
   return (
     <div className="sticky bottom-0 border-t border-ink-rule bg-parchment pt-4 pb-6 px-6 space-y-3">
@@ -31,7 +32,7 @@ export default function CrateSummary({ onClose }: CrateSummaryProps) {
         ✓ Qualifies for free freight
       </p>
 
-      <Button variant="primary" size="block" href="/checkout" onClick={onClose}>
+      <Button variant="primary" size="block" href={checkoutUrl ?? '/checkout'} onClick={onClose}>
         Proceed to checkout →
       </Button>
       <Button variant="ghost" size="block" href="/crate" onClick={onClose}>
