@@ -757,6 +757,16 @@ interface ShopifyCollectionNode {
   handle: string
   description: string | null
   productsCount: { count: number } | null
+  products?: {
+    edges: {
+      node: {
+        id: string
+        title: string
+        status: string
+        images: { edges: { node: { url: string } }[] }
+      }
+    }[]
+  }
 }
 
 function toAdminCollection(c: ShopifyCollectionNode): AdminCollection {
@@ -766,10 +776,25 @@ function toAdminCollection(c: ShopifyCollectionNode): AdminCollection {
     handle:       c.handle,
     description:  c.description ?? '',
     productCount: c.productsCount?.count ?? 0,
+    products:     (c.products?.edges ?? []).map(e => ({
+      id:     e.node.id.replace('gid://shopify/Product/', ''),
+      title:  e.node.title,
+      status: e.node.status?.toLowerCase() ?? 'draft',
+      image:  e.node.images?.edges?.[0]?.node?.url,
+    })),
   }
 }
 
-const COLLECTION_FIELDS = `id title handle description productsCount { count }`
+const COLLECTION_FIELDS = `
+  id title handle description
+  productsCount { count }
+  products(first: 30) {
+    edges { node {
+      id title status
+      images(first: 1) { edges { node { url } } }
+    } }
+  }
+`
 
 export async function getAdminCollections(first = 50): Promise<AdminCollection[]> {
   const data = await adminFetch<{

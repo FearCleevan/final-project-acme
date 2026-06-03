@@ -8,7 +8,7 @@ import PageHeader from '@/components/admin/shared/PageHeader'
 import SectionCard from '@/components/admin/shared/SectionCard'
 import ConfirmModal from '@/components/admin/shared/ConfirmModal'
 import { cn } from '@/lib/utils'
-import { BiPlus, BiPencil, BiTrash, BiCollection, BiX, BiCheck } from 'react-icons/bi'
+import { BiPlus, BiPencil, BiTrash, BiCollection, BiX, BiCheck, BiPackage } from 'react-icons/bi'
 
 const inputCls = 'w-full h-9 px-3 text-[13px] text-(--admin-text) bg-(--admin-surface-2) border border-(--admin-border) rounded-md focus:outline-none focus:border-(--admin-accent) focus:ring-1 focus:ring-(--admin-accent)/10 placeholder:text-(--admin-text-muted) transition-colors'
 const labelCls = 'block text-[12px] font-medium text-(--admin-text) mb-1.5'
@@ -324,6 +324,53 @@ export default function CollectionsPage() {
                 />
               </div>
 
+              {/* Products in this collection */}
+              {isEditing && (() => {
+                const col = collections.find(c => c.id === editingId)
+                if (!col) return null
+                return (
+                  <div>
+                    <label className={labelCls}>
+                      Products
+                      <span className="ml-1.5 text-[11px] font-normal text-(--admin-text-muted)">
+                        ({col.products.length})
+                      </span>
+                    </label>
+                    {col.products.length === 0 ? (
+                      <div className="flex items-center gap-2 px-3 py-4 rounded-md bg-(--admin-surface-2) border border-(--admin-border)">
+                        <BiPackage size={14} className="text-(--admin-text-muted) shrink-0" />
+                        <p className="text-[12px] text-(--admin-text-muted) italic">No products in this collection</p>
+                      </div>
+                    ) : (
+                      <div className="rounded-md border border-(--admin-border) overflow-hidden">
+                        {col.products.map((p, i) => (
+                          <div
+                            key={p.id}
+                            className="flex items-center gap-3 px-3 py-2.5 bg-(--admin-surface-2) border-b border-(--admin-border) last:border-b-0"
+                          >
+                            <span className="text-[11px] text-(--admin-text-muted) w-5 text-right shrink-0">{i + 1}.</span>
+                            <div className="w-8 h-8 rounded-md bg-(--admin-border) shrink-0 overflow-hidden flex items-center justify-center">
+                              {p.image
+                                ? <img src={p.image} alt="" className="w-full h-full object-cover" />
+                                : <BiPackage size={12} className="text-(--admin-text-muted)" />
+                              }
+                            </div>
+                            <p className="text-[13px] text-(--admin-text) flex-1 truncate">{p.title}</p>
+                            <span className={cn(
+                              'text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0',
+                              p.status === 'active'
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-(--admin-border) text-(--admin-text-muted)'
+                            )}>
+                              {p.status === 'active' ? 'Active' : 'Draft'}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )
+              })()}
 
             </div>
 

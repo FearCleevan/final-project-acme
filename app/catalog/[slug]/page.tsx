@@ -13,8 +13,12 @@ interface Props {
 }
 
 export async function generateStaticParams() {
-  const products = await getAllProducts()
-  return products.map(p => ({ slug: p.slug }))
+  try {
+    const products = await getAllProducts()
+    return products.map(p => ({ slug: p.slug }))
+  } catch {
+    return []
+  }
 }
 
 export default async function ProductPage({ params }: Props) {

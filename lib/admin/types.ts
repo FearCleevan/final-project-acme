@@ -109,6 +109,7 @@ export interface AdminCollection {
   handle: string
   description: string
   productCount: number
+  products: { id: string; title: string; status: string; image?: string }[]
 }
 
 export interface ChartDataPoint {

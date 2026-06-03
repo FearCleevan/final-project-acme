@@ -439,12 +439,12 @@ export const mockAdminProducts: AdminProduct[] = [
 // ─── Collections ──────────────────────────────────────────────────────────────
 
 export const mockCollections: AdminCollection[] = [
-  { id: 'col-1', title: 'Oil Lamp Chimneys',       handle: 'oil-lamp-chimneys',       description: 'Antique and vintage oil lamp chimneys — plain, etched, and hand-painted glass.', productCount: 0 },
-  { id: 'col-2', title: 'Oil Lamp Shades',         handle: 'oil-lamp-shades',         description: 'Victorian and Edwardian oil lamp shades — etched glass, floral, and ball shades.', productCount: 2 },
-  { id: 'col-3', title: 'Oil Lamp Pressure Lamps', handle: 'oil-lamp-pressure-lamps', description: 'Complete antique pressure lamps and Aladdin-style oil lamps.', productCount: 0 },
-  { id: 'col-4', title: 'Oil Lamp Books',          handle: 'oil-lamp-books',          description: 'Reference books and guides on antique oil lamps and Victorian lighting.', productCount: 1 },
-  { id: 'col-5', title: 'Oil Lamp Spreaders',      handle: 'oil-lamp-spreaders',      description: 'Antique oil lamp spreaders, gallery rings, and burner hardware.', productCount: 1 },
-  { id: 'col-6', title: 'Oil Lamp Wicks',          handle: 'oil-lamp-wicks',          description: 'Cotton wicks for antique oil lamps in all standard sizes.', productCount: 1 },
+  { id: 'col-1', title: 'Oil Lamp Chimneys',       handle: 'oil-lamp-chimneys',       description: 'Antique and vintage oil lamp chimneys — plain, etched, and hand-painted glass.', productCount: 0, products: [] },
+  { id: 'col-2', title: 'Oil Lamp Shades',         handle: 'oil-lamp-shades',         description: 'Victorian and Edwardian oil lamp shades — etched glass, floral, and ball shades.', productCount: 2, products: [] },
+  { id: 'col-3', title: 'Oil Lamp Pressure Lamps', handle: 'oil-lamp-pressure-lamps', description: 'Complete antique pressure lamps and Aladdin-style oil lamps.', productCount: 0, products: [] },
+  { id: 'col-4', title: 'Oil Lamp Books',          handle: 'oil-lamp-books',          description: 'Reference books and guides on antique oil lamps and Victorian lighting.', productCount: 1, products: [] },
+  { id: 'col-5', title: 'Oil Lamp Spreaders',      handle: 'oil-lamp-spreaders',      description: 'Antique oil lamp spreaders, gallery rings, and burner hardware.', productCount: 1, products: [] },
+  { id: 'col-6', title: 'Oil Lamp Wicks',          handle: 'oil-lamp-wicks',          description: 'Cotton wicks for antique oil lamps in all standard sizes.', productCount: 1, products: [] },
 ]
 
 // ─── Customers ────────────────────────────────────────────────────────────────
