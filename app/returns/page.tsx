@@ -8,7 +8,7 @@ export default function ReturnsPage() {
       <div className="max-w-[860px] mx-auto px-6 py-14">
 
         <Breadcrumb
-          crumbs={[{ label: 'Storefront', href: '/' }, { label: '30-Day Returns' }]}
+          crumbs={[{ label: 'Storefront', href: '/' }, { label: 'Returns & Refunds' }]}
           className="mb-10"
         />
 
@@ -17,34 +17,34 @@ export default function ReturnsPage() {
           className="font-serif font-medium text-ink-charcoal leading-tight mb-4"
           style={{ fontSize: 'clamp(28px, 4vw, 52px)' }}
         >
-          30-day returns.
+          Returns &amp; refunds.
         </h1>
 
-        {/* The one-sentence policy */}
+        {/* Lead statement */}
         <div className="border-l-4 border-brass-deep pl-6 py-2 my-10">
           <p className="font-serif italic text-[20px] text-ink-charcoal leading-relaxed">
-            If it arrives less than whole, send it back — on us — within thirty days, and we will
-            replace it or refund it in full. No questions on whole pieces.
+            Due to the specialty and fragile nature of our pieces, all sales are generally final.
+            If something arrives damaged or is not as described, contact us — we will make it right.
           </p>
         </div>
 
         <div className="space-y-10 mb-14">
           {[
             {
-              title: 'What qualifies',
-              body: "Any piece that arrives damaged, incorrectly described, or not as photographed qualifies for a full return. We will pay the return postage. If you simply change your mind on a whole, undamaged piece, we accept returns within 30 days — you cover the return postage and we refund the purchase price less original freight.",
+              title: 'Damaged or misdescribed items',
+              body: "If your order arrives damaged in transit, or the item does not match its description, contact us at acmesign01@gmail.com within 14 days of delivery. Include your order number and photographs of the item and packaging. We will review each case individually and work with you toward a fair resolution. Damage caused by carrier mishandling must be claimed directly with the freight company — we will provide any documentation needed to support your claim.",
             },
             {
-              title: 'What does not qualify',
-              body: "Pieces that have been modified, repaired, or used in a way that has altered their condition do not qualify for return. If you fitted a burner and stripped a thread, that is not a return. If a chimney cracked because it was placed on a hot burner from cold, that is not a return. We will tell you this upfront if you contact us.",
+              title: 'Specialty and fragile items',
+              body: "We carry antique glass, vintage porcelain, and reproduction lamp components — all of which are delicate specialty items. Because of their nature, we are not always able to accept change-of-mind returns. If you are unsure whether a piece is right for your lamp, please contact us before purchasing. We are happy to assist with fitment questions.",
             },
             {
-              title: 'How to start a return',
-              body: "Write to us at hello@acmelamp.co with your order reference and a brief description of the issue. We will respond within one business day with a prepaid label if applicable, or return instructions. We do not have an online returns portal. We have a person.",
+              title: 'How to contact us about an issue',
+              body: "Write to us at acmesign01@gmail.com with your order reference and a brief description of the issue. We respond to every message personally. We do not have an automated returns portal — you will hear from a person.",
             },
             {
               title: 'Refund timing',
-              body: "Refunds are processed within two business days of the item arriving back at Adelaide House and passing inspection. They are issued to the original payment method. We will send you a plain-text confirmation when it is done.",
+              body: "When a refund is approved, it is issued to your original payment method. We will send you a confirmation when it has been processed. Timing depends on your bank or card provider, but typically appears within 3–5 business days.",
             },
           ].map(({ title, body }) => (
             <div key={title} className="border-t border-ink-rule pt-8">
@@ -56,19 +56,20 @@ export default function ReturnsPage() {
 
         <div className="bg-parchment-2 border border-ink-rule rounded-sm p-6 mb-10">
           <p className="font-sans text-[14px] text-ink-soft leading-relaxed">
-            <span className="font-semibold text-ink-iron">Adelaide House</span> · 14 Pirie Street, Adelaide SA 5000{' '}
+            <span className="font-semibold text-ink-iron">Acme Vintage Supply</span>{' '}
+            · Dartmouth, Nova Scotia, Canada{' '}
             <span className="text-ink-rule mx-2">·</span>{' '}
-            <a href="tel:+61870001873" className="text-brass-deep hover:text-brass transition-colors">
-              +61 8 7000 1873
+            <a href="tel:+19024811007" className="text-brass-deep hover:text-brass transition-colors">
+              (902) 481-1007
             </a>{' '}
             <span className="text-ink-rule mx-2">·</span>{' '}
-            <a href="mailto:hello@acmelamp.co" className="text-brass-deep hover:text-brass transition-colors">
-              hello@acmelamp.co
+            <a href="mailto:acmesign01@gmail.com" className="text-brass-deep hover:text-brass transition-colors">
+              acmesign01@gmail.com
             </a>
           </p>
         </div>
 
-        <Button href="/contact" variant="primary">Start a return</Button>
+        <Button href="/contact" variant="primary">Contact us about an order</Button>
 
       </div>
     </div>

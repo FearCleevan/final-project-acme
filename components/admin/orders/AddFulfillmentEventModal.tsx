@@ -3,26 +3,28 @@
 import { useEffect, useRef, useState } from 'react'
 import { BiX, BiPackage } from 'react-icons/bi'
 import { AdminOrder, FulfillmentEvent, FulfillmentEventStatus } from '@/lib/admin/types'
-import {
-  FULFILLMENT_STAGE_CONFIG,
-  getNextFulfillmentStage,
-} from '@/lib/admin/utils'
+import { FULFILLMENT_STAGE_CONFIG, getNextFulfillmentStage } from '@/lib/admin/utils'
+import { CARRIERS } from '@/lib/admin/carriers'
 
 interface Props {
   order: AdminOrder
   events: FulfillmentEvent[]
-  onAdd: (event: FulfillmentEvent) => void
+  fulfillmentId: string | null
+  onAdd: (event: FulfillmentEvent, newFulfillmentId?: string) => void
   onClose: () => void
 }
 
-export default function AddFulfillmentEventModal({ order, events, onAdd, onClose }: Props) {
+export default function AddFulfillmentEventModal({ order, events, fulfillmentId, onAdd, onClose }: Props) {
   const currentStatuses = events.map(e => e.status)
   const nextStage = getNextFulfillmentStage(currentStatuses)
   const config = nextStage ? FULFILLMENT_STAGE_CONFIG[nextStage] : null
 
   const [message, setMessage]               = useState(config?.defaultDetail ?? '')
   const [trackingNumber, setTrackingNumber] = useState('')
-  const [carrier, setCarrier]               = useState('Canada Post — Express')
+  const [carrier, setCarrier]               = useState('Canada Post')
+  const [notifyCustomer, setNotifyCustomer] = useState(true)
+  const [loading, setLoading]               = useState(false)
+  const [error, setError]                   = useState<string | null>(null)
 
   const cancelRef = useRef<HTMLButtonElement>(null)
 
@@ -35,20 +37,43 @@ export default function AddFulfillmentEventModal({ order, events, onAdd, onClose
 
   if (!nextStage || !config) return null
 
-  function handleSubmit(e: React.FormEvent) {
+  const needsTracking = nextStage === 'in_transit'
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!nextStage) return
-    const newEvent: FulfillmentEvent = {
-      id: `fe-${order.id}-${Date.now()}`,
-      status: nextStage as FulfillmentEventStatus,
-      message: message.trim() || config!.defaultDetail,
-      happenedAt: new Date().toISOString(),
-      ...(nextStage === 'in_transit' && trackingNumber.trim()
-        ? { trackingNumber: trackingNumber.trim(), carrier: carrier.trim() }
-        : {}),
+    setLoading(true)
+    setError(null)
+
+    try {
+      const res = await fetch(
+        `/api/admin/orders/${encodeURIComponent(order.id)}/fulfill`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            stage: nextStage,
+            trackingNumber: needsTracking ? trackingNumber.trim() : undefined,
+            carrier: needsTracking ? carrier : undefined,
+            notifyCustomer,
+            fulfillmentId: fulfillmentId ?? undefined,
+          }),
+        }
+      )
+
+      const json = await res.json()
+      if (!res.ok) {
+        setError(json.error ?? 'Something went wrong')
+        return
+      }
+
+      onAdd(json.event as FulfillmentEvent, json.fulfillmentId ?? undefined)
+      onClose()
+    } catch {
+      setError('Network error — please try again')
+    } finally {
+      setLoading(false)
     }
-    onAdd(newEvent)
-    onClose()
   }
 
   return (
@@ -93,7 +118,7 @@ export default function AddFulfillmentEventModal({ order, events, onAdd, onClose
         </div>
 
         <form onSubmit={handleSubmit} className="px-5 py-4 space-y-4">
-          {/* Stage (read-only — always the next in sequence) */}
+          {/* Stage (read-only) */}
           <div>
             <p className="text-[11px] uppercase tracking-wide mb-1.5" style={{ color: 'var(--admin-text-muted)' }}>
               Stage
@@ -110,8 +135,8 @@ export default function AddFulfillmentEventModal({ order, events, onAdd, onClose
             </div>
           </div>
 
-          {/* Tracking number + carrier (in_transit only) */}
-          {nextStage === 'in_transit' && (
+          {/* Tracking number + carrier dropdown (in_transit only) */}
+          {needsTracking && (
             <>
               <div>
                 <label
@@ -119,21 +144,25 @@ export default function AddFulfillmentEventModal({ order, events, onAdd, onClose
                   className="block text-[11px] uppercase tracking-wide mb-1.5"
                   style={{ color: 'var(--admin-text-muted)' }}
                 >
-                  Carrier
+                  Shipping carrier
                 </label>
-                <input
+                <select
                   id="carrier"
-                  type="text"
                   value={carrier}
                   onChange={e => setCarrier(e.target.value)}
-                  placeholder="Canada Post — Express"
-                  className="w-full h-9 px-3 text-[13px] rounded-md border focus:outline-none transition-colors"
+                  className="w-full h-9 px-3 text-[13px] rounded-md border focus:outline-none transition-colors appearance-none"
                   style={{
                     background: 'var(--admin-surface-2)',
                     borderColor: 'var(--admin-border)',
                     color: 'var(--admin-text)',
                   }}
-                />
+                >
+                  {CARRIERS.map(c => (
+                    <option key={c.shopifyCode} value={c.shopifyCode}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label
@@ -160,7 +189,7 @@ export default function AddFulfillmentEventModal({ order, events, onAdd, onClose
             </>
           )}
 
-          {/* Message */}
+          {/* Note */}
           <div>
             <label
               htmlFor="message"
@@ -183,39 +212,42 @@ export default function AddFulfillmentEventModal({ order, events, onAdd, onClose
             />
           </div>
 
-          {/* Notify customer (Plan 2) */}
-          <label className="flex items-center gap-2.5 cursor-not-allowed opacity-50 select-none">
-            <input type="checkbox" disabled className="rounded" />
+          {/* Notify customer */}
+          <label className="flex items-center gap-2.5 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={notifyCustomer}
+              onChange={e => setNotifyCustomer(e.target.checked)}
+              className="rounded"
+            />
             <span className="text-[12px]" style={{ color: 'var(--admin-text-soft)' }}>
               Notify customer by email
-              <span className="ml-1.5 text-[10px] uppercase tracking-wide" style={{ color: 'var(--admin-text-muted)' }}>
-                — Plan 2
-              </span>
             </span>
           </label>
+
+          {/* Error */}
+          {error && (
+            <p className="text-[12px] text-red-500">{error}</p>
+          )}
 
           {/* Actions */}
           <div className="flex justify-end gap-2 pt-1">
             <button
               type="button"
               onClick={onClose}
-              className="h-9 px-4 text-[12px] rounded-md border transition-colors hover:bg-(--admin-surface-2)"
-              style={{
-                borderColor: 'var(--admin-border)',
-                color: 'var(--admin-text-soft)',
-              }}
+              disabled={loading}
+              className="h-9 px-4 text-[12px] rounded-md border transition-colors hover:bg-(--admin-surface-2) disabled:opacity-50"
+              style={{ borderColor: 'var(--admin-border)', color: 'var(--admin-text-soft)' }}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="h-9 px-4 text-[12px] font-medium rounded-md transition-opacity hover:opacity-90"
-              style={{
-                background: 'var(--admin-accent)',
-                color: 'var(--admin-accent-text)',
-              }}
+              disabled={loading}
+              className="h-9 px-4 text-[12px] font-medium rounded-md transition-opacity hover:opacity-90 disabled:opacity-60"
+              style={{ background: 'var(--admin-accent)', color: 'var(--admin-accent-text)' }}
             >
-              Add — {config.label}
+              {loading ? 'Saving…' : `Add — ${config.label}`}
             </button>
           </div>
         </form>

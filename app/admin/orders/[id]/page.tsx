@@ -9,17 +9,18 @@ import SectionCard from '@/components/admin/shared/SectionCard'
 import Badge, { orderStatusVariant, paymentStatusVariant } from '@/components/admin/shared/Badge'
 import FulfillmentTimeline from '@/components/admin/orders/FulfillmentTimeline'
 import AddFulfillmentEventModal from '@/components/admin/orders/AddFulfillmentEventModal'
+import OrderTimeline from '@/components/admin/orders/OrderTimeline'
 import { AdminOrder, FulfillmentEvent } from '@/lib/admin/types'
 
 export default function OrderDetailPage() {
   const { id }   = useParams<{ id: string }>()
   const router   = useRouter()
 
-  const [order,       setOrder]       = useState<AdminOrder | null | undefined>(undefined)
-  const [events,      setEvents]      = useState<FulfillmentEvent[]>([])
-  const [notes,       setNotes]       = useState('')
-  const [showModal,   setShowModal]   = useState(false)
-  const [printMode,   setPrintMode]   = useState<'invoice' | 'label' | null>(null)
+  const [order,         setOrder]         = useState<AdminOrder | null | undefined>(undefined)
+  const [events,        setEvents]        = useState<FulfillmentEvent[]>([])
+  const [fulfillmentId, setFulfillmentId] = useState<string | null>(null)
+  const [showModal,     setShowModal]     = useState(false)
+  const [printMode,     setPrintMode]     = useState<'invoice' | 'label' | null>(null)
 
   useEffect(() => {
     fetch(`/api/admin/orders/${encodeURIComponent(id)}`)
@@ -27,7 +28,7 @@ export default function OrderDetailPage() {
       .then((data: AdminOrder | null) => {
         setOrder(data)
         setEvents(data?.fulfillmentEvents ?? [])
-        setNotes(data?.notes ?? '')
+        setFulfillmentId(data?.shopifyFulfillmentId ?? null)
       })
   }, [id])
 
@@ -68,8 +69,9 @@ export default function OrderDetailPage() {
     ? 'cancelled'
     : order.fulfillmentStatus
 
-  function handleAddEvent(event: FulfillmentEvent) {
+  function handleAddEvent(event: FulfillmentEvent, newFulfillmentId?: string) {
     setEvents(prev => [...prev, event])
+    if (newFulfillmentId) setFulfillmentId(newFulfillmentId)
   }
 
   function triggerPrint(mode: 'invoice' | 'label') {
@@ -159,17 +161,10 @@ export default function OrderDetailPage() {
             </div>
           </SectionCard>
 
-          {/* Internal Notes */}
+          {/* Order Timeline */}
           <SectionCard>
-            <p className="text-[12px] font-semibold text-(--admin-text) mb-2">Internal Notes</p>
-            <textarea
-              value={notes}
-              onChange={e => setNotes(e.target.value)}
-              rows={3}
-              placeholder="Add a note visible only to you…"
-              className="w-full px-3 py-2 text-[12px] text-(--admin-text) bg-(--admin-surface-2) border border-(--admin-border) rounded-md resize-none focus:outline-none focus:border-(--admin-accent) focus:ring-1 focus:ring-(--admin-accent)/20 placeholder:text-(--admin-text-muted) transition-colors"
-            />
-            <p className="text-[10px] text-(--admin-text-muted) mt-1.5">Notes are local to this session — syncing to Shopify order notes coming in a future sprint.</p>
+            <p className="text-[12px] font-semibold text-(--admin-text) mb-4">Timeline</p>
+            <OrderTimeline order={order} events={events} />
           </SectionCard>
         </div>
 
@@ -245,6 +240,18 @@ export default function OrderDetailPage() {
               <p>{[order.customer.city, order.customer.province].filter(Boolean).join(', ')}</p>
               <p>{order.customer.country}</p>
             </div>
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                [order.customer.address, order.customer.city, order.customer.province, order.customer.country]
+                  .filter(Boolean).join(', ')
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block mt-2 text-[11px] transition-opacity hover:opacity-70"
+              style={{ color: 'var(--admin-accent)' }}
+            >
+              View map
+            </a>
           </SectionCard>
 
           {/* Summary */}
@@ -273,6 +280,7 @@ export default function OrderDetailPage() {
         <AddFulfillmentEventModal
           order={order}
           events={events}
+          fulfillmentId={fulfillmentId}
           onAdd={handleAddEvent}
           onClose={() => setShowModal(false)}
         />

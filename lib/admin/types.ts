@@ -66,6 +66,8 @@ export interface AdminOrder {
   trackingRef: string
   estimatedDelivery?: string
   fulfillmentEvents: FulfillmentEvent[]
+  shopifyFulfillmentId?: string
+  shopifyFulfillmentOrderId?: string
 }
 
 export interface AdminProduct {

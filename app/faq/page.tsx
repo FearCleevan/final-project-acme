@@ -10,16 +10,16 @@ const faqs = [
     category: 'Ordering',
     questions: [
       {
-        q: 'Do you restock pieces once they are sold?',
-        a: "No. Each crate is fifty pieces. When a piece is gone, it is gone. We do not restock individual items — the next crate will have different pieces sourced from a different lot. If you want something you see in the catalog, the honest advice is to order it now.",
+        q: 'How do I know if a lamp part will fit my lamp?',
+        a: 'Check the product description carefully before placing your order — we include dimensions, thread sizes, and compatibility notes on each listing. If you are still unsure, contact us before ordering and we will help you confirm the correct fitment.',
       },
       {
-        q: 'Can I order by phone?',
-        a: "Yes. Call Adelaide House during business hours and someone will take your order directly. We prefer it, honestly. It gives us a chance to confirm fitment before you pay.",
+        q: 'Can I request a specific piece that is not listed?',
+        a: 'Yes — please make an inquiry. Write to us at acmesign01@gmail.com with a description or photo of what you are looking for. We source from a wide range of vintage and reproduction suppliers and may be able to help.',
       },
       {
-        q: 'Do you offer wholesale pricing?',
-        a: "For dealers and restorers purchasing six or more pieces, contact us before placing your order. We can discuss pricing and ensure you receive pieces suited to your trade use.",
+        q: 'Do you offer bulk or trade pricing?',
+        a: 'We are actively looking for distributors worldwide. If you are interested in carrying our products or purchasing in volume, please contact us directly at acmesign01@gmail.com to discuss terms.',
       },
     ],
   },
@@ -27,20 +27,16 @@ const faqs = [
     category: 'Products',
     questions: [
       {
+        q: 'Do you offer restoration or reproduction services?',
+        a: 'Yes. We offer reproduction services with minimum quantities. If you have a piece you would like reproduced or a restoration project in mind, contact us to discuss your requirements.',
+      },
+      {
+        q: 'How are fragile items packaged?',
+        a: 'All orders are carefully packaged by hand with protective materials. Glass and fragile items receive extra care. While we take every precaution, we recommend inspecting your parcel on arrival and photographing any damage before removing the item.',
+      },
+      {
         q: 'Are these reproductions or originals?',
-        a: "Both, depending on the piece. Our brass lamp hardware is pressed on original tooling and uses period alloys — the dies are original, the metal is new. Our glass is mouth-blown to original specifications. Our porcelain signs are triple-fired reproductions. Original pieces are identified explicitly in their listings.",
-      },
-      {
-        q: 'What does "bench-tested" mean?',
-        a: "Every lamp that leaves our workshop has been assembled, filled with clean kerosene, and run for a minimum of eight hours on the bench before being listed for sale. If it does not burn cleanly for eight hours, it does not go into the catalog. The bench test date is noted on the label.",
-      },
-      {
-        q: 'Can I use modern lamp oil instead of kerosene?',
-        a: "Paraffin lamp oil burns cleanly in most of our lamps and produces less odour than kerosene. It is a reasonable substitute for indoor use. It is not suitable for high-output lamps or for any lamp intended for outdoor use in cold temperatures — paraffin oil thickens below 10°C and will not wick properly.",
-      },
-      {
-        q: 'What if a part does not fit my lamp?',
-        a: "Contact us with the make and model of your lamp and we will advise you. If you purchased a part from us that does not fit, we will exchange it at no cost. If you are sourcing a part for a lamp we did not sell, call us — we know most of the common lamp bodies and can usually identify the correct fitment.",
+        a: 'Both, depending on the piece. Original and reproduction items are clearly identified in their individual listings. If you have any questions about the provenance of a specific piece, contact us before purchasing.',
       },
     ],
   },
@@ -49,15 +45,15 @@ const faqs = [
     questions: [
       {
         q: 'How long does delivery take?',
-        a: "Australian orders: 3–6 business days standard, 1–3 express. International: 6–18 business days depending on destination. See the Shipping & Freight page for full zone details.",
+        a: 'Orders are dispatched within 2–4 business days from Dartmouth, Nova Scotia. Delivery times after dispatch vary by destination: Canada typically 3–7 business days via Canada Post, United States 5–10 business days, and international orders 6–18 business days via DHL Express.',
       },
       {
-        q: 'My chimney arrived cracked. What do I do?',
-        a: "Photograph it in the packaging before you remove it, then write to us. We will send a replacement at no charge. We have never disputed a legitimate transit breakage claim.",
+        q: 'My item arrived damaged. What do I do?',
+        a: 'Photograph the item in its packaging before removing it, then contact us at acmesign01@gmail.com with your order number and photos. Damage caused in transit must be claimed directly with the freight carrier. We will provide all invoices and documentation needed to support your claim.',
       },
       {
-        q: 'Can I return a piece I simply changed my mind about?',
-        a: "Yes, within 30 days of delivery, as long as the piece is in its original condition. You cover return postage; we refund the purchase price less original freight. If the piece arrived damaged or was misdescribed, we pay return postage and refund in full.",
+        q: 'Can I return a specialty or fragile item?',
+        a: 'Due to the specialty nature of our products — including antique glass, vintage porcelain, and reproduction lamp parts — all sales are generally final. If your item arrived damaged or does not match its description, contact us within 14 days and we will work with you to find a fair resolution.',
       },
     ],
   },
@@ -131,7 +127,7 @@ export default function FAQPage() {
               Write or call. We answer every message ourselves.
             </p>
           </div>
-          <Button href="/contact" variant="brass">Contact a person</Button>
+          <Button href="/contact" variant="brass">Contact us directly</Button>
         </div>
 
       </div>

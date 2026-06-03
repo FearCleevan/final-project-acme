@@ -3,11 +3,11 @@ import Breadcrumb from '@/components/shared/Breadcrumb'
 import Eyebrow from '@/components/shared/Eyebrow'
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy — Acme Lamp & Sign Co.',
-  description: 'How Acme Lamp & Sign collects, uses, and protects your personal information.',
+  title: 'Privacy Policy — Acme Vintage Supply',
+  description: 'How Acme Vintage Supply collects, uses, and protects your personal information.',
 }
 
-const EFFECTIVE_DATE = 'May 23, 2026'
+const EFFECTIVE_DATE = 'June 4, 2026'
 
 export default function PrivacyPolicyPage() {
   return (
@@ -34,9 +34,9 @@ export default function PrivacyPolicyPage() {
 
           <Section title="1. Who we are">
             <p>
-              Acme Lamp &amp; Sign Co. ("we", "us", "our") operates the e-commerce store at{' '}
-              <strong>acmelampandsign.com</strong> and <strong>acme-lamp-and-sign.myshopify.com</strong>.
-              Our primary place of business is Nova Scotia, Canada.
+              Acme Vintage Supply ("we", "us", "our") operates the e-commerce store at{' '}
+              <strong>acmevintagesupply.com</strong>. Our primary place of business is
+              Dartmouth, Nova Scotia, Canada.
             </p>
             <p>
               We are committed to protecting your personal information and your right to privacy
@@ -62,8 +62,8 @@ export default function PrivacyPolicyPage() {
             </ul>
             <p>
               We do <strong>not</strong> collect or store payment card numbers. All payments are
-              processed by Shopify Payments or a third-party gateway; we receive only an order
-              confirmation and partial card details (last four digits, card type) for your records.
+              processed by Shopify Payments; we receive only an order confirmation and partial
+              card details (last four digits, card type) for your records.
             </p>
           </Section>
 
@@ -78,8 +78,8 @@ export default function PrivacyPolicyPage() {
               <li>Comply with legal and tax obligations</li>
             </ul>
             <p>
-              We do not sell, rent, or trade your personal information to third parties for
-              marketing purposes.
+              We do not sell, rent, trade, or share your personal information with any
+              third parties for marketing purposes.
             </p>
           </Section>
 
@@ -94,11 +94,13 @@ export default function PrivacyPolicyPage() {
               </thead>
               <tbody>
                 <tr><td>Shopify Inc.</td><td>E-commerce platform, checkout, payment processing</td><td>Order and customer data</td></tr>
-                <tr><td>Vercel Inc.</td><td>Hosting and analytics</td><td>Anonymised usage data</td></tr>
-                <tr><td>Sanity.io</td><td>Content management</td><td>None (editorial content only)</td></tr>
-                <tr><td>Canada Post / Courier</td><td>Shipping fulfilment</td><td>Name and shipping address</td></tr>
+                <tr><td>Vercel Inc.</td><td>Hosting and anonymised analytics</td><td>Anonymised usage data</td></tr>
               </tbody>
             </table>
+            <p>
+              We do not share your personal information (including shipping address or contact
+              details) with any other third parties.
+            </p>
           </Section>
 
           <Section title="5. Cookies">
@@ -128,7 +130,7 @@ export default function PrivacyPolicyPage() {
             </ul>
             <p>
               To exercise any of these rights, write to us at{' '}
-              <a href="mailto:hello@acmelampandsign.com">hello@acmelampandsign.com</a>{' '}
+              <a href="mailto:acmesign01@gmail.com">acmesign01@gmail.com</a>{' '}
               with the subject line <strong>"Privacy Request"</strong>. We will respond within
               30 days.
             </p>
@@ -153,9 +155,9 @@ export default function PrivacyPolicyPage() {
           <Section title="10. Contact">
             <p>
               Privacy questions or requests:{' '}
-              <a href="mailto:hello@acmelampandsign.com">hello@acmelampandsign.com</a>
+              <a href="mailto:acmesign01@gmail.com">acmesign01@gmail.com</a>
               <br />
-              Acme Lamp &amp; Sign Co. · Nova Scotia, Canada
+              Acme Vintage Supply · Dartmouth, Nova Scotia, Canada
             </p>
           </Section>
 

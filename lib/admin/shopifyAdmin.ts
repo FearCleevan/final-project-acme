@@ -584,7 +584,7 @@ export async function uploadProductImage(
 
 // ─── Orders ───────────────────────────────────────────────────────────────────
 
-import type { AdminOrder, AdminOrderItem, OrderStatus, PaymentStatus, AdminCollection, AdminNotification } from './types'
+import type { AdminOrder, AdminOrderItem, OrderStatus, PaymentStatus, AdminCollection, AdminNotification, FulfillmentEvent, FulfillmentEventStatus } from './types'
 
 interface ShopifyOrderNode {
   id: string
@@ -625,8 +625,12 @@ interface ShopifyOrderNode {
     }[]
   }
   fulfillments: {
-    trackingInfo: { number: string | null }[]
+    id: string
+    trackingInfo: { number: string | null; company: string | null }[]
     status: string
+    events: {
+      edges: { node: { id: string; status: string; happenedAt: string } }[]
+    } | null
   }[]
 }
 
@@ -659,8 +663,45 @@ function toAdminOrder(o: ShopifyOrderNode): AdminOrder {
     image:     e.node.variant?.image?.url ?? e.node.variant?.product?.featuredImage?.url ?? '',
   }))
 
-  const trackingRef = o.fulfillments[0]?.trackingInfo[0]?.number ?? ''
-  const estimatedDelivery = undefined
+  const trackingRef          = o.fulfillments[0]?.trackingInfo[0]?.number ?? ''
+  const estimatedDelivery    = undefined
+  const shopifyFulfillmentId = o.fulfillments[0]?.id ?? undefined
+
+  const shopifyStatusMap: Record<string, FulfillmentEventStatus> = {
+    LABEL_PRINTED:      'label_printed',
+    IN_TRANSIT:         'in_transit',
+    OUT_FOR_DELIVERY:   'out_for_delivery',
+    DELIVERED:          'delivered',
+    ATTEMPTED_DELIVERY: 'attempted_delivery',
+    FAILURE:            'failure',
+  }
+
+  const confirmedEvent: FulfillmentEvent = {
+    id:         `fe-${o.name}-confirmed`,
+    status:     'confirmed',
+    message:    'Payment verified, packing begins.',
+    happenedAt: o.createdAt,
+  }
+
+  const fulfillment      = o.fulfillments[0]
+  const trackingNumber   = fulfillment?.trackingInfo[0]?.number ?? undefined
+  const carrier          = fulfillment?.trackingInfo[0]?.company ?? undefined
+
+  const shopifyEvents: FulfillmentEvent[] = (fulfillment?.events?.edges ?? [])
+    .map(e => {
+      const mapped = shopifyStatusMap[e.node.status]
+      if (!mapped) return null
+      return {
+        id:          e.node.id,
+        status:      mapped,
+        message:     '',
+        happenedAt:  e.node.happenedAt,
+        ...(mapped === 'in_transit' ? { trackingNumber, carrier } : {}),
+      } satisfies FulfillmentEvent
+    })
+    .filter((e): e is FulfillmentEvent => e !== null)
+
+  const fulfillmentEvents: FulfillmentEvent[] = [confirmedEvent, ...shopifyEvents]
 
   return {
     id:               o.name,
@@ -684,7 +725,8 @@ function toAdminOrder(o: ShopifyOrderNode): AdminOrder {
     notes:             o.note ?? '',
     trackingRef,
     estimatedDelivery,
-    fulfillmentEvents: [],
+    fulfillmentEvents,
+    shopifyFulfillmentId,
   }
 }
 
@@ -710,8 +752,12 @@ const ORDER_FIELDS = `
     } }
   }
   fulfillments {
-    trackingInfo { number }
+    id
+    trackingInfo { number company }
     status
+    events(first: 10) {
+      edges { node { id status happenedAt } }
+    }
   }
 `
 
@@ -754,6 +800,97 @@ export async function getAdminOrderById(orderId: string): Promise<AdminOrder | n
   )
   const node = data.orders.edges[0]?.node
   return node ? toAdminOrder(node) : null
+}
+
+// ─── Fulfillment order ID lookup (requires read_merchant_managed_fulfillment_orders scope) ──
+
+export async function getOrderFulfillmentOrderId(orderId: string): Promise<string | null> {
+  const name = orderId.startsWith('#') ? orderId : `#${orderId}`
+  try {
+    const data = await adminFetch<{
+      orders: { edges: { node: { id: string; fulfillmentOrders: { edges: { node: { id: string } }[] } } }[] }
+    }>(
+      `query GetFulfillmentOrderId($query: String!) {
+        orders(first: 1, query: $query) {
+          edges { node {
+            id
+            fulfillmentOrders(first: 1) { edges { node { id } } }
+          } }
+        }
+      }`,
+      { query: `name:${name}` }
+    )
+    return data.orders.edges[0]?.node?.fulfillmentOrders?.edges[0]?.node?.id ?? null
+  } catch {
+    return null
+  }
+}
+
+// ─── Fulfillment mutations ────────────────────────────────────────────────────
+
+export async function createFulfillment(
+  fulfillmentOrderId: string,
+  trackingNumber: string,
+  carrier: string,
+  notifyCustomer: boolean,
+): Promise<string> {
+  const data = await adminFetch<{
+    fulfillmentCreateV2: {
+      fulfillment: { id: string } | null
+      userErrors: { field: string[]; message: string }[]
+    }
+  }>(
+    `mutation FulfillmentCreate($fulfillment: FulfillmentV2Input!) {
+      fulfillmentCreateV2(fulfillment: $fulfillment) {
+        fulfillment { id }
+        userErrors { field message }
+      }
+    }`,
+    {
+      fulfillment: {
+        lineItemsByFulfillmentOrder: [{ fulfillmentOrderId }],
+        trackingInfo: { number: trackingNumber, company: carrier },
+        notifyCustomer,
+      },
+    }
+  )
+  const { fulfillment, userErrors } = data.fulfillmentCreateV2
+  if (userErrors.length) throw new Error(userErrors[0].message)
+  if (!fulfillment) throw new Error('Fulfillment not returned by Shopify')
+  return fulfillment.id
+}
+
+const STAGE_TO_SHOPIFY_EVENT: Record<string, string> = {
+  label_printed:      'LABEL_PRINTED',
+  in_transit:         'IN_TRANSIT',
+  out_for_delivery:   'OUT_FOR_DELIVERY',
+  delivered:          'DELIVERED',
+  attempted_delivery: 'ATTEMPTED_DELIVERY',
+  failure:            'FAILURE',
+}
+
+export async function createFulfillmentEvent(
+  fulfillmentId: string,
+  status: string,
+): Promise<void> {
+  const shopifyStatus = STAGE_TO_SHOPIFY_EVENT[status]
+  if (!shopifyStatus) return
+  const data = await adminFetch<{
+    fulfillmentEventCreate: {
+      fulfillmentEvent: { id: string } | null
+      userErrors: { field: string[]; message: string }[]
+    }
+  }>(
+    `mutation FulfillmentEventCreate($fulfillmentEvent: FulfillmentEventInput!) {
+      fulfillmentEventCreate(fulfillmentEvent: $fulfillmentEvent) {
+        fulfillmentEvent { id }
+        userErrors { field message }
+      }
+    }`,
+    { fulfillmentEvent: { fulfillmentId, status: shopifyStatus } }
+  )
+  const { userErrors } = data.fulfillmentEventCreate
+  if (userErrors.length) throw new Error(userErrors[0].message)
 }
 
 // ─── Collections ──────────────────────────────────────────────────────────────
