@@ -40,7 +40,7 @@ export default function NavActions({ onSearchOpen }: NavActionsProps) {
       <div className="relative">
         <button
           className={cn(iconBtn, authed && 'bg-parchment-2')}
-          aria-label={authed ? `Account — ${userName}` : 'Sign in or create account'}
+          aria-label={authed ? `Account — ${profile?.firstName ?? profile?.email ?? 'My Account'}` : 'Sign in or create account'}
           aria-expanded={accountOpen}
           aria-haspopup="dialog"
           onMouseDown={(e) => {
