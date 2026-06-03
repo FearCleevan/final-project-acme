@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { BiArrowBack, BiCheck, BiPackage, BiPlus } from 'react-icons/bi'
+import { BiArrowBack, BiCheck, BiPackage, BiPlus, BiPrinter } from 'react-icons/bi'
 import { formatCurrency, formatDate, getNextFulfillmentStage } from '@/lib/admin/utils'
 import PageHeader from '@/components/admin/shared/PageHeader'
 import SectionCard from '@/components/admin/shared/SectionCard'
@@ -19,6 +19,7 @@ export default function OrderDetailPage() {
   const [events,      setEvents]      = useState<FulfillmentEvent[]>([])
   const [notes,       setNotes]       = useState('')
   const [showModal,   setShowModal]   = useState(false)
+  const [printMode,   setPrintMode]   = useState<'invoice' | 'label' | null>(null)
 
   useEffect(() => {
     fetch(`/api/admin/orders/${encodeURIComponent(id)}`)
@@ -71,18 +72,40 @@ export default function OrderDetailPage() {
     setEvents(prev => [...prev, event])
   }
 
+  function triggerPrint(mode: 'invoice' | 'label') {
+    setPrintMode(mode)
+    setTimeout(() => {
+      window.print()
+      setTimeout(() => setPrintMode(null), 500)
+    }, 150)
+  }
+
   return (
     <div>
       <PageHeader
         title={order.id}
         subtitle={`Placed ${formatDate(order.date)}`}
         actions={
-          <button
-            onClick={() => router.push('/admin/orders')}
-            className="flex items-center gap-1.5 h-8 px-3 text-[12px] text-(--admin-text-soft) bg-(--admin-surface-2) border border-(--admin-border) rounded-md hover:bg-(--admin-border) transition-colors"
-          >
-            <BiArrowBack size={14} /> Back
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => triggerPrint('label')}
+              className="flex items-center gap-1.5 h-8 px-3 text-[12px] text-(--admin-text-soft) bg-(--admin-surface-2) border border-(--admin-border) rounded-md hover:bg-(--admin-border) transition-colors"
+            >
+              <BiPrinter size={14} /> Shipping Label
+            </button>
+            <button
+              onClick={() => triggerPrint('invoice')}
+              className="flex items-center gap-1.5 h-8 px-3 text-[12px] text-(--admin-text-soft) bg-(--admin-surface-2) border border-(--admin-border) rounded-md hover:bg-(--admin-border) transition-colors"
+            >
+              <BiPrinter size={14} /> Invoice
+            </button>
+            <button
+              onClick={() => router.push('/admin/orders')}
+              className="flex items-center gap-1.5 h-8 px-3 text-[12px] text-(--admin-text-soft) bg-(--admin-surface-2) border border-(--admin-border) rounded-md hover:bg-(--admin-border) transition-colors"
+            >
+              <BiArrowBack size={14} /> Back
+            </button>
+          </div>
         }
       />
 
@@ -253,6 +276,137 @@ export default function OrderDetailPage() {
           onAdd={handleAddEvent}
           onClose={() => setShowModal(false)}
         />
+      )}
+
+      {/* ── Print layouts (hidden on screen, visible only when printing) ── */}
+      {printMode === 'label' && (
+        <div className="hidden print:block fixed inset-0 bg-white p-10 z-9999" style={{ fontFamily: 'Georgia, serif' }}>
+          {/* FROM */}
+          <div style={{ fontSize: 13, color: '#555', marginBottom: 32 }}>
+            <div style={{ fontWeight: 700, fontSize: 15, color: '#000', marginBottom: 4 }}>ACME VINTAGE SUPPLY</div>
+            <div>25 Raddall Ave</div>
+            <div>Dartmouth, NS  B3B 1L4</div>
+            <div>Canada</div>
+          </div>
+
+          <div style={{ borderTop: '2px solid #000', marginBottom: 32 }} />
+
+          {/* SHIP TO */}
+          <div style={{ marginBottom: 40 }}>
+            <div style={{ fontSize: 11, letterSpacing: 2, color: '#555', marginBottom: 10 }}>SHIP TO:</div>
+            <div style={{ fontSize: 28, fontWeight: 700, lineHeight: 1.2, textTransform: 'uppercase' }}>
+              {order.customer.name}
+            </div>
+            {order.customer.address && (
+              <div style={{ fontSize: 22, marginTop: 6 }}>{order.customer.address}</div>
+            )}
+            <div style={{ fontSize: 22 }}>
+              {[order.customer.city, order.customer.province].filter(Boolean).join(', ')}
+              {order.customer.country ? ` — ${order.customer.country}` : ''}
+            </div>
+          </div>
+
+          <div style={{ borderTop: '2px solid #000', marginBottom: 24 }} />
+
+          {/* Order info + fragile notice */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+            <div>
+              <div style={{ fontSize: 13, color: '#555' }}>ORDER</div>
+              <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: 1 }}>{order.id}</div>
+              <div style={{ fontSize: 13, color: '#555', marginTop: 4 }}>
+                {order.items.length} {order.items.length === 1 ? 'ITEM' : 'ITEMS'}
+              </div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: 14, fontWeight: 700, border: '2px solid #000', padding: '6px 14px', letterSpacing: 1 }}>
+                ⚠ FRAGILE — STRAW-PACKED CRATE
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {printMode === 'invoice' && (
+        <div className="hidden print:block fixed inset-0 bg-white p-10 z-9999" style={{ fontFamily: 'Georgia, serif', fontSize: 13 }}>
+          {/* Header */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 32 }}>
+            <div>
+              <div style={{ fontSize: 20, fontWeight: 700 }}>ACME VINTAGE SUPPLY</div>
+              <div style={{ color: '#555', marginTop: 4 }}>25 Raddall Ave, Dartmouth, NS  B3B 1L4</div>
+              <div style={{ color: '#555' }}>hello@acmevintagesupply.ca</div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: 16, fontWeight: 700 }}>INVOICE</div>
+              <div style={{ color: '#555', marginTop: 4 }}>{order.id}</div>
+              <div style={{ color: '#555' }}>{formatDate(order.date)}</div>
+            </div>
+          </div>
+
+          <div style={{ borderTop: '1px solid #ccc', marginBottom: 24 }} />
+
+          {/* Bill to */}
+          <div style={{ marginBottom: 32 }}>
+            <div style={{ fontSize: 10, letterSpacing: 2, color: '#888', marginBottom: 6 }}>BILL TO / SHIP TO</div>
+            <div style={{ fontWeight: 600 }}>{order.customer.name}</div>
+            {order.customer.address && <div>{order.customer.address}</div>}
+            <div>{[order.customer.city, order.customer.province].filter(Boolean).join(', ')}</div>
+            <div>{order.customer.country}</div>
+            {order.customer.email && <div style={{ color: '#555', marginTop: 4 }}>{order.customer.email}</div>}
+          </div>
+
+          {/* Line items table */}
+          <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 24 }}>
+            <thead>
+              <tr style={{ borderBottom: '2px solid #000' }}>
+                <th style={{ textAlign: 'left', padding: '6px 0', fontSize: 10, letterSpacing: 1, color: '#888' }}>ITEM</th>
+                <th style={{ textAlign: 'center', padding: '6px 0', fontSize: 10, letterSpacing: 1, color: '#888' }}>QTY</th>
+                <th style={{ textAlign: 'right', padding: '6px 0', fontSize: 10, letterSpacing: 1, color: '#888' }}>UNIT PRICE</th>
+                <th style={{ textAlign: 'right', padding: '6px 0', fontSize: 10, letterSpacing: 1, color: '#888' }}>TOTAL</th>
+              </tr>
+            </thead>
+            <tbody>
+              {order.items.map(item => (
+                <tr key={item.id} style={{ borderBottom: '1px solid #eee' }}>
+                  <td style={{ padding: '10px 0' }}>
+                    <div>{item.title}</div>
+                    {item.sku && <div style={{ fontSize: 11, color: '#888' }}>SKU: {item.sku}</div>}
+                  </td>
+                  <td style={{ textAlign: 'center', padding: '10px 0' }}>{item.quantity}</td>
+                  <td style={{ textAlign: 'right', padding: '10px 0' }}>{formatCurrency(item.unitPrice)}</td>
+                  <td style={{ textAlign: 'right', padding: '10px 0' }}>{formatCurrency(item.unitPrice * item.quantity)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {/* Totals */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <div style={{ width: 260 }}>
+              {[
+                { label: 'Subtotal', value: order.subtotal },
+                { label: 'Shipping', value: order.shipping },
+                { label: 'Tax',      value: order.tax },
+              ].map(row => (
+                <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', color: '#555' }}>
+                  <span>{row.label}</span>
+                  <span>{formatCurrency(row.value)}</span>
+                </div>
+              ))}
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderTop: '2px solid #000', fontWeight: 700, fontSize: 15, marginTop: 4 }}>
+                <span>TOTAL</span>
+                <span>{formatCurrency(order.total)}</span>
+              </div>
+              <div style={{ fontSize: 11, color: '#888', marginTop: 4 }}>
+                Payment: {order.paymentStatus.toUpperCase()}
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div style={{ borderTop: '1px solid #ccc', marginTop: 48, paddingTop: 16, fontSize: 11, color: '#888', textAlign: 'center' }}>
+            Thank you for your order. For returns or questions, contact hello@acmevintagesupply.ca · 30-day returns on whole pieces.
+          </div>
+        </div>
       )}
     </div>
   )
