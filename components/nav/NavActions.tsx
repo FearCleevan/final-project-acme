@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { BiSearch, BiUser, BiPackage } from 'react-icons/bi'
 import { useCrateStore } from '@/store/crateStore'
-import { useAuthStore } from '@/store/authStore'
+import { useCustomerStore } from '@/store/customerStore'
 import { cn } from '@/lib/utils'
 import AccountDropdown from './AccountDropdown'
 
@@ -13,15 +13,15 @@ interface NavActionsProps {
 
 export default function NavActions({ onSearchOpen }: NavActionsProps) {
   const { openCrate, itemCount } = useCrateStore()
-  const { isAuthenticated, userName } = useAuthStore()
+  const { isLoggedIn, profile } = useCustomerStore()
   const [mounted, setMounted] = useState(false)
   const [accountOpen, setAccountOpen] = useState(false)
 
   useEffect(() => { setMounted(true) }, [])
 
-  const count = mounted ? itemCount() : 0
-  const authed = mounted ? isAuthenticated : false
-  const initial = userName ? userName[0].toUpperCase() : ''
+  const count   = mounted ? itemCount() : 0
+  const authed  = mounted ? isLoggedIn : false
+  const initial = profile?.firstName ? profile.firstName[0].toUpperCase() : profile?.email?.[0]?.toUpperCase() ?? ''
 
   const iconBtn =
     'relative w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-full text-ink-iron hover:bg-parchment-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass'

@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import Link from 'next/link'
 import { BiX, BiUser } from 'react-icons/bi'
-import { useAuthStore } from '@/store/authStore'
+import { useCustomerStore } from '@/store/customerStore'
 import NavLinks from './NavLinks'
 import Button from '@/components/shared/Button'
 
@@ -29,7 +29,9 @@ interface MobileDrawerProps {
 }
 
 export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
-  const { isAuthenticated, userName } = useAuthStore()
+  const { isLoggedIn, profile } = useCustomerStore()
+  const isAuthenticated = isLoggedIn
+  const userName = [profile?.firstName, profile?.lastName].filter(Boolean).join(' ') || profile?.email || ''
 
   return (
     <AnimatePresence>
@@ -144,7 +146,7 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
                 </Link>
               ) : (
                 <Link
-                  href="/account"
+                  href="/login"
                   onClick={onClose}
                   className="flex items-center gap-3 text-ink-soft hover:text-brass-deep transition-colors"
                 >

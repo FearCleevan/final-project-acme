@@ -240,7 +240,7 @@ export default function OrdersPage() {
           ) : paginated.map(o => (
             <div
               key={o.id}
-              onClick={() => router.push(`/admin/orders/${o.id}`)}
+              onClick={() => router.push(`/admin/orders/${o.id.replace('#', '')}`)}
               className="flex items-start gap-3 px-4 py-3 hover:bg-(--admin-surface-2) cursor-pointer transition-colors"
             >
               <div className="flex-1 min-w-0">
@@ -265,7 +265,7 @@ export default function OrdersPage() {
             columns={COLUMNS as unknown as Column<Record<string, unknown>>[]}
             data={paginated as unknown as Record<string, unknown>[]}
             keyField="id"
-            onRowClick={row => router.push(`/admin/orders/${(row as unknown as AdminOrder).id}`)}
+            onRowClick={row => router.push(`/admin/orders/${(row as unknown as AdminOrder).id.replace('#', '')}`)}
             emptyMessage="No orders found"
             emptyDescription="Try adjusting your filters or search."
           />
