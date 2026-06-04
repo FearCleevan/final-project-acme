@@ -14,15 +14,14 @@ function LoginContent() {
   const router       = useRouter()
   const searchParams = useSearchParams()
   const redirect     = searchParams.get('redirect') ?? '/account'
-  const urlError     = searchParams.get('error')
 
-  const { register, isLoggedIn, loading, error, clearError } = useCustomerStore()
+  const { login, register, isLoggedIn, loading, error, clearError } = useCustomerStore()
 
   const [tab,             setTab]             = useState<Tab>('signin')
-  const [firstName,       setFirstName]       = useState('')
-  const [lastName,        setLastName]        = useState('')
   const [email,           setEmail]           = useState('')
   const [password,        setPassword]        = useState('')
+  const [firstName,       setFirstName]       = useState('')
+  const [lastName,        setLastName]        = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [localError,      setLocalError]      = useState<string | null>(null)
 
@@ -34,6 +33,13 @@ function LoginContent() {
     setTab(t)
     setLocalError(null)
     clearError()
+  }
+
+  async function handleLogin(e: React.FormEvent) {
+    e.preventDefault()
+    setLocalError(null)
+    clearError()
+    await login(email, password)
   }
 
   async function handleRegister(e: React.FormEvent) {
@@ -51,7 +57,7 @@ function LoginContent() {
     await register(firstName, lastName, email, password)
   }
 
-  const displayError = localError ?? error ?? (urlError ? `Sign-in failed: ${urlError}` : null)
+  const displayError = localError ?? error
 
   const inputClass = 'w-full h-12 px-4 bg-parchment border border-ink-rule rounded-sm text-[14px] font-sans text-ink-iron placeholder:text-ink-soft/50 focus:outline-none focus:border-brass-deep focus:ring-1 focus:ring-brass/20 transition-colors'
   const labelClass = 'block text-[10px] font-mono uppercase tracking-eyebrow text-ink-soft mb-1.5'
@@ -100,17 +106,38 @@ function LoginContent() {
 
         {/* ── Sign In ── */}
         {tab === 'signin' && (
-          <div className="space-y-5">
-            <p className="font-sans text-[14px] text-ink-soft leading-relaxed">
-              Acme Vintage Supply uses secure sign-in. You&rsquo;ll be taken to Shopify&rsquo;s login page
-              where you can sign in with your email, Shop account, or Google.
-            </p>
-            <a
-              href={`/api/auth/authorize?redirectTo=${encodeURIComponent(redirect)}`}
-              className="flex items-center justify-center w-full min-h-12 bg-green-brand text-[#F5F1E6] rounded-btn font-sans text-[15px] font-semibold hover:bg-green-deep transition-colors"
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div>
+              <label className={labelClass}>Email address</label>
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                required
+                autoComplete="email"
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className={labelClass}>Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                autoComplete="current-password"
+                className={inputClass}
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full min-h-12 bg-green-brand text-[#F5F1E6] rounded-btn font-sans text-[15px] font-semibold hover:bg-green-deep transition-colors disabled:opacity-60"
             >
-              Continue to sign in →
-            </a>
+              {loading ? 'Signing in…' : 'Sign in →'}
+            </button>
             <p className="text-center font-sans text-[13px] text-ink-soft pt-1">
               No account?{' '}
               <button
@@ -121,7 +148,7 @@ function LoginContent() {
                 Create one here
               </button>
             </p>
-          </div>
+          </form>
         )}
 
         {/* ── Register ── */}

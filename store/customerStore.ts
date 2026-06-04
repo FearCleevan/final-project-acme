@@ -1,17 +1,11 @@
-/**
- * Zustand store for customer auth.
- * Auth state comes from the server-side iron-session (/api/auth/me).
- * Token is held in memory only — never persisted to localStorage.
- */
-
 import { create } from 'zustand'
 import {
   CustomerProfile,
   CustomerOrder,
   CustomerAddress,
   customerCreate,
+  getCustomerProfile,
 } from '@/lib/shopifyCustomer'
-import { getCustomerProfileCA } from '@/lib/shopifyCustomerCA'
 
 interface CustomerStore {
   accessToken:  string | null
@@ -21,9 +15,8 @@ interface CustomerStore {
   loading:      boolean
   error:        string | null
 
-  // Called once on app mount to hydrate from server session
   hydrate:      () => Promise<void>
-  // Register only — login is handled by OAuth redirect (/api/auth/authorize)
+  login:        (email: string, password: string) => Promise<string | null>
   register:     (firstName: string, lastName: string, email: string, password: string) => Promise<string | null>
   logout:       () => Promise<void>
   fetchProfile: () => Promise<void>
@@ -53,17 +46,49 @@ export const useCustomerStore = create<CustomerStore>()((set, get) => ({
     }
   },
 
+  login: async (email, password) => {
+    set({ loading: true, error: null })
+    try {
+      const res = await fetch('/api/auth/login', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ email, password }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        const msg = data.error ?? 'Sign-in failed. Please try again.'
+        set({ loading: false, error: msg })
+        return msg
+      }
+      // Re-hydrate to pick up the new session token
+      await get().hydrate()
+      set({ loading: false })
+      return null
+    } catch {
+      const msg = 'Network error. Please try again.'
+      set({ loading: false, error: msg })
+      return msg
+    }
+  },
+
   register: async (firstName, lastName, email, password) => {
     set({ loading: true, error: null })
     const { token, errors } = await customerCreate({ firstName, lastName, email, password })
-    set({ loading: false })
     if (errors.length || !token) {
       const msg = errors[0]?.message ?? 'Could not create account. Please try again.'
-      set({ error: msg })
+      set({ loading: false, error: msg })
       return msg
     }
-    // Account created — redirect to OAuth login so Shopify issues a CA API token
-    window.location.href = '/api/auth/authorize?redirectTo=/account'
+    // customerCreate auto-logs in — now save that token to the server session
+    const res = await fetch('/api/auth/login', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ email, password }),
+    })
+    if (res.ok) {
+      await get().hydrate()
+    }
+    set({ loading: false })
     return null
   },
 
@@ -82,8 +107,7 @@ export const useCustomerStore = create<CustomerStore>()((set, get) => ({
     const { accessToken } = get()
     if (!accessToken) return
     set({ loading: true })
-    const profile = await getCustomerProfileCA(accessToken)
-    // Don't log out on fetch failure — token is valid, just show empty state
+    const profile = await getCustomerProfile(accessToken)
     set({ loading: false, profile: profile ?? null })
   },
 

@@ -26,7 +26,7 @@ const BLANK: Partial<AdminProduct> = {
   title: '', shortDescription: '', fullDescription: '',
   price: 0, compareAtPrice: null, sku: '', patent: '',
   stock: 0, status: 'active', collections: [], tags: [],
-  vendor: 'Acme Lamp & Sign Co.', images: [], category: null,
+  vendor: 'Acme Vintage Supply', images: [], category: null,
   sellWhenOutOfStock: false, netWeight: '', material: '',
   colour: '', style: '', brand: '', vintage: '', burnerSize: '',
   fits: '', era: '', powerSource: '', productType: '',
