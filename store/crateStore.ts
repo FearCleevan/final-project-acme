@@ -197,11 +197,17 @@ export const useCrateStore = create<CrateStore>()(
 
       // Capture URL, wipe the cart, then send user to Shopify checkout.
       // Cart is cleared immediately so returning users always see an empty state.
+      // return_to param tells Shopify where to redirect after order is placed.
       checkout: () => {
         const url = get().checkoutUrl
         if (!url) return
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.acmevintagesupply.com'
+        const returnTo = encodeURIComponent(siteUrl)
+        const checkoutUrl = url.includes('?')
+          ? `${url}&return_to=${returnTo}`
+          : `${url}?return_to=${returnTo}`
         set({ items: [], cartId: null, checkoutUrl: null, _customerToken: null })
-        window.location.href = url
+        window.location.href = checkoutUrl
       },
 
       total: () =>
