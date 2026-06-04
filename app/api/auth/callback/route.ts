@@ -23,15 +23,21 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(`${siteUrl}/login?error=invalid_state`)
   }
 
-  const shopDomain = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN!
-  const oidc = await fetch(`https://${shopDomain}/.well-known/openid-configuration`).then(r => r.json())
+  const clientId     = process.env.SHOPIFY_CLIENT_ID!
+  const clientSecret = process.env.SHOPIFY_CLIENT_SECRET!
+  const tokenEndpoint = 'https://shopify.com/authentication/99152462129/oauth/token'
 
-  const tokenRes = await fetch(oidc.token_endpoint, {
+  // Shopify requires client_secret_basic — credentials as Basic auth header
+  const basicCredentials = Buffer.from(`${clientId}:${clientSecret}`).toString('base64')
+
+  const tokenRes = await fetch(tokenEndpoint, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    headers: {
+      'Content-Type':  'application/x-www-form-urlencoded',
+      'Authorization': `Basic ${basicCredentials}`,
+    },
     body: new URLSearchParams({
       grant_type:    'authorization_code',
-      client_id:     process.env.SHOPIFY_CLIENT_ID!,
       redirect_uri:  `${siteUrl}/api/auth/callback`,
       code,
       code_verifier: oauth.codeVerifier,
@@ -39,8 +45,9 @@ export async function GET(req: NextRequest) {
   })
 
   if (!tokenRes.ok) {
-    console.error('[auth/callback] token exchange failed:', await tokenRes.text())
-    return NextResponse.redirect(`${siteUrl}/login?error=token_failed`)
+    const errText = await tokenRes.text()
+    console.error('[auth/callback] token exchange failed:', errText)
+    return NextResponse.redirect(`${siteUrl}/login?error=${encodeURIComponent(errText)}`)
   }
 
   const { access_token, expires_in } = await tokenRes.json()
