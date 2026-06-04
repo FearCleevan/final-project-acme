@@ -1,4 +1,4 @@
-﻿import { create } from 'zustand'
+import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 // Debounce timers keyed by productId — module-level so they survive re-renders
@@ -14,30 +14,32 @@ import {
 } from '@/lib/shopifyCart'
 
 interface CrateStore {
-  items:          CrateItem[]
-  isOpen:         boolean
-  cartId:         string | null
-  checkoutUrl:    string | null
-  _cartCreating:  boolean
-  openCrate:      () => void
-  closeCrate:     () => void
-  addItem:        (product: Product, finish: string, burnerSize: string) => void
-  removeItem:     (productId: string) => void
-  updateQuantity: (productId: string, quantity: number) => void
-  clearCrate:     () => void
-  total:          () => number
-  itemCount:      () => number
-  initCart:       (customerAccessToken?: string | null) => Promise<void>
+  items:           CrateItem[]
+  isOpen:          boolean
+  cartId:          string | null
+  checkoutUrl:     string | null
+  _cartCreating:   boolean
+  _customerToken:  string | null   // set by initCart so addItem can use it without circular imports
+  openCrate:       () => void
+  closeCrate:      () => void
+  addItem:         (product: Product, finish: string, burnerSize: string) => void
+  removeItem:      (productId: string) => void
+  updateQuantity:  (productId: string, quantity: number) => void
+  clearCrate:      () => void
+  total:           () => number
+  itemCount:       () => number
+  initCart:        (customerAccessToken?: string | null) => Promise<void>
 }
 
 export const useCrateStore = create<CrateStore>()(
   persist(
     (set, get) => ({
-      items:         [],
-      isOpen:        false,
-      cartId:        null,
-      checkoutUrl:   null,
-      _cartCreating: false,
+      items:          [],
+      isOpen:         false,
+      cartId:         null,
+      checkoutUrl:    null,
+      _cartCreating:  false,
+      _customerToken: null,
 
       openCrate:  () => set({ isOpen: true }),
       closeCrate: () => set({ isOpen: false }),
@@ -84,10 +86,8 @@ export const useCrateStore = create<CrateStore>()(
             // Guard against concurrent cartCreate calls
             if (get()._cartCreating) return
             set({ _cartCreating: true })
-            const allItems = get().items
-            // Lazily read the customer token so we don't create a circular import
-            const customerToken = (await import('@/store/customerStore'))
-              .useCustomerStore.getState().accessToken
+            const allItems      = get().items
+            const customerToken = get()._customerToken  // set by initCart — no circular import needed
             cartCreate(
               allItems
                 .filter(i => i.product.variantId !== null)
@@ -171,8 +171,7 @@ export const useCrateStore = create<CrateStore>()(
         _syncTimers.set(productId, timer)
       },
 
-      clearCrate: () => set({ items: [], cartId: null, checkoutUrl: null }),
-      // No Shopify call on clear — cart expires naturally after 10 days.
+      clearCrate: () => set({ items: [], cartId: null, checkoutUrl: null, _customerToken: null }),
 
       total: () =>
         get().items.reduce((sum, i) => sum + i.product.price * i.quantity, 0),
@@ -181,6 +180,11 @@ export const useCrateStore = create<CrateStore>()(
         get().items.reduce((sum, i) => sum + i.quantity, 0),
 
       initCart: async (customerAccessToken) => {
+        // Store the token so addItem can use it when creating a new cart
+        if (customerAccessToken !== undefined) {
+          set({ _customerToken: customerAccessToken ?? null })
+        }
+
         const { cartId } = get()
         if (!cartId) return
 
@@ -209,6 +213,14 @@ export const useCrateStore = create<CrateStore>()(
         }))
       },
     }),
-    { name: 'acme-crate' }
+    {
+      name:    'acme-crate',
+      partialize: (state) => ({
+        items:       state.items,
+        cartId:      state.cartId,
+        checkoutUrl: state.checkoutUrl,
+        // _customerToken is session-only — don't persist to localStorage
+      }),
+    }
   )
 )
