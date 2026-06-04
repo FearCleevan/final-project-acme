@@ -11,7 +11,9 @@ export async function GET(req: NextRequest) {
   const error         = searchParams.get('error')
 
   if (error) {
-    return NextResponse.redirect(`${siteUrl}/login?error=${encodeURIComponent(error)}`)
+    const desc = searchParams.get('error_description') ?? error
+    console.error('[callback] Shopify returned error:', error, desc)
+    return NextResponse.redirect(`${siteUrl}/login?error=${encodeURIComponent(desc)}`)
   }
 
   const session = await getIronSession<CustomerSessionData>(await cookies(), customerSessionOptions)

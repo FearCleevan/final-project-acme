@@ -51,7 +51,7 @@ function LoginContent() {
     await register(firstName, lastName, email, password)
   }
 
-  const displayError = localError ?? error ?? (urlError ? 'Sign-in was cancelled or failed. Please try again.' : null)
+  const displayError = localError ?? error ?? (urlError ? `Sign-in failed: ${urlError}` : null)
 
   const inputClass = 'w-full h-12 px-4 bg-parchment border border-ink-rule rounded-sm text-[14px] font-sans text-ink-iron placeholder:text-ink-soft/50 focus:outline-none focus:border-brass-deep focus:ring-1 focus:ring-brass/20 transition-colors'
   const labelClass = 'block text-[10px] font-mono uppercase tracking-eyebrow text-ink-soft mb-1.5'
