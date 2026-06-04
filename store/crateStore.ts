@@ -96,11 +96,12 @@ export const useCrateStore = create<CrateStore>()(
                   quantity:      i.quantity,
                 })),
               customerToken
-            ).then(result => {
+            ).then(async result => {
               if (!result) {
                 set({ _cartCreating: false })
                 return
               }
+              // Map the lines we know about
               set(state => ({
                 _cartCreating: false,
                 cartId:        result.cartId,
@@ -110,10 +111,30 @@ export const useCrateStore = create<CrateStore>()(
                   return line ? { ...item, cartLineId: line.id } : item
                 }),
               }))
+              // Sync items that were added while _cartCreating was true (race condition)
+              const unsynced = get().items.filter(i => !i.cartLineId && i.product.variantId)
+              if (unsynced.length > 0) {
+                const newLines = await cartLinesAdd(
+                  result.cartId,
+                  unsynced.map(i => ({ merchandiseId: i.product.variantId!, quantity: i.quantity }))
+                )
+                if (newLines) {
+                  set(state => ({
+                    items: state.items.map(item => {
+                      if (item.cartLineId) return item
+                      const line = newLines.find(l => l.merchandise.id === item.product.variantId)
+                      return line ? { ...item, cartLineId: line.id } : item
+                    }),
+                  }))
+                }
+              }
             })
           } else {
             // Cart exists — add just this new line
-            if (!product.variantId) return
+            if (!product.variantId) {
+              console.warn('[crateStore] Product has no variantId — not synced to Shopify cart:', product.name, product.id)
+              return
+            }
             cartLinesAdd(cartId, [{ merchandiseId: product.variantId, quantity: 1 }]).then(lines => {
               if (!lines) return
               const line = lines.find(l => l.merchandise.id === product.variantId)
