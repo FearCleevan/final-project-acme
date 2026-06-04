@@ -1,0 +1,21 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "a508aa7e1a88c876c8a95a8bd6a3b9cb"
+name = "Acme Admin Dashboard"
+application_url = "https://acmelampandsign.vercel.app"
+embedded = true
+
+[webhooks]
+api_version = "2026-04"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_customers,read_files,write_files,read_fulfillments,write_fulfillments,write_inventory,read_inventory,read_locations,read_merchant_managed_fulfillment_orders,write_merchant_managed_fulfillment_orders,read_orders,read_products,write_products,read_publications,write_publications"
+optional_scopes = [ ]
+use_legacy_install_flow = false
+
+[auth]
+redirect_urls = [ ]
+
+[customer_authentication]
+redirect_uris = [ "https://acmelampandsign.vercel.app/api/auth/callback" ]

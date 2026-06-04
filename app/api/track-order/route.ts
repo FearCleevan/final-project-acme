@@ -21,6 +21,7 @@ export interface TrackOrderResult {
     status: string
     updatedAt: string
     trackingInfo: { number: string | null; url: string | null; company: string | null }[]
+    events: { status: string; happenedAt: string }[]
   }[]
 }
 
@@ -61,6 +62,9 @@ export async function POST(req: NextRequest) {
               status: string
               updatedAt: string
               trackingInfo: { number: string | null; url: string | null; company: string | null }[]
+              events: {
+                edges: { node: { status: string; happenedAt: string } }[]
+              }
             }[]
           }
         }[]
@@ -84,6 +88,9 @@ export async function POST(req: NextRequest) {
                 status
                 updatedAt
                 trackingInfo { number url company }
+                events(first: 10) {
+                  edges { node { status happenedAt } }
+                }
               }
             }
           }
@@ -108,9 +115,10 @@ export async function POST(req: NextRequest) {
         quantity: e.node.quantity,
       })),
       fulfillments: node.fulfillments.map(f => ({
-        status:      f.status,
-        updatedAt:   f.updatedAt,
+        status:       f.status,
+        updatedAt:    f.updatedAt,
         trackingInfo: f.trackingInfo,
+        events:       f.events.edges.map(e => e.node),
       })),
     }
 

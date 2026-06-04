@@ -224,36 +224,74 @@ function TrackOrderContent() {
             </div>
 
             {/* Fulfillment timeline */}
-            {result.fulfillments.length > 0 && (
-              <div>
-                <Eyebrow className="mb-6">Shipment timeline</Eyebrow>
-                <ol className="relative border-l border-ink-rule ml-3 space-y-0">
-                  {result.fulfillments.map((f, i) => (
-                    <li key={i} className="mb-8 ml-6 last:mb-0">
-                      <span className="absolute -left-2.25 w-4.5 h-4.5 rounded-full border-2 bg-green-brand border-green-brand flex items-center justify-center">
-                        <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
-                          <path d="M1.5 4l2 2 3-3" stroke="#F5F1E6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      </span>
-                      <div className="pt-0.5">
-                        <p className="font-serif text-[16px] font-medium text-ink-charcoal leading-snug mb-0.5">
-                          {f.status === 'SUCCESS' ? 'Shipped' : f.status}
-                        </p>
-                        <time className="font-mono text-[10px] uppercase tracking-eyebrow text-ink-soft/70">
-                          {formatDate(f.updatedAt)}
-                        </time>
-                        {f.trackingInfo[0]?.number && (
-                          <p className="font-mono text-[11px] text-ink-soft/70 mt-1">
-                            {f.trackingInfo[0].company ? `${f.trackingInfo[0].company} · ` : ''}
-                            {f.trackingInfo[0].number}
-                          </p>
-                        )}
-                      </div>
-                    </li>
-                  ))}
-                </ol>
-              </div>
-            )}
+            {result.fulfillments.length > 0 && (() => {
+              const EVENT_LABEL: Record<string, string> = {
+                CONFIRMED:        'Order confirmed',
+                LABEL_PRINTED:    'Label printed',
+                IN_TRANSIT:       'Shipped',
+                OUT_FOR_DELIVERY: 'Out for delivery',
+                DELIVERED:        'Delivered',
+                FAILURE:          'Delivery failed',
+                ATTEMPTED_DELIVERY: 'Delivery attempted',
+              }
+              const f = result.fulfillments[result.fulfillments.length - 1]
+              const events = f.events ?? []
+              const tracking = f.trackingInfo[0]
+
+              return (
+                <div>
+                  <Eyebrow className="mb-6">Shipment timeline</Eyebrow>
+                  <ol className="relative border-l border-ink-rule ml-3 space-y-0">
+                    {events.length > 0 ? events.map((ev, i) => {
+                      const isLast = i === events.length - 1
+                      return (
+                        <li key={i} className="mb-8 ml-6 last:mb-0">
+                          <span className={`absolute -left-2.25 w-4.5 h-4.5 rounded-full border-2 flex items-center justify-center ${isLast ? 'bg-green-brand border-green-brand' : 'bg-parchment border-ink-rule'}`}>
+                            {isLast && (
+                              <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+                                <path d="M1.5 4l2 2 3-3" stroke="#F5F1E6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            )}
+                          </span>
+                          <div className="pt-0.5">
+                            <p className="font-serif text-[16px] font-medium text-ink-charcoal leading-snug mb-0.5">
+                              {EVENT_LABEL[ev.status] ?? ev.status}
+                            </p>
+                            <time className="font-mono text-[10px] uppercase tracking-eyebrow text-ink-soft/70">
+                              {formatDate(ev.happenedAt)}
+                            </time>
+                            {ev.status === 'IN_TRANSIT' && tracking?.number && (
+                              <p className="font-mono text-[11px] text-ink-soft/70 mt-1">
+                                {tracking.company ? `${tracking.company} · ` : ''}{tracking.number}
+                              </p>
+                            )}
+                          </div>
+                        </li>
+                      )
+                    }) : (
+                      <li className="mb-8 ml-6">
+                        <span className="absolute -left-2.25 w-4.5 h-4.5 rounded-full border-2 bg-green-brand border-green-brand flex items-center justify-center">
+                          <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+                            <path d="M1.5 4l2 2 3-3" stroke="#F5F1E6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </span>
+                        <div className="pt-0.5">
+                          <p className="font-serif text-[16px] font-medium text-ink-charcoal leading-snug mb-0.5">Shipped</p>
+                          <time className="font-mono text-[10px] uppercase tracking-eyebrow text-ink-soft/70">
+                            {formatDate(f.updatedAt)}
+                          </time>
+                          {tracking?.number && (
+                            <p className="font-mono text-[11px] text-ink-soft/70 mt-1">
+                              {tracking.company ? `${tracking.company} · ` : ''}{tracking.number}
+                            </p>
+                          )}
+                        </div>
+                      </li>
+                    )}
+                  </ol>
+                </div>
+              )
+            })()}
 
             {/* No fulfillment yet */}
             {result.fulfillments.length === 0 && (

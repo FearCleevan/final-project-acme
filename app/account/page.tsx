@@ -12,14 +12,13 @@ import {
   getRefundedOrders,
   formatOrderStatus,
 } from '@/store/customerStore'
+import type { CustomerOrder, CustomerAddress } from '@/lib/shopifyCustomer'
 import {
-  CustomerOrder,
-  CustomerAddress,
-  customerAddressCreate,
-  customerAddressUpdate,
-  customerAddressDelete,
-  customerDefaultAddressUpdate,
-} from '@/lib/shopifyCustomer'
+  caAddressCreate,
+  caAddressUpdate,
+  caAddressDelete,
+  caDefaultAddressUpdate,
+} from '@/lib/shopifyCustomerCA'
 import Eyebrow from '@/components/shared/Eyebrow'
 import { cn } from '@/lib/utils'
 
@@ -252,9 +251,9 @@ function AccountContent() {
     if (!accessToken) return
     setAddrSaving(true)
     if (editAddress) {
-      await customerAddressUpdate(accessToken, editAddress.id, addrForm)
+      await caAddressUpdate(accessToken, editAddress.id, addrForm)
     } else {
-      await customerAddressCreate(accessToken, addrForm)
+      await caAddressCreate(accessToken, addrForm)
     }
     await fetchProfile()
     setAddrSaving(false)
@@ -264,13 +263,13 @@ function AccountContent() {
 
   async function deleteAddress(id: string) {
     if (!accessToken) return
-    await customerAddressDelete(accessToken, id)
+    await caAddressDelete(accessToken, id)
     await fetchProfile()
   }
 
   async function setDefaultAddress(id: string) {
     if (!accessToken) return
-    await customerDefaultAddressUpdate(accessToken, id)
+    await caDefaultAddressUpdate(accessToken, id)
     await fetchProfile()
   }
 

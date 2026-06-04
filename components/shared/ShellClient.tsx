@@ -8,6 +8,7 @@ import SearchOverlay from '@/components/shared/SearchOverlay'
 import Footer from '@/components/shared/Footer'
 import { useSearchOverlay } from '@/hooks/useSearchOverlay'
 import { useCrateStore } from '@/store/crateStore'
+import { useCustomerStore } from '@/store/customerStore'
 import { useLenis } from '@/hooks/useLenis'
 
 interface ShellClientProps {
@@ -22,6 +23,7 @@ export default function ShellClient({ children }: ShellClientProps) {
 
   useEffect(() => {
     useCrateStore.getState().initCart()
+    useCustomerStore.getState().hydrate()
   }, [])
 
   // Admin routes manage their own layout — skip the storefront shell entirely
