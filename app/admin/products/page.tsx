@@ -241,6 +241,16 @@ export default function ProductsPage() {
       ),
     },
     {
+      key: 'soldCount',
+      label: 'Sold',
+      sortable: true,
+      render: row => (
+        <span className={`text-[12px] font-mono ${row.soldCount > 0 ? 'text-(--admin-green)' : 'text-(--admin-text-muted)'}`}>
+          {row.soldCount > 0 ? row.soldCount : '—'}
+        </span>
+      ),
+    },
+    {
       key: 'status',
       label: 'Status',
       render: row => <Badge label={row.status} variant={productStatusVariant(row.status)} />,

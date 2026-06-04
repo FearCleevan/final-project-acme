@@ -33,6 +33,7 @@ export interface Product {
   featured: boolean
   collection: string
   variantId: string | null
+  soldCount: number
 }
 
 export interface CrateItem {

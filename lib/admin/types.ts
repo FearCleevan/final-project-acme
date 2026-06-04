@@ -36,6 +36,7 @@ export interface AdminCustomer {
 
 export interface AdminOrderItem {
   id: string
+  productId: string
   title: string
   sku: string
   quantity: number
@@ -103,6 +104,7 @@ export interface AdminProduct {
   benchTester: string
   benchTestDate: string
   category: { id: string; name: string } | null
+  soldCount: number
 }
 
 export interface AdminCollection {

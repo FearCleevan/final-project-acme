@@ -3,7 +3,7 @@ import { cookies } from 'next/headers'
 import { getIronSession } from 'iron-session'
 import { sessionOptions } from '@/lib/admin/session'
 import type { AdminSession } from '@/lib/admin/auth'
-import { getOrderFulfillmentOrderId, createFulfillment, createFulfillmentEvent } from '@/lib/admin/shopifyAdmin'
+import { getOrderFulfillmentOrderId, createFulfillment, createFulfillmentEvent, incrementSoldCount } from '@/lib/admin/shopifyAdmin'
 import type { FulfillmentEvent, FulfillmentEventStatus } from '@/lib/admin/types'
 
 async function requireAuth() {
@@ -24,6 +24,7 @@ export async function POST(req: NextRequest, { params }: Params) {
     carrier?: string
     notifyCustomer: boolean
     fulfillmentId?: string
+    lineItems?: { productId: string; quantity: number }[]
   }
 
   try {
@@ -46,6 +47,10 @@ export async function POST(req: NextRequest, { params }: Params) {
         )
         // Create IN_TRANSIT event so "Shipped" persists across page loads
         await createFulfillmentEvent(shopifyFulfillmentId, 'in_transit')
+      }
+      // Increment sold_count metafield for each product in this order
+      if (body.lineItems?.length) {
+        await incrementSoldCount(body.lineItems.filter(i => i.productId))
       }
     } else if (shopifyFulfillmentId) {
       await createFulfillmentEvent(shopifyFulfillmentId, body.stage)

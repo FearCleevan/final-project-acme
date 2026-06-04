@@ -128,6 +128,7 @@ function toAdminProduct(p: ShopifyProductNode): AdminProduct {
     benchTester:        metaValue(mf, 'bench_tester'),
     benchTestDate:      metaValue(mf, 'bench_test_date'),
     category:           p.category ? { id: p.category.id, name: p.category.fullName ?? p.category.name } : null,
+    soldCount:          parseInt(metaValue(mf, 'sold_count') || '0', 10),
   }
 }
 
@@ -619,7 +620,7 @@ interface ShopifyOrderNode {
         originalUnitPriceSet: { shopMoney: { amount: string } }
         variant: {
           image: { url: string } | null
-          product: { featuredImage: { url: string } | null } | null
+          product: { id: string; featuredImage: { url: string } | null } | null
         } | null
       }
     }[]
@@ -656,6 +657,7 @@ function toAdminOrder(o: ShopifyOrderNode): AdminOrder {
 
   const items: AdminOrderItem[] = o.lineItems.edges.map(e => ({
     id:        e.node.id.replace('gid://shopify/LineItem/', ''),
+    productId: e.node.variant?.product?.id ?? '',
     title:     e.node.title,
     sku:       e.node.sku ?? '',
     quantity:  e.node.quantity,
@@ -747,7 +749,7 @@ const ORDER_FIELDS = `
       originalUnitPriceSet { shopMoney { amount } }
       variant {
         image { url }
-        product { featuredImage { url } }
+        product { id featuredImage { url } }
       }
     } }
   }
@@ -1106,4 +1108,59 @@ export async function getAdminNotifications(): Promise<AdminNotification[]> {
   return notifications.sort(
     (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
   )
+}
+
+// ─── Sold count ───────────────────────────────────────────────────────────────
+
+/**
+ * Increment the acme.sold_count metafield for each product in the order's
+ * line items. Called when an order is marked In Transit (shipped).
+ * Uses productId (not variantId) because metafields live on the product.
+ */
+export async function incrementSoldCount(
+  lineItems: { productId: string; quantity: number }[]
+): Promise<void> {
+  for (const item of lineItems) {
+    const gid = item.productId.startsWith('gid://')
+      ? item.productId
+      : `gid://shopify/Product/${item.productId}`
+
+    // Read current sold_count
+    const current = await adminFetch<{
+      product: { metafield: { id: string; value: string } | null } | null
+    }>(
+      `query GetSoldCount($id: ID!) {
+        product(id: $id) {
+          metafield(namespace: "acme", key: "sold_count") {
+            id
+            value
+          }
+        }
+      }`,
+      { id: gid }
+    )
+
+    const existing = current.product?.metafield
+    const newCount = (parseInt(existing?.value ?? '0', 10) || 0) + item.quantity
+
+    // Upsert metafield
+    await adminFetch(
+      `mutation SetSoldCount($input: ProductInput!) {
+        productUpdate(input: $input) {
+          userErrors { field message }
+        }
+      }`,
+      {
+        input: {
+          id: gid,
+          metafields: [{
+            namespace: 'acme',
+            key:       'sold_count',
+            type:      'number_integer',
+            value:     String(newCount),
+          }],
+        },
+      }
+    )
+  }
 }

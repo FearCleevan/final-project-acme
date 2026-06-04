@@ -57,6 +57,9 @@ export default function AddFulfillmentEventModal({ order, events, fulfillmentId,
             carrier: needsTracking ? carrier : undefined,
             notifyCustomer,
             fulfillmentId: fulfillmentId ?? undefined,
+            lineItems: nextStage === 'in_transit'
+              ? order.items.map(i => ({ productId: i.productId, quantity: i.quantity }))
+              : undefined,
           }),
         }
       )

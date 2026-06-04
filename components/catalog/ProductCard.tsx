@@ -71,6 +71,11 @@ const ProductCard = memo(function ProductCard({
             Only {product.stockQuantity} left
           </div>
         )}
+        {product.soldCount > 0 && (
+          <div className="absolute bottom-2.5 left-2.5 px-2.5 py-1 bg-green-brand/90 backdrop-blur-sm rounded-pill text-[9px] font-mono uppercase tracking-eyebrow text-[#F5F1E6] pointer-events-none">
+            {product.soldCount} sold
+          </div>
+        )}
       </Link>
 
       {/* ── Meta ──────────────────────────────────────────────── */}

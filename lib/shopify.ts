@@ -147,6 +147,7 @@ const PRODUCT_FRAGMENT = `
       { namespace: "acme", key: "colour"           }
       { namespace: "acme", key: "brand"            }
       { namespace: "acme", key: "vintage"          }
+      { namespace: "acme", key: "sold_count"       }
     ]) {
       key
       namespace
@@ -234,6 +235,7 @@ export function shopifyProductToProduct(p: ShopifyProduct): Product {
     featured:         p.tags.includes('featured'),
     collection:       colHandle,
     variantId:        firstVar?.id ?? null,
+    soldCount:        parseInt(meta(mf, 'sold_count') || '0', 10),
   }
 }
 

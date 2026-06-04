@@ -80,6 +80,11 @@ export default function ProductInfo({ product }: ProductInfoProps) {
             Only {product.stockQuantity} left
           </span>
         )}
+        {product.soldCount > 0 && (
+          <span className="px-3 py-1 rounded-pill bg-green-brand/10 text-green-brand text-[10px] font-mono uppercase tracking-eyebrow">
+            {product.soldCount} sold
+          </span>
+        )}
       </div>
 
       {/* Name */}
