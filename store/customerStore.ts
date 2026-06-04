@@ -83,11 +83,8 @@ export const useCustomerStore = create<CustomerStore>()((set, get) => ({
     if (!accessToken) return
     set({ loading: true })
     const profile = await getCustomerProfileCA(accessToken)
-    if (!profile) {
-      set({ loading: false, isLoggedIn: false, accessToken: null, profile: null })
-      return
-    }
-    set({ loading: false, profile })
+    // Don't log out on fetch failure — token is valid, just show empty state
+    set({ loading: false, profile: profile ?? null })
   },
 
   clearError: () => set({ error: null }),

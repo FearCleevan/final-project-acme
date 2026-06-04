@@ -12,7 +12,7 @@ import type {
 } from '@/lib/shopifyCustomer'
 
 const SHOP_ID  = process.env.NEXT_PUBLIC_SHOPIFY_CUSTOMER_ACCOUNT_ID ?? '99152462129'
-const API_VER  = '2024-10'
+const API_VER  = '2026-04'
 const ENDPOINT = `https://shopify.com/${SHOP_ID}/account/customer/api/${API_VER}/graphql`
 
 async function caFetch<T>(token: string, query: string, variables?: Record<string, unknown>): Promise<T | null> {
