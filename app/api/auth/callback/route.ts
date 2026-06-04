@@ -20,6 +20,7 @@ export async function GET(req: NextRequest) {
   const oauth = session.oauth
 
   if (!oauth || oauth.state !== returnedState || !code) {
+    console.error('[callback] state mismatch', { hasOauth: !!oauth, stateMatch: oauth?.state === returnedState, hasCode: !!code })
     return NextResponse.redirect(`${siteUrl}/login?error=invalid_state`)
   }
 
@@ -39,19 +40,27 @@ export async function GET(req: NextRequest) {
     }),
   })
 
+  const tokenBody = await tokenRes.text()
+  console.log('[callback] token response status:', tokenRes.status, 'body:', tokenBody)
+
   if (!tokenRes.ok) {
-    const errText = await tokenRes.text()
-    console.error('[auth/callback] token exchange failed:', errText)
-    return NextResponse.redirect(`${siteUrl}/login?error=${encodeURIComponent(errText)}`)
+    return NextResponse.redirect(`${siteUrl}/login?error=${encodeURIComponent(tokenBody)}`)
   }
 
-  const { access_token, expires_in } = await tokenRes.json()
-  const redirectTo = oauth.redirectTo
+  const tokenData = JSON.parse(tokenBody)
+  const { access_token, expires_in } = tokenData
 
+  if (!access_token) {
+    console.error('[callback] no access_token in response:', tokenData)
+    return NextResponse.redirect(`${siteUrl}/login?error=${encodeURIComponent('No access token returned: ' + tokenBody)}`)
+  }
+
+  const redirectTo = oauth.redirectTo
   session.oauth       = undefined
   session.accessToken = access_token
   session.expiresAt   = Date.now() + (expires_in * 1000)
   await session.save()
 
+  console.log('[callback] success — redirecting to', redirectTo)
   return NextResponse.redirect(`${siteUrl}${redirectTo}`)
 }
