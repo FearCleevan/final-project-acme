@@ -36,6 +36,7 @@ export const mockProducts: Product[] = [
     featured: true,
     collection: '',
     variantId: null,
+    soldCount: 0,
   },
   {
     id: 'eb-002',
@@ -74,6 +75,7 @@ export const mockProducts: Product[] = [
     featured: false,
     collection: '',
     variantId: null,
+    soldCount: 0,
   },
   {
     id: 'eb-003',
@@ -111,6 +113,7 @@ export const mockProducts: Product[] = [
     featured: false,
     collection: '',
     variantId: null,
+    soldCount: 0,
   },
   {
     id: 'eb-004',
@@ -148,6 +151,7 @@ export const mockProducts: Product[] = [
     featured: false,
     collection: '',
     variantId: null,
+    soldCount: 0,
   },
   {
     id: 'eb-005',
@@ -185,6 +189,7 @@ export const mockProducts: Product[] = [
     featured: false,
     collection: '',
     variantId: null,
+    soldCount: 0,
   },
   {
     id: 'eb-006',
@@ -224,6 +229,7 @@ export const mockProducts: Product[] = [
     featured: true,
     collection: '',
     variantId: null,
+    soldCount: 0,
   },
   {
     id: 'eb-007',
@@ -262,6 +268,7 @@ export const mockProducts: Product[] = [
     featured: false,
     collection: '',
     variantId: null,
+    soldCount: 0,
   },
   {
     id: 'eb-008',
@@ -299,6 +306,7 @@ export const mockProducts: Product[] = [
     featured: false,
     collection: '',
     variantId: null,
+    soldCount: 0,
   },
   {
     id: 'eb-009',
@@ -337,6 +345,7 @@ export const mockProducts: Product[] = [
     featured: true,
     collection: '',
     variantId: null,
+    soldCount: 0,
   },
   {
     id: 'eb-010',
@@ -374,6 +383,7 @@ export const mockProducts: Product[] = [
     featured: false,
     collection: '',
     variantId: null,
+    soldCount: 0,
   },
   {
     id: 'eb-011',
@@ -413,6 +423,7 @@ export const mockProducts: Product[] = [
     featured: false,
     collection: '',
     variantId: null,
+    soldCount: 0,
   },
   {
     id: 'eb-012',
@@ -452,6 +463,7 @@ export const mockProducts: Product[] = [
     featured: false,
     collection: '',
     variantId: null,
+    soldCount: 0,
   },
   {
     id: 'eb-013',
@@ -491,6 +503,7 @@ export const mockProducts: Product[] = [
     featured: false,
     collection: '',
     variantId: null,
+    soldCount: 0,
   },
   {
     id: 'eb-014',
@@ -528,6 +541,7 @@ export const mockProducts: Product[] = [
     featured: false,
     collection: '',
     variantId: null,
+    soldCount: 0,
   },
   {
     id: 'eb-015',
@@ -567,6 +581,7 @@ export const mockProducts: Product[] = [
     featured: false,
     collection: '',
     variantId: null,
+    soldCount: 0,
   },
   {
     id: 'eb-016',
@@ -604,5 +619,6 @@ export const mockProducts: Product[] = [
     featured: false,
     collection: '',
     variantId: null,
+    soldCount: 0,
   },
 ]
