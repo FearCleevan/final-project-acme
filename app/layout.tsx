@@ -24,8 +24,7 @@ const jetbrainsMono = JetBrains_Mono({
   display: 'swap',
 })
 
-// TODO: once domain is registered, set NEXT_PUBLIC_SITE_URL=https://acmevintagesupply.ca in Vercel env vars
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://acmelampandsign.vercel.app'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://acmevintagesupply.com'
 const SITE_NAME = 'Acme Vintage Supply'
 const DESCRIPTION =
   'Antique oil lamp chimneys, shades, pressure lamps, burners, wicks, and original Victorian enamel advertising signs. Individually sourced, bench-tested, and shipped across North America.'

@@ -22,10 +22,10 @@ export async function POST(req: NextRequest) {
   const expiry = Date.now() + 15 * 60 * 1000 // 15 minutes
   resetTokens.set(token, { expiry })
 
-  const resetUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://acmelampandsign.vercel.app'}/admin/reset-password?token=${token}`
+  const resetUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://acmevintagesupply.com'}/admin/reset-password?token=${token}`
 
   await resend.emails.send({
-    from:    'Acme Admin <no-reply@acmelampandsign.vercel.app>',
+    from:    'Acme Admin <no-reply@acmevintagesupply.com>',
     to:      adminEmail,
     subject: 'Reset your admin password',
     html: `

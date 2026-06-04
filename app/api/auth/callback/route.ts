@@ -4,7 +4,7 @@ import { getIronSession } from 'iron-session'
 import { customerSessionOptions, type CustomerSessionData } from '@/lib/customerSession'
 
 export async function GET(req: NextRequest) {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://acmelampandsign.vercel.app'
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://acmevintagesupply.com'
   const { searchParams } = new URL(req.url)
   const code          = searchParams.get('code')
   const returnedState = searchParams.get('state')

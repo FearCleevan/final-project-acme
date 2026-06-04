@@ -2,7 +2,7 @@
 
 client_id = "a508aa7e1a88c876c8a95a8bd6a3b9cb"
 name = "Acme Admin Dashboard"
-application_url = "https://acmelampandsign.vercel.app"
+application_url = "https://acmevintagesupply.com"
 embedded = true
 
 [webhooks]
@@ -18,4 +18,4 @@ use_legacy_install_flow = false
 redirect_urls = [ ]
 
 [customer_authentication]
-redirect_uris = [ "https://acmelampandsign.vercel.app/api/auth/callback" ]
+redirect_uris = [ "https://acmevintagesupply.com/api/auth/callback" ]
