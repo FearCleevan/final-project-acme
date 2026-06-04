@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import Link from 'next/link'
-import { BiShieldAlt2, BiLock, BiCheckShield, BiPackage } from 'react-icons/bi'
+import { BiShieldAlt2, BiLock, BiCheckShield } from 'react-icons/bi'
 import {
   useCustomerStore,
   getCustomerOrders,
@@ -12,6 +12,7 @@ import {
   getRefundedOrders,
   formatOrderStatus,
 } from '@/store/customerStore'
+import { useCrateStore } from '@/store/crateStore'
 import type { CustomerOrder, CustomerAddress } from '@/lib/shopifyCustomer'
 import {
   customerAddressCreate,
@@ -20,9 +21,10 @@ import {
   customerDefaultAddressUpdate,
 } from '@/lib/shopifyCustomer'
 import Eyebrow from '@/components/shared/Eyebrow'
+import Button from '@/components/shared/Button'
 import { cn } from '@/lib/utils'
 
-type Tab = 'orders' | 'returns' | 'addresses'
+type Tab = 'orders' | 'returns' | 'addresses' | 'crate'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -175,6 +177,12 @@ function AccountContent() {
   const searchParams = useSearchParams()
   const { isLoggedIn, profile, accessToken, logout, fetchProfile, loading } = useCustomerStore()
 
+  const crateItems    = useCrateStore(s => s.items)
+  const crateTotal    = useCrateStore(s => s.total())
+  const crateItemCount = useCrateStore(s => s.itemCount())
+  const checkout      = useCrateStore(s => s.checkout)
+  const checkoutUrl   = useCrateStore(s => s.checkoutUrl)
+
   const [mounted,     setMounted]     = useState(false)
   const [tab,         setTab]         = useState<Tab>((searchParams.get('tab') as Tab) ?? 'orders')
   const [editAddress, setEditAddress] = useState<CustomerAddress | null>(null)
@@ -299,6 +307,7 @@ function AccountContent() {
           {tabBtn('orders',    'Orders',    orders.length)}
           {tabBtn('returns',   'Returns',   returns.length)}
           {tabBtn('addresses', 'Addresses')}
+          {tabBtn('crate',     'My Crate',  crateItemCount > 0 ? crateItemCount : undefined)}
         </div>
 
         {/* ── Orders tab ── */}
@@ -496,6 +505,96 @@ function AccountContent() {
             </div>
 
           </div>
+        )}
+
+        {/* ── My Crate tab ── */}
+        {tab === 'crate' && (
+          crateItems.length === 0 ? (
+            <div className="py-16 text-center">
+              <div className="w-16 h-16 rounded-full border-2 border-ink-rule flex items-center justify-center mx-auto mb-6">
+                <span className="text-[26px] text-ink-soft font-mono">Ø</span>
+              </div>
+              <p className="font-serif italic text-[20px] text-ink-soft mb-3">Your crate is empty.</p>
+              <p className="font-sans text-[14px] text-ink-soft mb-8">Add pieces from the catalog to start building your order.</p>
+              <Link href="/catalog" className="font-mono text-[12px] uppercase tracking-eyebrow text-brass-deep hover:text-brass transition-colors">
+                Walk the catalog →
+              </Link>
+            </div>
+          ) : (
+            <div className="max-w-[860px]">
+              <div className="flex flex-col lg:flex-row gap-10">
+
+                {/* Item list */}
+                <div className="flex-1 divide-y divide-ink-rule">
+                  {crateItems.map(item => (
+                    <div key={item.product.id} className="flex items-center gap-4 py-5">
+                      {item.product.images[0] && (
+                        <img
+                          src={item.product.images[0]}
+                          alt={item.product.name}
+                          className="w-16 h-16 object-cover rounded-sm border border-ink-rule shrink-0"
+                        />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-sans text-[13px] text-ink-iron leading-snug line-clamp-2">{item.product.name}</p>
+                        {item.selectedFinish && item.selectedFinish !== 'Default' && (
+                          <p className="font-mono text-[10px] uppercase tracking-eyebrow text-ink-soft mt-1">{item.selectedFinish}</p>
+                        )}
+                        <p className="font-mono text-[10px] uppercase tracking-eyebrow text-ink-soft mt-0.5">Qty {item.quantity}</p>
+                      </div>
+                      <p className="font-serif text-[15px] text-brass-deep shrink-0">
+                        ${(item.product.price * item.quantity).toFixed(2)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Order summary */}
+                <div className="lg:w-[300px] shrink-0">
+                  <div className="border border-ink-rule rounded-sm p-6 bg-parchment-2 space-y-4 sticky top-6">
+                    <p className="font-mono text-[10px] uppercase tracking-eyebrow text-ink-soft">Order summary</p>
+                    <div className="space-y-2 text-[13px]">
+                      <div className="flex justify-between text-ink-soft font-sans">
+                        <span>Subtotal ({crateItemCount} {crateItemCount === 1 ? 'item' : 'items'})</span>
+                        <span className="font-serif text-ink-iron">${crateTotal.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-ink-soft font-sans">
+                        <span>Freight (straw-packed crate)</span>
+                        <span className="font-mono text-[11px] uppercase tracking-eyebrow">
+                          {crateTotal >= 150 ? 'Free' : '$18.00'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="border-t border-ink-rule pt-4 flex justify-between items-baseline">
+                      <span className="font-sans text-[13px] text-ink-iron font-semibold">Total · USD</span>
+                      <span className="font-serif text-[22px] text-brass-deep">
+                        ${(crateTotal >= 150 ? crateTotal : crateTotal + 18).toFixed(2)}
+                      </span>
+                    </div>
+                    {crateTotal >= 150 && (
+                      <p className="font-mono text-[10px] uppercase tracking-eyebrow text-green-brand">✓ Qualifies for free freight</p>
+                    )}
+                    <Button
+                      variant="primary"
+                      size="block"
+                      disabled={!checkoutUrl}
+                      onClick={checkout}
+                    >
+                      Proceed to checkout →
+                    </Button>
+                    <div className="space-y-1.5 pt-1">
+                      {['30-day returns on whole pieces', 'Straw-packed, insured freight', 'Plain paper invoice, real return address'].map(t => (
+                        <p key={t} className="flex items-center gap-2 font-sans text-[12px] text-ink-soft">
+                          <span className="text-green-brand">✓</span> {t}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          )
         )}
 
       </div>

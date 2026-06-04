@@ -1,6 +1,7 @@
 'use client'
 
 import { useCrateStore } from '@/store/crateStore'
+import { useCustomerStore } from '@/store/customerStore'
 import { formatPrice } from '@/lib/utils'
 import Button from '@/components/shared/Button'
 
@@ -9,9 +10,22 @@ interface CrateSummaryProps {
 }
 
 export default function CrateSummary({ onClose }: CrateSummaryProps) {
-  const total = useCrateStore(s => s.total())
-  const itemCount = useCrateStore(s => s.itemCount())
-  const checkoutUrl = useCrateStore(s => s.checkoutUrl)
+  const total          = useCrateStore(s => s.total())
+  const itemCount      = useCrateStore(s => s.itemCount())
+  const checkoutUrl    = useCrateStore(s => s.checkoutUrl)
+  const checkout       = useCrateStore(s => s.checkout)
+  const cartCreating   = useCrateStore(s => s._cartCreating)
+  const isLoggedIn     = useCustomerStore(s => s.isLoggedIn)
+
+  const fullCrateHref  = isLoggedIn ? '/account?tab=crate' : '/crate'
+
+  // Cart is still being created — wait for Shopify to return the checkoutUrl
+  const preparing = cartCreating || (!checkoutUrl && itemCount > 0)
+
+  function handleCheckout() {
+    onClose()
+    checkout()
+  }
 
   return (
     <div className="sticky bottom-0 border-t border-ink-rule bg-parchment pt-4 pb-6 px-6 space-y-3">
@@ -32,10 +46,15 @@ export default function CrateSummary({ onClose }: CrateSummaryProps) {
         ✓ Qualifies for free freight
       </p>
 
-      <Button variant="primary" size="block" href={checkoutUrl ?? '/checkout'} onClick={onClose}>
-        Proceed to checkout →
+      <Button
+        variant="primary"
+        size="block"
+        disabled={preparing}
+        onClick={handleCheckout}
+      >
+        {preparing ? 'Preparing…' : 'Proceed to checkout →'}
       </Button>
-      <Button variant="ghost" size="block" href="/crate" onClick={onClose}>
+      <Button variant="ghost" size="block" href={fullCrateHref} onClick={onClose}>
         View full crate →
       </Button>
       <button

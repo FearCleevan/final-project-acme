@@ -26,6 +26,7 @@ interface CrateStore {
   removeItem:      (productId: string) => void
   updateQuantity:  (productId: string, quantity: number) => void
   clearCrate:      () => void
+  checkout:        () => void
   total:           () => number
   itemCount:       () => number
   initCart:        (customerAccessToken?: string | null) => Promise<void>
@@ -193,6 +194,15 @@ export const useCrateStore = create<CrateStore>()(
       },
 
       clearCrate: () => set({ items: [], cartId: null, checkoutUrl: null, _customerToken: null }),
+
+      // Capture URL, wipe the cart, then send user to Shopify checkout.
+      // Cart is cleared immediately so returning users always see an empty state.
+      checkout: () => {
+        const url = get().checkoutUrl
+        if (!url) return
+        set({ items: [], cartId: null, checkoutUrl: null, _customerToken: null })
+        window.location.href = url
+      },
 
       total: () =>
         get().items.reduce((sum, i) => sum + i.product.price * i.quantity, 0),
