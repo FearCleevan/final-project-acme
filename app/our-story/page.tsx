@@ -1,8 +1,15 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import PlateImage from '@/components/shared/PlateImage'
 import Eyebrow from '@/components/shared/Eyebrow'
 import Button from '@/components/shared/Button'
 import storyData from '@/data/story.json'
+
+export const metadata: Metadata = {
+  title: 'Our Story — Antique Oil Lamp Specialists Since 1898',
+  description: 'Acme Vintage Supply sources authentic Victorian oil lamp parts and original enamel advertising signs from Dartmouth, Nova Scotia. Bench-tested and shipped across North America.',
+  alternates: { canonical: '/our-story' },
+}
 
 export default function OurStoryPage() {
   return (
