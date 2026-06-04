@@ -585,7 +585,7 @@ export async function uploadProductImage(
 
 // ─── Orders ───────────────────────────────────────────────────────────────────
 
-import type { AdminOrder, AdminOrderItem, OrderStatus, PaymentStatus, AdminCollection, AdminNotification, FulfillmentEvent, FulfillmentEventStatus } from './types'
+import type { AdminOrder, AdminOrderItem, AdminCustomer, OrderStatus, PaymentStatus, AdminCollection, AdminNotification, FulfillmentEvent, FulfillmentEventStatus } from './types'
 
 interface ShopifyOrderNode {
   id: string
@@ -1108,6 +1108,186 @@ export async function getAdminNotifications(): Promise<AdminNotification[]> {
   return notifications.sort(
     (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
   )
+}
+
+// ─── Customers ───────────────────────────────────────────────────────────────
+
+interface ShopifyCustomerNode {
+  id: string
+  firstName: string
+  lastName: string
+  email: string
+  phone: string | null
+  numberOfOrders: number
+  amountSpent: { amount: string }
+  createdAt: string
+  defaultAddress: {
+    address1: string | null
+    address2: string | null
+    city: string
+    province: string
+    country: string
+  } | null
+}
+
+function toAdminCustomer(c: ShopifyCustomerNode): AdminCustomer {
+  const addr = c.defaultAddress
+  return {
+    id:         c.id.replace('gid://shopify/Customer/', ''),
+    name:       `${c.firstName} ${c.lastName}`.trim() || c.email,
+    email:      c.email,
+    phone:      c.phone ?? '',
+    address:    addr ? [addr.address1, addr.address2].filter(Boolean).join(', ') : '',
+    city:       addr?.city ?? '',
+    province:   addr?.province ?? '',
+    country:    addr?.country ?? '',
+    orders:     c.numberOfOrders,
+    totalSpent: parseFloat(c.amountSpent?.amount ?? '0'),
+    joined:     c.createdAt,
+  }
+}
+
+const CUSTOMER_FIELDS = `
+  id firstName lastName email phone numberOfOrders
+  amountSpent { amount }
+  createdAt
+  defaultAddress { address1 address2 city province country }
+`
+
+export async function getAdminCustomers(first = 250): Promise<AdminCustomer[]> {
+  const data = await adminFetch<{ customers: { edges: { node: ShopifyCustomerNode }[] } }>(
+    `query GetCustomers($first: Int!) {
+      customers(first: $first, sortKey: CREATED_AT, reverse: true) {
+        edges { node { ${CUSTOMER_FIELDS} } }
+      }
+    }`,
+    { first }
+  )
+  return data.customers.edges.map(e => toAdminCustomer(e.node))
+}
+
+export async function getAdminCustomerById(customerId: string): Promise<AdminCustomer | null> {
+  const gid = customerId.startsWith('gid://') ? customerId : `gid://shopify/Customer/${customerId}`
+  const data = await adminFetch<{ customer: ShopifyCustomerNode | null }>(
+    `query GetCustomer($id: ID!) {
+      customer(id: $id) { ${CUSTOMER_FIELDS} }
+    }`,
+    { id: gid }
+  )
+  return data.customer ? toAdminCustomer(data.customer) : null
+}
+
+// ─── Analytics ───────────────────────────────────────────────────────────────
+
+export interface AnalyticsData {
+  revenue:         { today: number; week: number; month: number; todayChange: number; weekChange: number; monthChange: number }
+  orderCount:      { today: number; week: number; month: number }
+  fulfilledOrders: number
+  totalOrders:     number
+  totalShipping:   number
+  totalTaxes:      number
+  avgOrderValue:   number
+  customers:       { total: number; repeat: number; returningRate: number }
+  topProducts:     { title: string; revenue: number; unitsSold: number }[]
+  chartData:       { date: string; revenue: number; orders: number }[]
+}
+
+export async function getAdminAnalytics(): Promise<AnalyticsData> {
+  const [orders, customers] = await Promise.all([
+    getAdminOrders(250),
+    getAdminCustomers(250),
+  ])
+
+  const now   = new Date()
+  const todayStr = now.toISOString().slice(0, 10)
+
+  function inRange(dateStr: string, daysAgo: number, endDaysAgo = 0): boolean {
+    const d    = new Date(dateStr).getTime()
+    const end  = endDaysAgo === 0 ? now.getTime() : now.getTime() - endDaysAgo * 86_400_000
+    const from = now.getTime() - daysAgo * 86_400_000
+    return d >= from && d < end
+  }
+
+  function sumRevenue(subset: typeof orders) { return subset.reduce((s, o) => s + o.total, 0) }
+
+  const todayOrders     = orders.filter(o => o.date.slice(0, 10) === todayStr)
+  const yesterdayStr    = new Date(now.getTime() - 86_400_000).toISOString().slice(0, 10)
+  const yesterdayOrders = orders.filter(o => o.date.slice(0, 10) === yesterdayStr)
+  const weekOrders      = orders.filter(o => inRange(o.date, 7))
+  const lastWeekOrders  = orders.filter(o => inRange(o.date, 14, 7))
+
+  const thisMonthStart  = new Date(now.getFullYear(), now.getMonth(), 1).getTime()
+  const lastMonthStart  = new Date(now.getFullYear(), now.getMonth() - 1, 1).getTime()
+  const monthOrders     = orders.filter(o => new Date(o.date).getTime() >= thisMonthStart)
+  const lastMonthOrders = orders.filter(o => {
+    const t = new Date(o.date).getTime()
+    return t >= lastMonthStart && t < thisMonthStart
+  })
+
+  function pctChange(curr: number, prev: number): number {
+    if (prev === 0) return curr > 0 ? 100 : 0
+    return Math.round(((curr - prev) / prev) * 100)
+  }
+
+  const todayRev     = sumRevenue(todayOrders)
+  const yesterdayRev = sumRevenue(yesterdayOrders)
+  const weekRev      = sumRevenue(weekOrders)
+  const lastWeekRev  = sumRevenue(lastWeekOrders)
+  const monthRev     = sumRevenue(monthOrders)
+  const lastMonthRev = sumRevenue(lastMonthOrders)
+
+  // Chart data — last 90 days, one point per day
+  const chartMap: Record<string, { revenue: number; orders: number }> = {}
+  for (let i = 89; i >= 0; i--) {
+    const d = new Date(now.getTime() - i * 86_400_000).toISOString().slice(0, 10)
+    chartMap[d] = { revenue: 0, orders: 0 }
+  }
+  for (const o of orders) {
+    const d = o.date.slice(0, 10)
+    if (chartMap[d]) {
+      chartMap[d].revenue += o.total
+      chartMap[d].orders  += 1
+    }
+  }
+  const chartData = Object.entries(chartMap).map(([date, v]) => ({
+    date:    date.slice(5),   // MM-DD for display
+    revenue: Math.round(v.revenue * 100) / 100,
+    orders:  v.orders,
+  }))
+
+  // Top products from line items
+  const productMap: Record<string, { title: string; revenue: number; unitsSold: number }> = {}
+  for (const o of orders) {
+    for (const item of o.items) {
+      const key = item.productId || item.title
+      if (!productMap[key]) productMap[key] = { title: item.title, revenue: 0, unitsSold: 0 }
+      productMap[key].revenue   += item.unitPrice * item.quantity
+      productMap[key].unitsSold += item.quantity
+    }
+  }
+  const topProducts = Object.values(productMap)
+    .sort((a, b) => b.revenue - a.revenue)
+    .slice(0, 5)
+    .map(p => ({ ...p, revenue: Math.round(p.revenue * 100) / 100 }))
+
+  const fulfilledOrders = orders.filter(o => o.fulfillmentStatus === 'fulfilled').length
+  const totalOrders     = orders.length
+  const totalRevenue    = sumRevenue(orders)
+  const avgOrderValue   = totalOrders > 0 ? totalRevenue / totalOrders : 0
+  const totalShipping   = orders.reduce((s, o) => s + o.shipping, 0)
+  const totalTaxes      = orders.reduce((s, o) => s + o.tax, 0)
+
+  const repeatCustomers = customers.filter(c => c.orders > 1).length
+  const returningRate   = customers.length > 0
+    ? Math.round((repeatCustomers / customers.length) * 100) : 0
+
+  return {
+    revenue:         { today: todayRev, week: weekRev, month: monthRev, todayChange: pctChange(todayRev, yesterdayRev), weekChange: pctChange(weekRev, lastWeekRev), monthChange: pctChange(monthRev, lastMonthRev) },
+    orderCount:      { today: todayOrders.length, week: weekOrders.length, month: monthOrders.length },
+    fulfilledOrders, totalOrders, totalShipping, totalTaxes, avgOrderValue,
+    customers:       { total: customers.length, repeat: repeatCustomers, returningRate },
+    topProducts, chartData,
+  }
 }
 
 // ─── Sold count ───────────────────────────────────────────────────────────────

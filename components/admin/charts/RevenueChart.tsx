@@ -10,9 +10,9 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts'
-import { mockChartData } from '@/lib/admin/mockData'
 import { formatCurrency } from '@/lib/admin/utils'
 import { cn } from '@/lib/utils'
+import type { ChartDataPoint } from '@/lib/admin/types'
 
 const PERIODS = [
   { label: '7 days',  days: 7  },
@@ -37,9 +37,9 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Toolti
   )
 }
 
-export default function RevenueChart() {
+export default function RevenueChart({ data: allData }: { data: ChartDataPoint[] }) {
   const [period, setPeriod] = useState(30)
-  const data = mockChartData.slice(-period)
+  const data = allData.slice(-period)
 
   const total    = data.reduce((s, d) => s + d.revenue, 0)
   const maxEvery = period === 7 ? 1 : period === 30 ? 5 : 15

@@ -297,6 +297,7 @@ export const mockAdminProducts: AdminProduct[] = [
     workshop: '',
     benchTester: '',
     benchTestDate: '',
+    soldCount: 0,
   },
   {
     id: 'sp-002',
@@ -331,6 +332,7 @@ export const mockAdminProducts: AdminProduct[] = [
     workshop: '',
     benchTester: '',
     benchTestDate: '',
+    soldCount: 0,
   },
   {
     id: 'sp-003',
@@ -365,6 +367,7 @@ export const mockAdminProducts: AdminProduct[] = [
     workshop: '',
     benchTester: '',
     benchTestDate: '',
+    soldCount: 0,
   },
   {
     id: 'sp-004',
@@ -399,6 +402,7 @@ export const mockAdminProducts: AdminProduct[] = [
     workshop: 'Acme Workshop',
     benchTester: 'PPlazan',
     benchTestDate: '2026-05-15',
+    soldCount: 0,
   },
   {
     id: 'sp-005',
@@ -433,6 +437,7 @@ export const mockAdminProducts: AdminProduct[] = [
     workshop: '',
     benchTester: '',
     benchTestDate: '',
+    soldCount: 0,
   },
 ]
 

@@ -1,8 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { mockCustomers } from '@/lib/admin/mockData'
 import { AdminCustomer } from '@/lib/admin/types'
 import { formatCurrency, formatDate } from '@/lib/admin/utils'
 import PageHeader from '@/components/admin/shared/PageHeader'
@@ -44,29 +43,54 @@ function exportCustomersCSV(customers: AdminCustomer[]) {
 
 export default function CustomersPage() {
   const router = useRouter()
-  const [search, setSearch] = useState('')
-  const [page,   setPage]   = useState(1)
+  const [customers, setCustomers] = useState<AdminCustomer[]>([])
+  const [loading,   setLoading]   = useState(true)
+  const [search,    setSearch]    = useState('')
+  const [page,      setPage]      = useState(1)
+
+  useEffect(() => {
+    fetch('/api/admin/customers')
+      .then(r => r.json())
+      .then(d => { setCustomers(Array.isArray(d) ? d : []); setLoading(false) })
+      .catch(() => setLoading(false))
+  }, [])
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return mockCustomers
+    if (!search.trim()) return customers
     const q = search.toLowerCase()
-    return mockCustomers.filter(c =>
+    return customers.filter(c =>
       c.name.toLowerCase().includes(q) ||
       c.email.toLowerCase().includes(q) ||
       c.city.toLowerCase().includes(q)
     )
-  }, [search])
+  }, [search, customers])
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
   const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
-  const totalRevenue = mockCustomers.reduce((s, c) => s + c.totalSpent, 0)
+  const totalRevenue   = customers.reduce((s, c) => s + c.totalSpent, 0)
+  const totalOrdersAll = customers.reduce((s, c) => s + c.orders, 0)
+  const repeatCount    = customers.filter(c => c.orders > 1).length
+
+  if (loading) {
+    return (
+      <div>
+        <PageHeader title="Customers" subtitle="Loading…" />
+        <div className="animate-pulse space-y-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => <div key={i} className="h-20 rounded-lg bg-(--admin-surface-2)" />)}
+          </div>
+          <div className="h-64 rounded-lg bg-(--admin-surface-2)" />
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div>
       <PageHeader
         title="Customers"
-        subtitle={`${mockCustomers.length} customers`}
+        subtitle={`${customers.length} customers`}
         actions={
           <button
             onClick={() => exportCustomersCSV(filtered)}
@@ -80,10 +104,10 @@ export default function CustomersPage() {
       {/* Summary row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
         {[
-          { label: 'Total Customers', value: mockCustomers.length },
+          { label: 'Total Customers',  value: customers.length },
           { label: 'Lifetime Revenue', value: formatCurrency(totalRevenue) },
-          { label: 'Avg. Order Value', value: formatCurrency(totalRevenue / mockCustomers.reduce((s, c) => s + c.orders, 0)) },
-          { label: 'Repeat Customers', value: mockCustomers.filter(c => c.orders > 1).length },
+          { label: 'Avg. Order Value', value: totalOrdersAll > 0 ? formatCurrency(totalRevenue / totalOrdersAll) : '—' },
+          { label: 'Repeat Customers', value: repeatCount },
         ].map(stat => (
           <SectionCard key={stat.label} className="py-3 px-4">
             <p className="text-[11px] font-medium uppercase tracking-wider text-(--admin-text-muted) mb-1">{stat.label}</p>
@@ -171,7 +195,6 @@ export default function CustomersPage() {
                   onClick={() => router.push(`/admin/customers/${c.id}`)}
                   className="border-b border-(--admin-border) last:border-0 hover:bg-(--admin-surface-2) cursor-pointer transition-colors"
                 >
-                  {/* Customer */}
                   <td className="px-5 py-3">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-(--admin-surface-2) border border-(--admin-border) flex items-center justify-center shrink-0">
@@ -185,14 +208,10 @@ export default function CustomersPage() {
                       </div>
                     </div>
                   </td>
-
-                  {/* Location */}
                   <td className="px-5 py-3">
                     <p className="text-[13px] text-(--admin-text-soft)">{c.city}, {c.province}</p>
                     <p className="text-[11px] text-(--admin-text-muted)">{c.country}</p>
                   </td>
-
-                  {/* Orders */}
                   <td className="px-5 py-3">
                     <span className={cn(
                       'text-[13px] font-semibold',
@@ -201,8 +220,6 @@ export default function CustomersPage() {
                       {c.orders}
                     </span>
                   </td>
-
-                  {/* Total Spent */}
                   <td className="px-5 py-3">
                     <span className={cn(
                       'text-[13px] font-semibold',
@@ -211,8 +228,6 @@ export default function CustomersPage() {
                       {c.totalSpent > 0 ? formatCurrency(c.totalSpent) : '—'}
                     </span>
                   </td>
-
-                  {/* Joined */}
                   <td className="px-5 py-3">
                     <span className="text-[12px] text-(--admin-text-muted)">{formatDate(c.joined)}</span>
                   </td>

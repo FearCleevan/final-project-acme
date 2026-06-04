@@ -1,9 +1,9 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { mockCustomers, mockOrders } from '@/lib/admin/mockData'
 import { formatCurrency, formatDate } from '@/lib/admin/utils'
-import { AdminCustomer } from '@/lib/admin/types'
+import { AdminCustomer, AdminOrder } from '@/lib/admin/types'
 import PageHeader from '@/components/admin/shared/PageHeader'
 import SectionCard from '@/components/admin/shared/SectionCard'
 import Badge, { orderStatusVariant, paymentStatusVariant } from '@/components/admin/shared/Badge'
@@ -12,9 +12,40 @@ import { BiArrowBack, BiEnvelope, BiPhone, BiMap } from 'react-icons/bi'
 export default function CustomerDetailPage() {
   const { id }  = useParams<{ id: string }>()
   const router  = useRouter()
-  const customer = mockCustomers.find(c => c.id === id) as AdminCustomer | undefined
 
-  if (!customer) {
+  const [customer, setCustomer] = useState<AdminCustomer | null>(null)
+  const [orders,   setOrders]   = useState<AdminOrder[]>([])
+  const [loading,  setLoading]  = useState(true)
+  const [notFound, setNotFound] = useState(false)
+
+  useEffect(() => {
+    fetch(`/api/admin/customers/${id}`)
+      .then(r => {
+        if (r.status === 404) { setNotFound(true); setLoading(false); return null }
+        return r.json()
+      })
+      .then(d => {
+        if (!d) return
+        setCustomer(d.customer)
+        setOrders(d.orders ?? [])
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [id])
+
+  if (loading) {
+    return (
+      <div>
+        <PageHeader title="Customer" subtitle="Loading…" />
+        <div className="animate-pulse space-y-4">
+          <div className="h-48 rounded-lg bg-(--admin-surface-2)" />
+          <div className="h-64 rounded-lg bg-(--admin-surface-2)" />
+        </div>
+      </div>
+    )
+  }
+
+  if (notFound || !customer) {
     return (
       <div className="text-center py-24">
         <p className="text-[14px] text-(--admin-text-soft)">Customer not found.</p>
@@ -28,7 +59,6 @@ export default function CustomerDetailPage() {
     )
   }
 
-  const orders = mockOrders.filter(o => o.customer.email === customer.email)
   const avgOrder = orders.length > 0 ? customer.totalSpent / orders.length : 0
 
   return (
@@ -85,8 +115,8 @@ export default function CustomerDetailPage() {
             </div>
             <address className="not-italic space-y-0.5">
               <p className="text-[13px] text-(--admin-text)">{customer.name}</p>
-              <p className="text-[13px] text-(--admin-text-soft)">{customer.address}</p>
-              <p className="text-[13px] text-(--admin-text-soft)">{customer.city}, {customer.province}</p>
+              <p className="text-[13px] text-(--admin-text-soft)">{customer.address || '—'}</p>
+              <p className="text-[13px] text-(--admin-text-soft)">{customer.city}{customer.province ? `, ${customer.province}` : ''}</p>
               <p className="text-[13px] text-(--admin-text-soft)">{customer.country}</p>
             </address>
           </SectionCard>
@@ -96,7 +126,7 @@ export default function CustomerDetailPage() {
             <p className="text-[12px] font-semibold text-(--admin-text) mb-4">Account</p>
             <div className="space-y-3">
               {[
-                { label: 'Customer ID', value: customer.id },
+                { label: 'Customer ID',  value: customer.id },
                 { label: 'Member since', value: formatDate(customer.joined) },
               ].map(row => (
                 <div key={row.label} className="flex items-center justify-between">
@@ -156,7 +186,7 @@ export default function CustomerDetailPage() {
                   {orders.map(order => (
                     <tr
                       key={order.id}
-                      onClick={() => router.push(`/admin/orders/${order.id}`)}
+                      onClick={() => router.push(`/admin/orders/${order.id.replace('#', '')}`)}
                       className="border-b border-(--admin-border) last:border-0 hover:bg-(--admin-surface-2) cursor-pointer transition-colors"
                     >
                       <td className="px-5 py-3">
