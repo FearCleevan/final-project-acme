@@ -21,23 +21,24 @@ async function caFetch<T>(token: string, query: string, variables?: Record<strin
       method: 'POST',
       headers: {
         'Content-Type':  'application/json',
-        'Authorization': token,
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify({ query, variables }),
       cache: 'no-store',
     })
     if (!res.ok) {
-      console.error('[shopifyCustomerCA] HTTP', res.status, await res.text())
+      const body = await res.text()
+      console.error('[shopifyCustomerCA] HTTP', res.status, body)
       return null
     }
-    const { data, errors } = await res.json()
-    if (errors?.length) {
-      console.error('[shopifyCustomerCA] GraphQL errors:', errors)
+    const json = await res.json()
+    if (json.errors?.length) {
+      console.error('[shopifyCustomerCA] GraphQL errors:', JSON.stringify(json.errors))
       return null
     }
-    return data as T
+    return json.data as T
   } catch (err) {
-    console.error('[shopifyCustomerCA]', err)
+    console.error('[shopifyCustomerCA] fetch error:', err)
     return null
   }
 }
@@ -62,14 +63,12 @@ interface CAOrder {
   name:              string
   processedAt:       string
   fulfillmentStatus: string
-  financialStatus:   string
   totalPrice:        { amount: string; currencyCode: string }
   lineItems: {
     edges: {
       node: {
         title:    string
         quantity: number
-        image:    { url: string } | null
         price:    { amount: string; currencyCode: string } | null
       }
     }[]
@@ -77,7 +76,6 @@ interface CAOrder {
   fulfillments: {
     trackingInformation: { number: string | null; url: string | null }[]
   }[]
-  shippingAddress: CAAddress | null
 }
 
 interface CACustomer {
@@ -114,19 +112,19 @@ function mapOrder(o: CAOrder): CustomerOrder {
     name:                  o.name,
     processedAt:           o.processedAt,
     fulfillmentStatus:     o.fulfillmentStatus,
-    financialStatus:       o.financialStatus,
+    financialStatus:       'PAID',
     totalPriceV2:          o.totalPrice,
     subtotalPriceV2:       null,
     totalShippingPriceV2:  { amount: '0', currencyCode: o.totalPrice.currencyCode },
-    shippingAddress:       o.shippingAddress ? mapAddress(o.shippingAddress) : null,
+    shippingAddress:       null,
     lineItems: {
       edges: o.lineItems.edges.map(({ node: item }) => ({
         node: {
           title:    item.title,
           quantity: item.quantity,
-          variant:  (item.image || item.price) ? {
-            image:    item.image,
-            priceV2:  item.price ?? { amount: '0', currencyCode: o.totalPrice.currencyCode },
+          variant:  item.price ? {
+            image:    null,
+            priceV2:  item.price,
           } : null,
         },
       })),
@@ -161,14 +159,12 @@ export async function getCustomerProfileCA(token: string): Promise<CustomerProfi
           edges {
             node {
               id name processedAt
-              fulfillmentStatus financialStatus
+              fulfillmentStatus
               totalPrice { amount currencyCode }
-              shippingAddress { ${ADDRESS_FIELDS} }
               lineItems(first: 10) {
                 edges {
                   node {
                     title quantity
-                    image { url }
                     price { amount currencyCode }
                   }
                 }
