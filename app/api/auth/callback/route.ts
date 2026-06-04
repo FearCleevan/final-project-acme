@@ -23,21 +23,16 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(`${siteUrl}/login?error=invalid_state`)
   }
 
-  const clientId     = process.env.SHOPIFY_CLIENT_ID!
-  const clientSecret = process.env.SHOPIFY_CLIENT_SECRET!
+  const clientId      = process.env.SHOPIFY_CLIENT_ID!
   const tokenEndpoint = 'https://shopify.com/authentication/99152462129/oauth/token'
 
-  // Shopify requires client_secret_basic — credentials as Basic auth header
-  const basicCredentials = Buffer.from(`${clientId}:${clientSecret}`).toString('base64')
-
+  // PKCE public client flow — client_id in body, no client_secret
   const tokenRes = await fetch(tokenEndpoint, {
     method: 'POST',
-    headers: {
-      'Content-Type':  'application/x-www-form-urlencoded',
-      'Authorization': `Basic ${basicCredentials}`,
-    },
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
       grant_type:    'authorization_code',
+      client_id:     clientId,
       redirect_uri:  `${siteUrl}/api/auth/callback`,
       code,
       code_verifier: oauth.codeVerifier,
