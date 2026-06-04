@@ -13,6 +13,7 @@ import {
 import { formatCurrency } from '@/lib/admin/utils'
 import { cn } from '@/lib/utils'
 import type { ChartDataPoint } from '@/lib/admin/types'
+import { mockChartData } from '@/lib/admin/mockData'
 
 const PERIODS = [
   { label: '7 days',  days: 7  },
@@ -37,9 +38,9 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Toolti
   )
 }
 
-export default function RevenueChart({ data: allData }: { data: ChartDataPoint[] }) {
+export default function RevenueChart({ data: allData }: { data?: ChartDataPoint[] }) {
   const [period, setPeriod] = useState(30)
-  const data = allData.slice(-period)
+  const data = (allData ?? mockChartData).slice(-period)
 
   const total    = data.reduce((s, d) => s + d.revenue, 0)
   const maxEvery = period === 7 ? 1 : period === 30 ? 5 : 15
