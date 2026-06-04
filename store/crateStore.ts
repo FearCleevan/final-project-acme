@@ -9,6 +9,7 @@ import {
   cartLinesAdd,
   cartLinesUpdate,
   cartLinesRemove,
+  cartBuyerIdentityUpdate,
   fetchCart,
 } from '@/lib/shopifyCart'
 
@@ -26,7 +27,7 @@ interface CrateStore {
   clearCrate:     () => void
   total:          () => number
   itemCount:      () => number
-  initCart:       () => Promise<void>
+  initCart:       (customerAccessToken?: string | null) => Promise<void>
 }
 
 export const useCrateStore = create<CrateStore>()(
@@ -84,13 +85,17 @@ export const useCrateStore = create<CrateStore>()(
             if (get()._cartCreating) return
             set({ _cartCreating: true })
             const allItems = get().items
+            // Lazily read the customer token so we don't create a circular import
+            const customerToken = (await import('@/store/customerStore'))
+              .useCustomerStore.getState().accessToken
             cartCreate(
               allItems
                 .filter(i => i.product.variantId !== null)
                 .map(i => ({
                   merchandiseId: i.product.variantId!,
                   quantity:      i.quantity,
-                }))
+                })),
+              customerToken
             ).then(result => {
               if (!result) {
                 set({ _cartCreating: false })
@@ -175,7 +180,7 @@ export const useCrateStore = create<CrateStore>()(
       itemCount: () =>
         get().items.reduce((sum, i) => sum + i.quantity, 0),
 
-      initCart: async () => {
+      initCart: async (customerAccessToken) => {
         const { cartId } = get()
         if (!cartId) return
 
@@ -187,9 +192,16 @@ export const useCrateStore = create<CrateStore>()(
           return
         }
 
+        // If a customer just logged in, link the cart to them so checkout uses their email
+        let checkoutUrl = result.checkoutUrl
+        if (customerAccessToken) {
+          const updated = await cartBuyerIdentityUpdate(cartId, customerAccessToken)
+          if (updated) checkoutUrl = updated
+        }
+
         // Patch Shopify cartLineIds into existing Zustand items
         set(state => ({
-          checkoutUrl: result.checkoutUrl,
+          checkoutUrl,
           items: state.items.map(item => {
             const line = result.lines.find(l => l.merchandise.id === item.product.variantId)
             return { ...item, cartLineId: line?.id ?? null }

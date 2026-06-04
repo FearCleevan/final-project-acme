@@ -79,28 +79,60 @@ function toLines(
 
 /**
  * Create a new Shopify cart with one or more line items.
- * Returns { cartId, lines } or null on failure.
+ * Pass customerAccessToken to pre-associate the cart with the logged-in customer
+ * so Shopify checkout pre-fills their email and address.
  */
 export async function cartCreate(
-  lines: { merchandiseId: string; quantity: number }[]
+  lines: { merchandiseId: string; quantity: number }[],
+  customerAccessToken?: string | null
 ): Promise<{ cartId: string; checkoutUrl: string; lines: ShopifyCartLine[] } | null> {
+  const buyerIdentity = customerAccessToken
+    ? { buyerIdentity: { customerAccessToken } }
+    : {}
+
   const data = await cartFetch<{
     cartCreate: {
       cart: { id: string; checkoutUrl: string; lines: { edges: { node: ShopifyCartLine }[] } } | null
       userErrors: { field: string; message: string }[]
     }
   }>(
-    `mutation cartCreate($lines: [CartLineInput!]!) {
-      cartCreate(input: { lines: $lines }) {
+    `mutation cartCreate($lines: [CartLineInput!]!, $buyerIdentity: CartBuyerIdentityInput) {
+      cartCreate(input: { lines: $lines, buyerIdentity: $buyerIdentity }) {
         cart { id checkoutUrl ${CART_LINES} }
         userErrors { field message }
       }
     }`,
-    { lines }
+    { lines, buyerIdentity: customerAccessToken ? { customerAccessToken } : null }
   )
   const cart = data?.cartCreate?.cart
   if (!cart) return null
   return { cartId: cart.id, checkoutUrl: cart.checkoutUrl, lines: toLines(cart) }
+}
+
+/**
+ * Associate an existing cart with a logged-in customer.
+ * Returns the updated checkoutUrl or null on failure.
+ * Call this after login/hydrate so Shopify checkout uses the right email.
+ */
+export async function cartBuyerIdentityUpdate(
+  cartId: string,
+  customerAccessToken: string
+): Promise<string | null> {
+  const data = await cartFetch<{
+    cartBuyerIdentityUpdate: {
+      cart: { checkoutUrl: string } | null
+      userErrors: { field: string; message: string }[]
+    }
+  }>(
+    `mutation cartBuyerIdentityUpdate($cartId: ID!, $buyerIdentity: CartBuyerIdentityInput!) {
+      cartBuyerIdentityUpdate(cartId: $cartId, buyerIdentity: $buyerIdentity) {
+        cart { checkoutUrl }
+        userErrors { field message }
+      }
+    }`,
+    { cartId, buyerIdentity: { customerAccessToken } }
+  )
+  return data?.cartBuyerIdentityUpdate?.cart?.checkoutUrl ?? null
 }
 
 /**

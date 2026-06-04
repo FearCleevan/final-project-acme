@@ -7,7 +7,6 @@ import CrateDrawer from '@/components/crate/CrateDrawer'
 import SearchOverlay from '@/components/shared/SearchOverlay'
 import Footer from '@/components/shared/Footer'
 import { useSearchOverlay } from '@/hooks/useSearchOverlay'
-import { useCrateStore } from '@/store/crateStore'
 import { useCustomerStore } from '@/store/customerStore'
 import { useLenis } from '@/hooks/useLenis'
 
@@ -22,7 +21,7 @@ export default function ShellClient({ children }: ShellClientProps) {
   useLenis()
 
   useEffect(() => {
-    useCrateStore.getState().initCart()
+    // hydrate() handles initCart internally for both guests and logged-in customers
     useCustomerStore.getState().hydrate()
   }, [])
 
