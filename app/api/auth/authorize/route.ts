@@ -39,9 +39,8 @@ export async function GET(req: NextRequest) {
       code_challenge_method: 'S256',
     })
 
-    // Hint Shopify which screen to show first
-    if (mode === 'register') params.set('prompt', 'create')
-    else                      params.set('prompt', 'login')
+    // 'prompt=login' forces re-auth for sign-in; register uses default flow
+    if (mode === 'login') params.set('prompt', 'login')
 
     console.log('[authorize] redirecting to Shopify auth', { clientId, redirectUri })
     return NextResponse.redirect(`${authEndpoint}?${params}`)
