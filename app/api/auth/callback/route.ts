@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
   }
 
   const tokenData = JSON.parse(tokenBody)
-  const { access_token, expires_in } = tokenData
+  const { access_token, id_token, expires_in } = tokenData
 
   if (!access_token) {
     console.error('[callback] no access_token in response:', tokenData)
@@ -56,9 +56,10 @@ export async function GET(req: NextRequest) {
   }
 
   const redirectTo = oauth.redirectTo
-  session.oauth       = undefined
-  session.accessToken = access_token
-  session.expiresAt   = Date.now() + (expires_in * 1000)
+  session.oauth        = undefined
+  session.accessToken  = access_token
+  session.idToken      = id_token ?? undefined
+  session.expiresAt    = Date.now() + (expires_in * 1000)
   await session.save()
 
   console.log('[callback] success — redirecting to', redirectTo)

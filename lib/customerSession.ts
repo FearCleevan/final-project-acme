@@ -7,7 +7,8 @@ export interface CustomerSessionData {
     redirectTo: string
   }
   accessToken?: string
-  expiresAt?: number
+  idToken?:     string
+  expiresAt?:   number
 }
 
 export const customerSessionOptions: SessionOptions = {

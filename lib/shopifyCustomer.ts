@@ -191,8 +191,8 @@ export async function customerRecover(email: string): Promise<CustomerUserError[
 // Used when the store has New Customer Accounts enabled (passwordless OTP).
 // Tokens come from the OAuth callback, not from customerAccessTokenCreate.
 
-const CA_SHOP_ID   = process.env.NEXT_PUBLIC_SHOPIFY_CUSTOMER_ACCOUNT_ID!
-const CA_ENDPOINT  = `https://shopify.com/${CA_SHOP_ID}/account/customer/api/2024-07/graphql.json`
+const CA_SHOP_ID  = process.env.NEXT_PUBLIC_SHOPIFY_CUSTOMER_ACCOUNT_ID ?? '99152462129'
+const CA_ENDPOINT = `https://shopify.com/${CA_SHOP_ID}/account/customer/api/unstable/graphql.json`
 
 async function customerAccountFetch<T>(
   accessToken: string,
