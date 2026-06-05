@@ -3,8 +3,7 @@ import {
   CustomerProfile,
   CustomerOrder,
   CustomerAddress,
-  customerCreate,
-  getCustomerProfile,
+  getCustomerProfileCA,
 } from '@/lib/shopifyCustomer'
 import { useCrateStore } from '@/store/crateStore'
 
@@ -17,8 +16,7 @@ interface CustomerStore {
   error:        string | null
 
   hydrate:      () => Promise<void>
-  login:        (email: string, password: string) => Promise<string | null>
-  register:     (firstName: string, lastName: string, email: string, password: string) => Promise<string | null>
+  login:        (redirectTo?: string) => void
   logout:       () => Promise<void>
   fetchProfile: () => Promise<void>
   clearError:   () => void
@@ -37,13 +35,11 @@ export const useCustomerStore = create<CustomerStore>()((set, get) => ({
       const res = await fetch('/api/auth/me')
       if (!res.ok) {
         set({ isLoggedIn: false, accessToken: null })
-        // Still init cart for guest users (no buyer identity)
         useCrateStore.getState().initCart()
         return
       }
       const { accessToken, expiresAt } = await res.json()
       set({ isLoggedIn: true, accessToken, expiresAt })
-      // Init cart and link it to this customer so checkout uses their email
       useCrateStore.getState().initCart(accessToken)
       get().fetchProfile()
     } catch {
@@ -52,55 +48,13 @@ export const useCustomerStore = create<CustomerStore>()((set, get) => ({
     }
   },
 
-  login: async (email, password) => {
-    set({ loading: true, error: null })
-    try {
-      const res = await fetch('/api/auth/login', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ email, password }),
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        const msg = data.error ?? 'Sign-in failed. Please try again.'
-        set({ loading: false, error: msg })
-        return msg
-      }
-        // Re-hydrate to pick up the new session token (hydrate also calls initCart with the token)
-      await get().hydrate()
-      set({ loading: false })
-      return null
-    } catch {
-      const msg = 'Network error. Please try again.'
-      set({ loading: false, error: msg })
-      return msg
-    }
-  },
-
-  register: async (firstName, lastName, email, password) => {
-    set({ loading: true, error: null })
-    const { token, errors } = await customerCreate({ firstName, lastName, email, password })
-    if (errors.length || !token) {
-      const msg = errors[0]?.message ?? 'Could not create account. Please try again.'
-      set({ loading: false, error: msg })
-      return msg
-    }
-    // customerCreate auto-logs in — now save that token to the server session
-    const res = await fetch('/api/auth/login', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ email, password }),
-    })
-    if (res.ok) {
-      await get().hydrate()
-    }
-    set({ loading: false })
-    return null
+  // OAuth flow — redirects browser to Shopify-hosted auth page
+  login: (redirectTo = '/account') => {
+    window.location.href = `/api/auth/authorize?redirectTo=${encodeURIComponent(redirectTo)}`
   },
 
   logout: async () => {
     await fetch('/api/auth/logout', { method: 'POST' })
-    // Clear the cart so the next user gets a fresh cart
     useCrateStore.getState().clearCrate()
     set({
       accessToken: null,
@@ -115,7 +69,7 @@ export const useCustomerStore = create<CustomerStore>()((set, get) => ({
     const { accessToken } = get()
     if (!accessToken) return
     set({ loading: true })
-    const profile = await getCustomerProfile(accessToken)
+    const profile = await getCustomerProfileCA(accessToken)
     set({ loading: false, profile: profile ?? null })
   },
 

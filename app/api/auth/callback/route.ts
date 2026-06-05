@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(`${siteUrl}/login?error=invalid_state`)
   }
 
-  const clientId      = process.env.SHOPIFY_CLIENT_ID!
+  const clientId      = process.env.SHOPIFY_CUSTOMER_ACCOUNT_CLIENT_ID!
   const tokenEndpoint = 'https://shopify.com/authentication/99152462129/oauth/token'
 
   // PKCE public client flow — client_id in body, no client_secret

@@ -15,10 +15,10 @@ import {
 import { useCrateStore } from '@/store/crateStore'
 import type { CustomerOrder, CustomerAddress } from '@/lib/shopifyCustomer'
 import {
-  customerAddressCreate,
-  customerAddressUpdate,
-  customerAddressDelete,
-  customerDefaultAddressUpdate,
+  customerAddressCreateCA  as customerAddressCreate,
+  customerAddressUpdateCA  as customerAddressUpdate,
+  customerAddressDeleteCA  as customerAddressDelete,
+  customerDefaultAddressUpdateCA as customerDefaultAddressUpdate,
 } from '@/lib/shopifyCustomer'
 import Eyebrow from '@/components/shared/Eyebrow'
 import Button from '@/components/shared/Button'

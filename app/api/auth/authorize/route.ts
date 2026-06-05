@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
     session.oauth = { state, codeVerifier, redirectTo }
     await session.save()
 
-    const clientId   = process.env.SHOPIFY_CLIENT_ID!
+    const clientId   = process.env.SHOPIFY_CUSTOMER_ACCOUNT_CLIENT_ID!
     const redirectUri = `${SITE_URL}/api/auth/callback`
 
     // Use known endpoints directly — faster and avoids discovery fetch failure

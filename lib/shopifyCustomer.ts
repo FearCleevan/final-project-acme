@@ -187,6 +187,360 @@ export async function customerRecover(email: string): Promise<CustomerUserError[
   return data?.customerRecover?.customerUserErrors ?? []
 }
 
+// ─── Customer Account API (New Customer Accounts — OAuth/OIDC) ───────────────
+// Used when the store has New Customer Accounts enabled (passwordless OTP).
+// Tokens come from the OAuth callback, not from customerAccessTokenCreate.
+
+const CA_SHOP_ID   = process.env.NEXT_PUBLIC_SHOPIFY_CUSTOMER_ACCOUNT_ID!
+const CA_ENDPOINT  = `https://shopify.com/${CA_SHOP_ID}/account/customer/api/2024-07/graphql.json`
+
+async function customerAccountFetch<T>(
+  accessToken: string,
+  query: string,
+  variables?: Record<string, unknown>
+): Promise<T | null> {
+  try {
+    const res = await fetch(CA_ENDPOINT, {
+      method:  'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': `Bearer ${accessToken}`,
+      },
+      body:  JSON.stringify({ query, variables }),
+      cache: 'no-store',
+    })
+    if (!res.ok) return null
+    const { data, errors } = await res.json()
+    if (errors?.length) {
+      console.error('[CustomerAccountAPI] GraphQL errors:', errors)
+      return null
+    }
+    return data as T
+  } catch (err) {
+    console.error('[CustomerAccountAPI]', err)
+    return null
+  }
+}
+
+// Internal CA API types (differ slightly from Storefront API types)
+interface CAAddress {
+  id:          string
+  firstName:   string | null
+  lastName:    string | null
+  address1:    string | null
+  address2:    string | null
+  city:        string | null
+  province:    string | null
+  country:     string | null
+  zip:         string | null
+  phoneNumber: string | null
+}
+
+interface CALineItem {
+  title:    string
+  quantity: number
+  image:    { url: string } | null
+  price:    { amount: string; currencyCode: string }
+}
+
+interface CAOrder {
+  id:                string
+  name:              string
+  processedAt:       string
+  fulfillmentStatus: string
+  financialStatus:   string
+  totalPrice:        { amount: string; currencyCode: string }
+  subtotal:          { amount: string; currencyCode: string } | null
+  lineItems:         { edges: { node: CALineItem }[] }
+  fulfillments:      { trackingInformation: { number: string | null; url: string | null }[] }[]
+  shippingAddress:   Omit<CAAddress, 'id'> | null
+}
+
+function normalizeCAAddress(a: CAAddress): CustomerAddress {
+  return {
+    id:        a.id,
+    firstName: a.firstName,
+    lastName:  a.lastName,
+    address1:  a.address1,
+    address2:  a.address2,
+    city:      a.city,
+    province:  a.province,
+    country:   a.country,
+    zip:       a.zip,
+    phone:     a.phoneNumber,
+  }
+}
+
+function normalizeCAOrder(o: CAOrder): CustomerOrder {
+  return {
+    id:                    o.id,
+    name:                  o.name,
+    processedAt:           o.processedAt,
+    fulfillmentStatus:     o.fulfillmentStatus,
+    financialStatus:       o.financialStatus,
+    totalPriceV2:          o.totalPrice,
+    subtotalPriceV2:       o.subtotal ?? null,
+    totalShippingPriceV2:  { amount: '0', currencyCode: o.totalPrice.currencyCode },
+    lineItems: {
+      edges: o.lineItems.edges.map(e => ({
+        node: {
+          title:    e.node.title,
+          quantity: e.node.quantity,
+          variant:  {
+            image:   e.node.image,
+            priceV2: e.node.price,
+          },
+        },
+      })),
+    },
+    successfulFulfillments: o.fulfillments.map(f => ({
+      trackingInfo:          f.trackingInformation,
+      fulfillmentLineItems:  { edges: [] },
+    })),
+    shippingAddress: o.shippingAddress
+      ? {
+          id:        '',
+          firstName: o.shippingAddress.firstName,
+          lastName:  o.shippingAddress.lastName,
+          address1:  o.shippingAddress.address1,
+          address2:  o.shippingAddress.address2,
+          city:      o.shippingAddress.city,
+          province:  o.shippingAddress.province,
+          country:   o.shippingAddress.country,
+          zip:       o.shippingAddress.zip,
+          phone:     (o.shippingAddress as CAAddress).phoneNumber ?? null,
+        }
+      : null,
+  }
+}
+
+const CA_ADDRESS_FIELDS = `
+  id firstName lastName
+  address1 address2
+  city province country zip
+  phoneNumber
+`
+
+const CA_ORDER_FIELDS = `
+  id name processedAt
+  fulfillmentStatus financialStatus
+  totalPrice { amount currencyCode }
+  subtotal    { amount currencyCode }
+  lineItems(first: 10) {
+    edges { node {
+      title quantity
+      image { url }
+      price { amount currencyCode }
+    } }
+  }
+  fulfillments(first: 1) {
+    trackingInformation { number url }
+  }
+  shippingAddress {
+    firstName lastName
+    address1 address2
+    city province country zip phoneNumber
+  }
+`
+
+/** Fetch customer profile via Customer Account API (used with OAuth access token). */
+export async function getCustomerProfileCA(
+  accessToken: string
+): Promise<CustomerProfile | null> {
+  const data = await customerAccountFetch<{
+    customer: {
+      id:             string
+      firstName:      string | null
+      lastName:       string | null
+      emailAddress:   { emailAddress: string } | null
+      phoneNumber:    { phoneNumber: string }  | null
+      defaultAddress: CAAddress | null
+      addresses:      { edges: { node: CAAddress }[] }
+      orders:         { edges: { node: CAOrder }[] }
+    }
+  }>(
+    accessToken,
+    `query GetCustomer {
+      customer {
+        id firstName lastName
+        emailAddress { emailAddress }
+        phoneNumber  { phoneNumber }
+        defaultAddress { ${CA_ADDRESS_FIELDS} }
+        addresses(first: 5) { edges { node { ${CA_ADDRESS_FIELDS} } } }
+        orders(first: 20, sortKey: PROCESSED_AT, reverse: true) {
+          edges { node { ${CA_ORDER_FIELDS} } }
+        }
+      }
+    }`
+  )
+
+  if (!data?.customer) return null
+  const c = data.customer
+
+  return {
+    id:             c.id,
+    firstName:      c.firstName,
+    lastName:       c.lastName,
+    email:          c.emailAddress?.emailAddress ?? '',
+    phone:          c.phoneNumber?.phoneNumber ?? null,
+    defaultAddress: c.defaultAddress ? normalizeCAAddress(c.defaultAddress) : null,
+    addresses:      { edges: c.addresses.edges.map(e => ({ node: normalizeCAAddress(e.node) })) },
+    orders:         { edges: c.orders.edges.map(e => ({ node: normalizeCAOrder(e.node) })) },
+  }
+}
+
+// ─── Customer Account API — Address mutations ─────────────────────────────────
+
+export async function customerAddressCreateCA(
+  accessToken: string,
+  address: Omit<CustomerAddress, 'id'>
+): Promise<{ id: string | null; errors: CustomerUserError[] }> {
+  const data = await customerAccountFetch<{
+    customerAddressCreate: {
+      customerAddress: { id: string } | null
+      userErrors:      { field: string | null; message: string }[]
+    }
+  }>(
+    accessToken,
+    `mutation customerAddressCreate($address: CustomerAddressInput!) {
+      customerAddressCreate(address: $address) {
+        customerAddress { id }
+        userErrors { field message }
+      }
+    }`,
+    {
+      address: {
+        firstName:   address.firstName,
+        lastName:    address.lastName,
+        address1:    address.address1,
+        address2:    address.address2,
+        city:        address.city,
+        province:    address.province,
+        country:     address.country,
+        zip:         address.zip,
+        phoneNumber: address.phone,
+      },
+    }
+  )
+  return {
+    id:     data?.customerAddressCreate?.customerAddress?.id ?? null,
+    errors: (data?.customerAddressCreate?.userErrors ?? []).map(e => ({
+      field:   e.field ? [e.field] : null,
+      message: e.message,
+    })),
+  }
+}
+
+export async function customerAddressUpdateCA(
+  accessToken: string,
+  addressId: string,
+  address: Omit<CustomerAddress, 'id'>
+): Promise<CustomerUserError[]> {
+  const data = await customerAccountFetch<{
+    customerAddressUpdate: {
+      userErrors: { field: string | null; message: string }[]
+    }
+  }>(
+    accessToken,
+    `mutation customerAddressUpdate($addressId: ID!, $address: CustomerAddressInput!) {
+      customerAddressUpdate(addressId: $addressId, address: $address) {
+        customerAddress { id }
+        userErrors { field message }
+      }
+    }`,
+    {
+      addressId,
+      address: {
+        firstName:   address.firstName,
+        lastName:    address.lastName,
+        address1:    address.address1,
+        address2:    address.address2,
+        city:        address.city,
+        province:    address.province,
+        country:     address.country,
+        zip:         address.zip,
+        phoneNumber: address.phone,
+      },
+    }
+  )
+  return (data?.customerAddressUpdate?.userErrors ?? []).map(e => ({
+    field:   e.field ? [e.field] : null,
+    message: e.message,
+  }))
+}
+
+export async function customerAddressDeleteCA(
+  accessToken: string,
+  addressId: string
+): Promise<CustomerUserError[]> {
+  const data = await customerAccountFetch<{
+    customerAddressDelete: {
+      userErrors: { field: string | null; message: string }[]
+    }
+  }>(
+    accessToken,
+    `mutation customerAddressDelete($addressId: ID!) {
+      customerAddressDelete(addressId: $addressId) {
+        deletedAddressId
+        userErrors { field message }
+      }
+    }`,
+    { addressId }
+  )
+  return (data?.customerAddressDelete?.userErrors ?? []).map(e => ({
+    field:   e.field ? [e.field] : null,
+    message: e.message,
+  }))
+}
+
+export async function customerDefaultAddressUpdateCA(
+  accessToken: string,
+  addressId: string
+): Promise<CustomerUserError[]> {
+  const data = await customerAccountFetch<{
+    customerAddressSetDefault: {
+      userErrors: { field: string | null; message: string }[]
+    }
+  }>(
+    accessToken,
+    `mutation customerAddressSetDefault($addressId: ID!) {
+      customerAddressSetDefault(addressId: $addressId) {
+        customer { defaultAddress { id } }
+        userErrors { field message }
+      }
+    }`,
+    { addressId }
+  )
+  return (data?.customerAddressSetDefault?.userErrors ?? []).map(e => ({
+    field:   e.field ? [e.field] : null,
+    message: e.message,
+  }))
+}
+
+/** Reset password using the URL from the Shopify reset email. Returns access token on success. */
+export async function customerResetByUrl(
+  resetUrl: string,
+  password: string
+): Promise<{ token: CustomerAccessToken | null; errors: CustomerUserError[] }> {
+  const data = await customerFetch<{
+    customerResetByUrl: {
+      customerAccessToken: CustomerAccessToken | null
+      customerUserErrors:  CustomerUserError[]
+    }
+  }>(
+    `mutation customerResetByUrl($resetUrl: URL!, $password: String!) {
+      customerResetByUrl(resetUrl: $resetUrl, password: $password) {
+        customerAccessToken { accessToken expiresAt }
+        customerUserErrors { field message }
+      }
+    }`,
+    { resetUrl, password }
+  )
+  const errors = data?.customerResetByUrl?.customerUserErrors ?? []
+  const token  = data?.customerResetByUrl?.customerAccessToken ?? null
+  return { token, errors }
+}
+
 /** Renew an expiring token. */
 export async function customerTokenRenew(
   accessToken: string
