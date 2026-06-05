@@ -209,10 +209,13 @@ async function customerAccountFetch<T>(
       body:  JSON.stringify({ query, variables }),
       cache: 'no-store',
     })
-    if (!res.ok) return null
+    if (!res.ok) {
+      console.error('[CustomerAccountAPI] HTTP error:', res.status, await res.text())
+      return null
+    }
     const { data, errors } = await res.json()
     if (errors?.length) {
-      console.error('[CustomerAccountAPI] GraphQL errors:', errors)
+      console.error('[CustomerAccountAPI] GraphQL errors:', JSON.stringify(errors, null, 2))
       return null
     }
     return data as T
@@ -250,9 +253,7 @@ interface CAOrder {
   fulfillmentStatus: string
   financialStatus:   string
   totalPrice:        { amount: string; currencyCode: string }
-  subtotal:          { amount: string; currencyCode: string } | null
   lineItems:         { edges: { node: CALineItem }[] }
-  fulfillments:      { trackingInformation: { number: string | null; url: string | null }[] }[]
   shippingAddress:   Omit<CAAddress, 'id'> | null
 }
 
@@ -272,6 +273,7 @@ function normalizeCAAddress(a: CAAddress): CustomerAddress {
 }
 
 function normalizeCAOrder(o: CAOrder): CustomerOrder {
+  const currency = o.totalPrice.currencyCode
   return {
     id:                    o.id,
     name:                  o.name,
@@ -279,24 +281,18 @@ function normalizeCAOrder(o: CAOrder): CustomerOrder {
     fulfillmentStatus:     o.fulfillmentStatus,
     financialStatus:       o.financialStatus,
     totalPriceV2:          o.totalPrice,
-    subtotalPriceV2:       o.subtotal ?? null,
-    totalShippingPriceV2:  { amount: '0', currencyCode: o.totalPrice.currencyCode },
+    subtotalPriceV2:       null,
+    totalShippingPriceV2:  { amount: '0', currencyCode: currency },
     lineItems: {
       edges: o.lineItems.edges.map(e => ({
         node: {
           title:    e.node.title,
           quantity: e.node.quantity,
-          variant:  {
-            image:   e.node.image,
-            priceV2: e.node.price,
-          },
+          variant:  { image: e.node.image, priceV2: e.node.price },
         },
       })),
     },
-    successfulFulfillments: o.fulfillments.map(f => ({
-      trackingInfo:          f.trackingInformation,
-      fulfillmentLineItems:  { edges: [] },
-    })),
+    successfulFulfillments: [],
     shippingAddress: o.shippingAddress
       ? {
           id:        '',
@@ -325,16 +321,12 @@ const CA_ORDER_FIELDS = `
   id name processedAt
   fulfillmentStatus financialStatus
   totalPrice { amount currencyCode }
-  subtotal    { amount currencyCode }
   lineItems(first: 10) {
     edges { node {
       title quantity
       image { url }
       price { amount currencyCode }
     } }
-  }
-  fulfillments(first: 1) {
-    trackingInformation { number url }
   }
   shippingAddress {
     firstName lastName
