@@ -197,15 +197,22 @@ export const useCrateStore = create<CrateStore>()(
 
       // Capture URL, wipe the cart, then send user to Shopify checkout.
       // Cart is cleared immediately so returning users always see an empty state.
-      // return_to param tells Shopify where to redirect after order is placed.
+      // Shopify returns checkout URLs using the primary domain (acmevintagesupply.com).
+      // Since that domain is hosted on Vercel (not Shopify), we must rewrite it to
+      // the myshopify domain so Shopify's checkout page actually loads.
+      // return_to param sends customer back to our site after order is placed.
       checkout: () => {
         const url = get().checkoutUrl
         if (!url) return
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.acmevintagesupply.com'
-        const returnTo = encodeURIComponent(siteUrl)
-        const checkoutUrl = url.includes('?')
-          ? `${url}&return_to=${returnTo}`
-          : `${url}?return_to=${returnTo}`
+        const siteUrl  = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.acmevintagesupply.com'
+        const shopifyDomain = 'w061f6-k8.myshopify.com'
+        const normalized = url
+          .replace('https://www.acmevintagesupply.com', `https://${shopifyDomain}`)
+          .replace('https://acmevintagesupply.com',     `https://${shopifyDomain}`)
+        const returnTo    = encodeURIComponent(siteUrl)
+        const checkoutUrl = normalized.includes('?')
+          ? `${normalized}&return_to=${returnTo}`
+          : `${normalized}?return_to=${returnTo}`
         set({ items: [], cartId: null, checkoutUrl: null, _customerToken: null })
         window.location.href = checkoutUrl
       },
