@@ -14,6 +14,7 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
     const redirectTo = searchParams.get('redirectTo') ?? '/account'
+    const mode       = searchParams.get('mode') ?? 'login' // 'login' | 'register'
 
     const codeVerifier  = base64url(crypto.randomBytes(32))
     const codeChallenge = base64url(crypto.createHash('sha256').update(codeVerifier).digest())
@@ -26,7 +27,6 @@ export async function GET(req: NextRequest) {
     const clientId   = process.env.SHOPIFY_CUSTOMER_ACCOUNT_CLIENT_ID!
     const redirectUri = `${SITE_URL}/api/auth/callback`
 
-    // Use known endpoints directly — faster and avoids discovery fetch failure
     const authEndpoint = 'https://shopify.com/authentication/99152462129/oauth/authorize'
 
     const params = new URLSearchParams({
@@ -38,6 +38,10 @@ export async function GET(req: NextRequest) {
       code_challenge:        codeChallenge,
       code_challenge_method: 'S256',
     })
+
+    // Hint Shopify which screen to show first
+    if (mode === 'register') params.set('prompt', 'create')
+    else                      params.set('prompt', 'login')
 
     console.log('[authorize] redirecting to Shopify auth', { clientId, redirectUri })
     return NextResponse.redirect(`${authEndpoint}?${params}`)
