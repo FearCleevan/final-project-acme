@@ -3,7 +3,6 @@ import {
   CustomerProfile,
   CustomerOrder,
   CustomerAddress,
-  getCustomerProfileCA,
 } from '@/lib/shopifyCustomer'
 import { useCrateStore } from '@/store/crateStore'
 
@@ -66,11 +65,15 @@ export const useCustomerStore = create<CustomerStore>()((set, get) => ({
   },
 
   fetchProfile: async () => {
-    const { accessToken } = get()
-    if (!accessToken) return
     set({ loading: true })
-    const profile = await getCustomerProfileCA(accessToken)
-    set({ loading: false, profile: profile ?? null })
+    try {
+      const res = await fetch('/api/auth/profile')
+      if (!res.ok) { set({ loading: false, profile: null }); return }
+      const { profile } = await res.json()
+      set({ loading: false, profile: profile ?? null })
+    } catch {
+      set({ loading: false, profile: null })
+    }
   },
 
   clearError: () => set({ error: null }),
