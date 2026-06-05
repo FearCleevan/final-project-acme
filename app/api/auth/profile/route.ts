@@ -191,22 +191,21 @@ export async function GET() {
     return NextResponse.json({ profile: null }, { status: 401 })
   }
 
-  // 1 — Try Customer Account API (full data, no Admin token needed)
+  // Email is stored at login time in the session — no JWT decode needed per-request
+  const email = session.email ?? null
+
+  // 1 — Try Customer Account API (full data)
   try {
     const full = await getCustomerProfileCA(session.accessToken)
     if (full) {
-      console.log('[profile] CA API success')
+      console.log('[profile] CA API success for', full.email)
       return NextResponse.json({ profile: full })
     }
   } catch (err) {
     console.error('[profile] CA API threw:', err)
   }
 
-  // 2 — Decode id_token to get at least the email
-  const claims = session.idToken ? decodeJWT(session.idToken) : null
-  const email  = (claims?.email as string) ?? null
-
-  // 3 — Admin API: full profile (name + orders + addresses) by email
+  // 2 — Admin API: full profile (name + orders + addresses) by email
   if (email) {
     try {
       const admin = await getProfileFromAdmin(email)
@@ -214,24 +213,27 @@ export async function GET() {
         console.log('[profile] Admin API success for', email)
         return NextResponse.json({ profile: admin })
       }
+      console.warn('[profile] Admin API returned null for', email)
     } catch (err) {
       console.error('[profile] Admin API threw:', err)
     }
   }
 
-  // 4 — Bare minimum from id_token (email only)
-  if (claims && email) {
+  // 3 — Bare minimum from id_token JWT claims
+  const claims = session.idToken ? decodeJWT(session.idToken) : null
+  const claimEmail = email ?? (claims?.email as string) ?? null
+  if (claimEmail) {
     const bare: CustomerProfile = {
-      id:             String((claims.sub as string ?? '').split('/').pop() ?? ''),
-      firstName:      (claims.given_name  as string) ?? null,
-      lastName:       (claims.family_name as string) ?? null,
-      email,
-      phone:          (claims.phone_number as string) ?? null,
+      id:             String(((claims?.sub as string) ?? '').split('/').pop() ?? ''),
+      firstName:      (claims?.given_name  as string) ?? null,
+      lastName:       (claims?.family_name as string) ?? null,
+      email:          claimEmail,
+      phone:          (claims?.phone_number as string) ?? null,
       defaultAddress: null,
       addresses:      { edges: [] },
       orders:         { edges: [] },
     }
-    console.log('[profile] id_token bare fallback for', email)
+    console.log('[profile] bare fallback for', claimEmail)
     return NextResponse.json({ profile: bare })
   }
 

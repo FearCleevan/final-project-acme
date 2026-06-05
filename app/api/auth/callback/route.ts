@@ -55,10 +55,25 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(`${siteUrl}/login?error=${encodeURIComponent('No access token returned: ' + tokenBody)}`)
   }
 
-  const redirectTo = oauth.redirectTo
+  // Decode id_token to extract email at login time — avoids decoding on every request
+  let email: string | undefined
+  if (id_token) {
+    try {
+      const payload = JSON.parse(
+        Buffer.from(id_token.split('.')[1], 'base64url').toString('utf-8')
+      )
+      email = payload.email ?? undefined
+      console.log('[callback] decoded email from id_token:', email)
+    } catch {
+      console.warn('[callback] could not decode id_token')
+    }
+  }
+
+  const redirectTo     = oauth.redirectTo
   session.oauth        = undefined
   session.accessToken  = access_token
   session.idToken      = id_token ?? undefined
+  session.email        = email
   session.expiresAt    = Date.now() + (expires_in * 1000)
   await session.save()
 

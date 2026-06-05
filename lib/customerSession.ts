@@ -8,6 +8,7 @@ export interface CustomerSessionData {
   }
   accessToken?: string
   idToken?:     string
+  email?:       string
   expiresAt?:   number
 }
 
