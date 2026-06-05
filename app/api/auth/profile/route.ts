@@ -119,10 +119,11 @@ async function getProfileFromAdmin(email: string): Promise<CustomerProfile | nul
 
     // Normalise Admin order → CustomerOrder
     function normalizeOrder(o: Record<string, unknown>): CustomerOrder {
-      const money = (o.totalPriceSet as Record<string, Record<string,string>>)
-                      ?.shopMoney ?? { amount: '0', currencyCode: 'CAD' }
-      const liEdges = ((o.lineItems as Record<string,unknown>)
-                        ?.edges as {node:Record<string,unknown>}[]) ?? []
+      type MoneyBag = { shopMoney: { amount: string; currencyCode: string } }
+      const defaultMoney = { amount: '0', currencyCode: 'CAD' }
+      const money    = ((o.totalPriceSet as MoneyBag | null)?.shopMoney)        ?? defaultMoney
+      const liEdges  = ((o.lineItems as { edges: { node: Record<string,unknown> }[] } | null)
+                          ?.edges) ?? []
       return {
         id:                   String(o.id ?? ''),
         name:                 String(o.name ?? ''),
@@ -134,14 +135,14 @@ async function getProfileFromAdmin(email: string): Promise<CustomerProfile | nul
         totalShippingPriceV2: { amount: '0', currencyCode: money.currencyCode },
         lineItems: {
           edges: liEdges.map(e => {
-            const unitPrice = (e.node.originalUnitPriceSet as Record<string,Record<string,string>>)
-                                ?.shopMoney ?? { amount: '0', currencyCode: 'CAD' }
+            const unitPrice = ((e.node.originalUnitPriceSet as MoneyBag | null)?.shopMoney)
+                                ?? defaultMoney
             return {
               node: {
                 title:    String(e.node.title ?? ''),
                 quantity: Number(e.node.quantity ?? 1),
                 variant:  {
-                  image:   e.node.image as { url: string } | null,
+                  image:   (e.node.image as { url: string } | null) ?? null,
                   priceV2: unitPrice,
                 },
               },
@@ -157,8 +158,8 @@ async function getProfileFromAdmin(email: string): Promise<CustomerProfile | nul
 
     // Admin addresses is a flat array (not connection)
     const rawAddrs = (node.addresses as Record<string,unknown>[]) ?? []
-    const ordEdges = (node.orders as Record<string,{node:Record<string,unknown>}[]>)
-                       ?.edges ?? []
+    const ordEdges = ((node.orders as { edges: { node: Record<string,unknown> }[] } | null)
+                        ?.edges) ?? []
 
     return {
       id:             String(node.id).split('/').pop() ?? '',
