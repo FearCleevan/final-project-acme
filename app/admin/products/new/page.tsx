@@ -21,18 +21,27 @@ function NewProductInner() {
   const from         = searchParams.get('from') ?? ''
   const backHref     = `/admin/products${from}`
 
-  const [saving,  setSaving]  = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [toast,   setToast]   = useState<{ message: string; type: ToastType } | null>(null)
+  const [saving,   setSaving]   = useState(false)
+  const [success,  setSuccess]  = useState(false)
+  const [toast,    setToast]    = useState<{ message: string; type: ToastType } | null>(null)
+  const [duplicate, setDuplicate] = useState<{ id: string; title: string; pending: AdminProduct } | null>(null)
 
-  async function handleSave(data: AdminProduct) {
+  async function handleSave(data: AdminProduct, force = false) {
     setSaving(true)
+    setDuplicate(null)
     try {
       const res = await fetch('/api/admin/products', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify(data),
+        body:    JSON.stringify({ ...data, force }),
       })
+
+      if (res.status === 409) {
+        const json = await res.json()
+        setDuplicate({ id: json.existing.id, title: json.existing.title, pending: data })
+        return
+      }
+
       if (!res.ok) throw new Error(await res.text())
       clearDraft()
       setSuccess(true)
@@ -88,6 +97,38 @@ function NewProductInner() {
           </button>
         </div>
       </div>
+
+      {duplicate && (
+        <div className="mb-5 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex-1 text-[13px] text-amber-900">
+            <span className="font-semibold">Duplicate detected.</span>{' '}
+            A product named &ldquo;{duplicate.title}&rdquo; already exists in Shopify.
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              href={`/admin/products/${duplicate.id}`}
+              className="h-8 px-3 text-[12px] font-medium border border-amber-400 text-amber-800 rounded-md hover:bg-amber-100 transition-colors flex items-center"
+            >
+              View existing
+            </Link>
+            <button
+              type="button"
+              onClick={() => handleSave(duplicate.pending, true)}
+              disabled={saving}
+              className="h-8 px-3 text-[12px] font-medium bg-amber-600 text-white rounded-md hover:bg-amber-700 transition-colors disabled:opacity-60"
+            >
+              Save as new anyway
+            </button>
+            <button
+              type="button"
+              onClick={() => setDuplicate(null)}
+              className="h-8 px-3 text-[12px] text-amber-700 hover:text-amber-900 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       <div>
         <ProductForm

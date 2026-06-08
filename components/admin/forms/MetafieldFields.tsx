@@ -6,6 +6,7 @@ import SectionCard from '@/components/admin/shared/SectionCard'
 
 interface Props {
   register: UseFormRegister<AdminProduct>
+  hasVariants?: boolean
 }
 
 const input = 'w-full h-9 px-3 text-[13px] text-(--admin-text) bg-(--admin-surface-2) border border-(--admin-border) rounded-md focus:outline-none focus:border-(--admin-accent) focus:ring-1 focus:ring-(--admin-accent)/20 placeholder:text-(--admin-text-muted) transition-colors'
@@ -21,7 +22,7 @@ function Field({ id, lbl, children }: { id: string; lbl: string; children: React
   )
 }
 
-export default function MetafieldFields({ register }: Props) {
+export default function MetafieldFields({ register, hasVariants }: Props) {
   return (
     <SectionCard>
       <p className="text-[13px] font-semibold text-(--admin-text) mb-0.5">Product Metafields</p>
@@ -54,9 +55,11 @@ export default function MetafieldFields({ register }: Props) {
             <Field id="material" lbl="Material">
               <input id="material" {...register('material')} className={input} placeholder="Glass" />
             </Field>
-            <Field id="colour" lbl="Colour">
-              <input id="colour" {...register('colour')} className={input} placeholder="Powder Blue" />
-            </Field>
+            {!hasVariants && (
+              <Field id="colour" lbl="Colour">
+                <input id="colour" {...register('colour')} className={input} placeholder="Powder Blue" />
+              </Field>
+            )}
             <Field id="style" lbl="Style">
               <input id="style" {...register('style')} className={input} placeholder="Victorian" />
             </Field>

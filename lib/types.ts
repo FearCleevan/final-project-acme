@@ -34,6 +34,7 @@ export interface Product {
   collection: string
   variantId: string | null
   soldCount: number
+  colorVariants: { id: string; colour: string; price: number; stock: number }[]
 }
 
 export interface CrateItem {
@@ -41,6 +42,7 @@ export interface CrateItem {
   quantity: number
   selectedFinish: string
   selectedBurnerSize: string
+  selectedColour: string
   cartLineId: string | null
 }
 

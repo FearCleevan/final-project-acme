@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BiCheck, BiRevision, BiTag, BiEnvelope } from "react-icons/bi";
+import { BiRevision, BiTag, BiEnvelope } from "react-icons/bi";
 import { Product } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
 import { useCrateStore } from "@/store/crateStore";
@@ -18,14 +18,27 @@ const selectClass =
 export default function ProductInfo({ product }: ProductInfoProps) {
   const addItem        = useCrateStore((s) => s.addItem);
   const updateQuantity = useCrateStore((s) => s.updateQuantity);
-  const existingQty    = useCrateStore((s) =>
-    s.items.find((i) => i.product.id === product.id)?.quantity ?? 0
+
+  // For colour-variant products each colour is its own cart entry (keyed by variant id)
+  const hasColourVariants = product.colorVariants.length >= 1;
+  const [selectedVariant, setSelectedVariant] = useState<typeof product.colorVariants[0] | null>(null);
+  const [variantError, setVariantError]       = useState(false);
+
+  // Derive price and stock from selected variant when applicable
+  const activePrice = hasColourVariants && selectedVariant ? selectedVariant.price : product.price;
+  const activeStock = hasColourVariants && selectedVariant ? selectedVariant.stock : product.stockQuantity;
+  const activeInStock = hasColourVariants
+    ? (selectedVariant ? selectedVariant.stock > 0 : true)
+    : product.inStock;
+
+  // For colour-variant products, cart items are keyed by variant id so each colour is separate
+  const cartKey = hasColourVariants && selectedVariant ? `${product.id}-${selectedVariant.id}` : product.id;
+  const existingQty = useCrateStore((s) =>
+    s.items.find((i) => i.product.id === cartKey)?.quantity ?? 0
   );
 
   const [selectedFinish, setSelectedFinish] = useState(product.finish[0] ?? "");
-  const [selectedBurner, setSelectedBurner] = useState(
-    product.burnerSize ?? "",
-  );
+  const [selectedBurner, setSelectedBurner] = useState(product.burnerSize ?? "");
   const [qty, setQty] = useState(existingQty || 1);
   const [added, setAdded] = useState(false);
 
@@ -41,15 +54,26 @@ export default function ProductInfo({ product }: ProductInfoProps) {
   const reviews = getReviewsForProduct(product.id, product.category);
   const { average, count } = getAggregateRating(reviews);
 
-  const lineTotal = product.price * qty;
+  const lineTotal = activePrice * qty;
 
   function handleAdd() {
+    // Guard: colour-variant product needs a selection before adding
+    if (hasColourVariants && !selectedVariant) {
+      setVariantError(true);
+      return;
+    }
+
+    // For colour-variant products, patch the product so the cart uses the
+    // correct variantId, price, and stock for the chosen colour.
+    const cartProduct = hasColourVariants && selectedVariant
+      ? { ...product, id: cartKey, variantId: selectedVariant.id, price: selectedVariant.price, stockQuantity: selectedVariant.stock }
+      : product;
+
     if (existingQty > 0) {
-      // Already in crate — set total quantity instead of adding on top
-      updateQuantity(product.id, qty);
+      updateQuantity(cartKey, qty);
     } else {
       for (let i = 0; i < qty; i++) {
-        addItem(product, selectedFinish, selectedBurner);
+        addItem(cartProduct, selectedFinish, selectedBurner, selectedVariant?.colour ?? '');
       }
     }
     setAdded(true);
@@ -135,17 +159,43 @@ export default function ProductInfo({ product }: ProductInfoProps) {
       <div className="pb-4 border-b border-ink-rule">
         <div className="flex items-baseline gap-3">
           <span className="font-serif text-[28px] text-brass-deep leading-none">
-            {formatPrice(product.price)}
+            {formatPrice(activePrice)}
           </span>
           <span className="text-[11px] font-mono uppercase tracking-eyebrow text-ink-soft">
             CAD · Free freight over $150
           </span>
         </div>
         <p className="text-[11px] font-mono text-ink-soft mt-1">
-          Approx. US ${(product.price * 0.74).toFixed(2)} · AU $
-          {(product.price * 1.12).toFixed(2)} — prices shown in Canadian dollars
+          Approx. US ${(activePrice * 0.74).toFixed(2)} · AU $
+          {(activePrice * 1.12).toFixed(2)} — prices shown in Canadian dollars
         </p>
       </div>
+
+      {/* Colour variant swatches */}
+      {hasColourVariants && (
+        <div>
+          <p className="text-[11px] font-mono uppercase tracking-eyebrow text-ink-soft mb-2">
+            Colour{selectedVariant ? ` — ${selectedVariant.colour}` : " — Select one"}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {product.colorVariants.map((cv) => (
+              <button
+                key={cv.id}
+                type="button"
+                onClick={() => { setSelectedVariant(cv); setVariantError(false); }}
+                className={`px-3 py-1.5 text-[13px] font-sans rounded-sm border transition-colors ${
+                  selectedVariant?.id === cv.id
+                    ? "border-brass-deep bg-brass/10 text-brass-deep font-medium"
+                    : "border-ink-rule text-ink-iron hover:border-brass hover:bg-brass/5"
+                } ${cv.stock === 0 ? "opacity-40 pointer-events-none" : ""}`}
+              >
+                {cv.colour}
+                {cv.stock === 0 && " (sold out)"}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Fitment box */}
       <FitmentBox product={product} />
@@ -215,9 +265,9 @@ export default function ProductInfo({ product }: ProductInfoProps) {
           <p className="text-[11px] font-mono uppercase tracking-eyebrow text-ink-soft">
             Quantity
           </p>
-          {product.inStock && product.stockQuantity <= 10 && (
+          {activeInStock && activeStock <= 10 && (
             <p className="text-[11px] font-mono text-brass-deep">
-              {product.stockQuantity} in stock
+              {activeStock} in stock
             </p>
           )}
         </div>
@@ -236,10 +286,8 @@ export default function ProductInfo({ product }: ProductInfoProps) {
             {qty}
           </span>
           <button
-            onClick={() =>
-              setQty((q) => Math.min(product.stockQuantity, q + 1))
-            }
-            disabled={qty >= product.stockQuantity}
+            onClick={() => setQty((q) => Math.min(activeStock, q + 1))}
+            disabled={qty >= activeStock}
             className="w-11 h-11 flex items-center justify-center text-ink-iron hover:bg-parchment-2 transition-colors text-[18px] font-mono border-l border-ink-rule disabled:opacity-30 disabled:pointer-events-none"
             aria-label="Increase quantity"
           >
@@ -248,10 +296,17 @@ export default function ProductInfo({ product }: ProductInfoProps) {
         </div>
       </div>
 
+      {/* Cart guard — shown when colour-variant product has no selection */}
+      {variantError && (
+        <p className="text-[13px] font-sans text-amber-700 bg-amber-50 border border-amber-200 rounded-sm px-3 py-2">
+          Please select a colour before adding to your crate.
+        </p>
+      )}
+
       {/* Add to crate CTA */}
       <button
         onClick={handleAdd}
-        disabled={!product.inStock}
+        disabled={!activeInStock}
         className="w-full min-h-15 flex items-center justify-center gap-2 bg-green-brand text-[#F5F1E6] rounded-btn font-sans text-[17px] font-semibold hover:bg-green-deep hover:shadow-cta-hover hover:-translate-y-px active:translate-y-0 transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none"
       >
         {added

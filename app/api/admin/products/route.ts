@@ -9,6 +9,7 @@ import {
   createAdminProduct,
   collectionHandlesToGids,
   uploadProductImage,
+  getProductByTitle,
 } from '@/lib/admin/shopifyAdmin'
 
 async function requireAuth() {
@@ -41,11 +42,26 @@ export async function POST(req: NextRequest) {
       material, colour, style, brand, vintage, burnerSize,
       fits, era, powerSource, condition, edition, workshop,
       benchTester, benchTestDate, patent, netWeight, sellWhenOutOfStock,
+      force, hasVariants, variants: bodyVariants,
     } = body
+
+    // Duplicate guard — reject if a product with this exact title already exists,
+    // unless the caller explicitly passes force:true to override.
+    if (title && !force) {
+      const existing = await getProductByTitle(title)
+      if (existing) {
+        return NextResponse.json(
+          { duplicate: true, existing: { id: existing.id, title: existing.title } },
+          { status: 409 }
+        )
+      }
+    }
 
     const collectionGids = await collectionHandlesToGids(
       Array.isArray(collections) ? collections : []
     )
+
+    const isColourVariant = hasVariants && Array.isArray(bodyVariants) && bodyVariants.length >= 1
 
     const product = await createAdminProduct({
       title,
@@ -56,22 +72,24 @@ export async function POST(req: NextRequest) {
       tags: Array.isArray(tags) ? tags : [],
       collectionsToJoin: collectionGids,
       category: category?.id ?? null,
-      stock: stock != null ? Number(stock) : undefined,
-      variants: [
-        {
-          price: String(price ?? 0),
-          compareAtPrice: compareAtPrice ? String(compareAtPrice) : undefined,
+      // For colour-variant products, stock and variants are set per-variant below
+      ...(!isColourVariant && {
+        stock: stock != null ? Number(stock) : undefined,
+        variants: [{
+          price:           String(price ?? 0),
+          compareAtPrice:  compareAtPrice ? String(compareAtPrice) : undefined,
           inventoryPolicy: sellWhenOutOfStock ? 'CONTINUE' : 'DENY',
-          // ⚠️ sku and inventoryManagement are NOT included here –
-          // they are not accepted by ProductVariantsBulkInput.
-        },
-      ],
+          sku:             sku ?? undefined,
+        }],
+      }),
+      ...(isColourVariant && { colourVariants: bodyVariants }),
       metafields: [
         { namespace: 'acme', key: 'full_description', value: fullDescription ?? '', type: 'multi_line_text_field' },
         { namespace: 'acme', key: 'patent',            value: patent ?? '',          type: 'single_line_text_field' },
         { namespace: 'acme', key: 'net_weight',        value: netWeight ?? '',       type: 'single_line_text_field' },
         { namespace: 'acme', key: 'material',          value: material ?? '',        type: 'single_line_text_field' },
-        { namespace: 'acme', key: 'colour',            value: colour ?? '',          type: 'single_line_text_field' },
+        // colour lives in variant selectedOptions for colour-variant products
+        ...(!isColourVariant ? [{ namespace: 'acme', key: 'colour', value: colour ?? '', type: 'single_line_text_field' }] : []),
         { namespace: 'acme', key: 'style',             value: style ?? '',           type: 'single_line_text_field' },
         { namespace: 'acme', key: 'brand',             value: brand ?? '',           type: 'single_line_text_field' },
         { namespace: 'acme', key: 'vintage',           value: vintage ?? '',         type: 'single_line_text_field' },

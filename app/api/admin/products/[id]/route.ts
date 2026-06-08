@@ -46,7 +46,10 @@ export async function PUT(req: NextRequest, { params }: Params) {
       material, colour, style, brand, vintage, burnerSize,
       fits, era, powerSource, condition, edition, workshop,
       benchTester, benchTestDate, patent, netWeight, sellWhenOutOfStock,
+      hasVariants, variants: bodyVariants,
     } = body
+
+    const isColourVariant = hasVariants && Array.isArray(bodyVariants) && bodyVariants.length >= 1
 
     const [existingMedia, currentCollectionGids, newCollectionGids] = await Promise.all([
       getProductMediaWithIds(id),
@@ -70,22 +73,22 @@ export async function PUT(req: NextRequest, { params }: Params) {
       collectionsToJoin,
       collectionsToLeave,
       category: category?.id ?? null,
-      stock: stock != null ? Number(stock) : undefined,
-      variants: [
-        {
-          price: String(price ?? 0),
-          compareAtPrice: compareAtPrice ? String(compareAtPrice) : undefined,
+      // For colour-variant products, stock and variants are handled per-variant
+      ...(!isColourVariant && {
+        stock: stock != null ? Number(stock) : undefined,
+        variants: [{
+          price:           String(price ?? 0),
+          compareAtPrice:  compareAtPrice ? String(compareAtPrice) : undefined,
           inventoryPolicy: sellWhenOutOfStock ? 'CONTINUE' : 'DENY',
-          // ⚠️ sku and inventoryManagement are NOT included here –
-          // they are not accepted by ProductVariantsBulkInput.
-        },
-      ],
+        }],
+      }),
+      ...(isColourVariant && { colourVariants: bodyVariants }),
       metafields: [
         { namespace: 'acme', key: 'full_description', value: fullDescription ?? '', type: 'multi_line_text_field' },
         { namespace: 'acme', key: 'patent',            value: patent ?? '',          type: 'single_line_text_field' },
         { namespace: 'acme', key: 'net_weight',        value: netWeight ?? '',       type: 'single_line_text_field' },
         { namespace: 'acme', key: 'material',          value: material ?? '',        type: 'single_line_text_field' },
-        { namespace: 'acme', key: 'colour',            value: colour ?? '',          type: 'single_line_text_field' },
+        ...(!isColourVariant ? [{ namespace: 'acme', key: 'colour', value: colour ?? '', type: 'single_line_text_field' }] : []),
         { namespace: 'acme', key: 'style',             value: style ?? '',           type: 'single_line_text_field' },
         { namespace: 'acme', key: 'brand',             value: brand ?? '',           type: 'single_line_text_field' },
         { namespace: 'acme', key: 'vintage',           value: vintage ?? '',         type: 'single_line_text_field' },

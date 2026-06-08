@@ -71,6 +71,13 @@ export interface AdminOrder {
   shopifyFulfillmentOrderId?: string
 }
 
+export interface AdminProductVariant {
+  colour: string
+  price: number
+  compareAtPrice: number | null
+  stock: number
+}
+
 export interface AdminProduct {
   id: string
   title: string
@@ -105,6 +112,8 @@ export interface AdminProduct {
   benchTestDate: string
   category: { id: string; name: string } | null
   soldCount: number
+  hasVariants: boolean
+  variants: AdminProductVariant[]
 }
 
 export interface AdminCollection {

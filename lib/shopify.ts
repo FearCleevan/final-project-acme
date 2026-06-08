@@ -44,6 +44,7 @@ interface ShopifyProduct {
         id:                string
         sku:               string
         quantityAvailable: number
+        price:             { amount: string }
         selectedOptions:   { name: string; value: string }[]
       }
     }[]
@@ -123,6 +124,7 @@ const PRODUCT_FRAGMENT = `
           id
           sku
           quantityAvailable
+          price { amount }
           selectedOptions { name value }
         }
       }
@@ -199,6 +201,16 @@ export function shopifyProductToProduct(p: ShopifyProduct): Product {
     ),
   ]
 
+  // Collect colour variants from variant options named "Colour"
+  const colorVariants = p.variants.edges
+    .filter(e => e.node.selectedOptions.some(o => o.name.toLowerCase() === 'colour'))
+    .map(e => ({
+      id:     e.node.id,
+      colour: e.node.selectedOptions.find(o => o.name.toLowerCase() === 'colour')!.value,
+      price:  parseFloat(e.node.price.amount),
+      stock:  e.node.quantityAvailable,
+    }))
+
   // Use Shopify GID numeric part as id (e.g. "gid://shopify/Product/12345" → "sp-12345")
   const numericId = p.id.split('/').pop() ?? p.id
 
@@ -234,8 +246,10 @@ export function shopifyProductToProduct(p: ShopifyProduct): Product {
     inStock:          p.availableForSale,
     featured:         p.tags.includes('featured'),
     collection:       colHandle,
-    variantId:        firstVar?.id ?? null,
+    // For multi-colour products variantId is null — user must pick a colour first
+    variantId:        colorVariants.length >= 1 ? null : (firstVar?.id ?? null),
     soldCount:        parseInt(meta(mf, 'sold_count') || '0', 10),
+    colorVariants,
   }
 }
 

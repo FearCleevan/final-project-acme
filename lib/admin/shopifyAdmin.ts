@@ -73,6 +73,7 @@ interface ShopifyVariantNode {
   inventoryQuantity: number
   inventoryPolicy: string
   inventoryItem: { id: string } | null
+  selectedOptions?: { name: string; value: string }[]
 }
 
 interface ShopifyProductNode {
@@ -94,7 +95,21 @@ interface ShopifyProductNode {
 
 function toAdminProduct(p: ShopifyProductNode): AdminProduct {
   const mf = p.metafields?.edges ?? []
-  const variant = p.variants?.edges?.[0]?.node ?? ({} as Partial<ShopifyVariantNode>)
+  const variantEdges = p.variants?.edges ?? []
+  const variant = variantEdges[0]?.node ?? ({} as Partial<ShopifyVariantNode>)
+
+  // Build colour variants from Shopify variant selectedOptions
+  const colourEdges = variantEdges.filter(e =>
+    e.node.selectedOptions?.some(o => o.name.toLowerCase() === 'colour')
+  )
+  const hasVariants = colourEdges.length >= 1
+  const variants = colourEdges.map(e => ({
+    colour:         e.node.selectedOptions?.find(o => o.name.toLowerCase() === 'colour')?.value ?? '',
+    price:          parseFloat(e.node.price ?? '0'),
+    compareAtPrice: e.node.compareAtPrice ? parseFloat(e.node.compareAtPrice) : null,
+    stock:          e.node.inventoryQuantity ?? 0,
+  }))
+
   return {
     id:                 p.id.replace('gid://shopify/Product/', ''),
     title:              p.title ?? '',
@@ -129,6 +144,8 @@ function toAdminProduct(p: ShopifyProductNode): AdminProduct {
     benchTestDate:      metaValue(mf, 'bench_test_date'),
     category:           p.category ? { id: p.category.id, name: p.category.fullName ?? p.category.name } : null,
     soldCount:          parseInt(metaValue(mf, 'sold_count') || '0', 10),
+    hasVariants,
+    variants,
   }
 }
 
@@ -139,10 +156,11 @@ const PRODUCT_FIELDS = `
   images(first: 10) { edges { node { url } } }
   collections(first: 10) { edges { node { handle } } }
   category { id name fullName }
-  variants(first: 1) {
+  variants(first: 10) {
     edges { node {
       id price compareAtPrice sku inventoryQuantity inventoryPolicy
       inventoryItem { id }
+      selectedOptions { name value }
     } }
   }
   ${METAFIELD_FRAGMENT}
@@ -158,6 +176,19 @@ export async function getAdminProducts(first = 50): Promise<AdminProduct[]> {
     { first }
   )
   return data.products.edges.map(e => toAdminProduct(e.node))
+}
+
+export async function getProductByTitle(title: string): Promise<AdminProduct | null> {
+  const data = await adminFetch<{ products: { edges: { node: ShopifyProductNode }[] } }>(
+    `query FindByTitle($query: String!) {
+      products(first: 1, query: $query) {
+        edges { node { ${PRODUCT_FIELDS} } }
+      }
+    }`,
+    { query: `title:'${title.replace(/'/g, "\\'")}'` }
+  )
+  const node = data.products.edges[0]?.node
+  return node ? toAdminProduct(node) : null
 }
 
 export async function getAdminProductById(shopifyId: string): Promise<AdminProduct | null> {
@@ -186,6 +217,7 @@ type ProductInput = {
   stock?:              number
   variants?:           { price: string; compareAtPrice?: string; inventoryPolicy?: string }[]
   metafields?:         { namespace: string; key: string; value: string; type: string }[]
+  colourVariants?:     { colour: string; price: number; compareAtPrice: number | null; stock: number }[]
 }
 
 export async function getProductCollectionGids(shopifyId: string): Promise<string[]> {
@@ -217,7 +249,16 @@ export async function collectionHandlesToGids(handles: string[]): Promise<string
 }
 
 export async function createAdminProduct(input: ProductInput): Promise<AdminProduct> {
-  const { variants, stock, ...productInput } = input
+  const { variants, stock, colourVariants, ...productInput } = input
+  const hasColourVariants = Array.isArray(colourVariants) && colourVariants.length >= 1
+
+  // Declare the "Colour" option up-front so productVariantsBulkCreate can reference
+  // optionValues: [{ optionName: 'Colour', name: '...' }]. Without this the API
+  // returns "Option does not exist". DEFAULT strategy then removes the auto-created
+  // "Default Title" standalone variant when we add the real colour variants.
+  const createInput = hasColourVariants
+    ? { ...productInput, options: ['Colour'] }
+    : productInput
 
   const data = await adminFetch<{ productCreate: { product: ShopifyProductNode; userErrors: { message: string }[] } }>(
     `mutation CreateProduct($input: ProductInput!) {
@@ -226,36 +267,95 @@ export async function createAdminProduct(input: ProductInput): Promise<AdminProd
         userErrors { field message }
       }
     }`,
-    { input: productInput }
+    { input: createInput }
   )
   if (data.productCreate.userErrors.length) {
     throw new Error(data.productCreate.userErrors[0].message)
   }
   const created = data.productCreate.product
 
-  // Update the default variant: price, compareAt, inventory policy, enable tracking
-  if (variants?.length) {
-    const variantNode = created.variants?.edges?.[0]?.node
-    if (variantNode) {
-      const variantData = await adminFetch<{ productVariantsBulkUpdate: { userErrors: { field: string; message: string }[] } }>(
-        `mutation UpdateVariants($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
-          productVariantsBulkUpdate(productId: $productId, variants: $variants) {
-            userErrors { field message }
-          }
-        }`,
-        {
-          productId: created.id,
-          variants: [{
-            id: variantNode.id,
-            price: variants[0].price,
-            compareAtPrice: variants[0].compareAtPrice,
-            inventoryPolicy: variants[0].inventoryPolicy,
-            inventoryItem: { tracked: true },
-          }],
+  if (hasColourVariants) {
+    // Replace the standalone default variant with all colour variants
+    const bulkData = await adminFetch<{
+      productVariantsBulkCreate: {
+        productVariants: { id: string; inventoryItem: { id: string } | null }[]
+        userErrors: { field: string; message: string }[]
+      }
+    }>(
+      `mutation BulkCreateVariants(
+        $productId: ID!
+        $variants: [ProductVariantsBulkInput!]!
+        $strategy: ProductVariantsBulkCreateStrategy
+      ) {
+        productVariantsBulkCreate(productId: $productId, variants: $variants, strategy: $strategy) {
+          productVariants { id inventoryItem { id } }
+          userErrors { field message }
         }
-      )
-      if (variantData.productVariantsBulkUpdate.userErrors.length) {
-        console.error('[createAdminProduct] variant error:', variantData.productVariantsBulkUpdate.userErrors[0].message)
+      }`,
+      {
+        productId: created.id,
+        strategy:  'DEFAULT',
+        variants:  colourVariants!.map(cv => ({
+          price:           String(cv.price),
+          ...(cv.compareAtPrice != null && { compareAtPrice: String(cv.compareAtPrice) }),
+          inventoryPolicy: 'DENY',
+          inventoryItem:   { tracked: true },
+          optionValues:    [{ optionName: 'Colour', name: cv.colour }],
+        })),
+      }
+    )
+    if (bulkData.productVariantsBulkCreate.userErrors.length) {
+      throw new Error('[createAdminProduct] colour variant error: ' + bulkData.productVariantsBulkCreate.userErrors[0].message)
+    }
+
+    // Set inventory per colour variant in parallel
+    const createdVariants = bulkData.productVariantsBulkCreate.productVariants
+    await Promise.all(
+      colourVariants!.map((cv, i) => {
+        const invId = createdVariants[i]?.inventoryItem?.id
+        if (invId && cv.stock >= 0) {
+          return setInventoryQuantity(invId, cv.stock).catch(e =>
+            console.error(`[createAdminProduct] inventory error for ${cv.colour}:`, String(e))
+          )
+        }
+      })
+    )
+  } else {
+    // Single variant — update price, compareAt, policy, enable tracking
+    if (variants?.length) {
+      const variantNode = created.variants?.edges?.[0]?.node
+      if (variantNode) {
+        const variantData = await adminFetch<{ productVariantsBulkUpdate: { userErrors: { field: string; message: string }[] } }>(
+          `mutation UpdateVariants($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
+            productVariantsBulkUpdate(productId: $productId, variants: $variants) {
+              userErrors { field message }
+            }
+          }`,
+          {
+            productId: created.id,
+            variants: [{
+              id:              variantNode.id,
+              price:           variants[0].price,
+              compareAtPrice:  variants[0].compareAtPrice,
+              inventoryPolicy: variants[0].inventoryPolicy,
+              inventoryItem:   { tracked: true },
+            }],
+          }
+        )
+        if (variantData.productVariantsBulkUpdate.userErrors.length) {
+          console.error('[createAdminProduct] variant error:', variantData.productVariantsBulkUpdate.userErrors[0].message)
+        }
+      }
+    }
+
+    if (stock != null && stock >= 0) {
+      const inventoryItemId = created.variants?.edges?.[0]?.node?.inventoryItem?.id
+      if (inventoryItemId) {
+        try {
+          await setInventoryQuantity(inventoryItemId, stock)
+        } catch (e) {
+          console.error('[createAdminProduct] inventory error:', String(e))
+        }
       }
     }
   }
@@ -263,29 +363,15 @@ export async function createAdminProduct(input: ProductInput): Promise<AdminProd
   await publishToAllChannels(created.id)
 
   const result = toAdminProduct(created)
-
-  if (stock != null && stock >= 0) {
-    const inventoryItemId = created.variants?.edges?.[0]?.node?.inventoryItem?.id
-    console.log('[createAdminProduct] inventoryItemId:', inventoryItemId, 'stock:', stock)
-    if (inventoryItemId) {
-      try {
-        await setInventoryQuantity(inventoryItemId, stock)
-        console.log('[createAdminProduct] inventory set OK')
-      } catch (e) {
-        console.error('[createAdminProduct] inventory error:', String(e))
-      }
-    } else {
-      console.warn('[createAdminProduct] no inventoryItemId — skipping stock update')
-    }
-    result.stock = stock
-  }
+  if (!hasColourVariants && stock != null) result.stock = stock
 
   return result
 }
 
 export async function updateAdminProduct(shopifyId: string, input: ProductInput): Promise<AdminProduct> {
   const gid = shopifyId.startsWith('gid://') ? shopifyId : `gid://shopify/Product/${shopifyId}`
-  const { variants, stock, ...productInput } = input
+  const { variants, stock, colourVariants, ...productInput } = input
+  const hasColourVariants = Array.isArray(colourVariants) && colourVariants.length >= 1
 
   const data = await adminFetch<{ productUpdate: { product: ShopifyProductNode; userErrors: { message: string }[] } }>(
     `mutation UpdateProduct($input: ProductInput!) {
@@ -301,8 +387,117 @@ export async function updateAdminProduct(shopifyId: string, input: ProductInput)
   }
   const updated = data.productUpdate.product
 
-  // Update variant: price, compareAt, inventory policy, enable tracking
-  if (variants?.length) {
+  if (hasColourVariants) {
+    const existingColourEdges = (updated.variants?.edges ?? []).filter(e =>
+      e.node.selectedOptions?.some(o => o.name.toLowerCase() === 'colour')
+    )
+
+    if (existingColourEdges.length === 0) {
+      // ── First time adding colour variants: use productSet (atomic option + variants) ──
+      const setData = await adminFetch<{
+        productSet: {
+          product: {
+            variants: {
+              edges: {
+                node: {
+                  id: string
+                  inventoryItem: { id: string } | null
+                  selectedOptions: { name: string; value: string }[]
+                }
+              }[]
+            }
+          } | null
+          userErrors: { field: string; message: string }[]
+        }
+      }>(
+        `mutation ProductSet($input: ProductSetInput!, $synchronous: Boolean!) {
+          productSet(input: $input, synchronous: $synchronous) {
+            product {
+              variants(first: 10) {
+                edges {
+                  node {
+                    id
+                    inventoryItem { id }
+                    selectedOptions { name value }
+                  }
+                }
+              }
+            }
+            userErrors { field message }
+          }
+        }`,
+        {
+          synchronous: true,
+          input: {
+            id: gid,
+            productOptions: [{
+              name: 'Colour',
+              values: colourVariants!.map(cv => ({ name: cv.colour })),
+            }],
+            variants: colourVariants!.map(cv => ({
+              price:           String(cv.price),
+              ...(cv.compareAtPrice != null && { compareAtPrice: String(cv.compareAtPrice) }),
+              inventoryPolicy: 'DENY',
+              inventoryItem:   { tracked: true },
+              optionValues:    [{ optionName: 'Colour', name: cv.colour }],
+            })),
+          },
+        }
+      )
+      if (setData.productSet.userErrors.length) {
+        throw new Error('[updateAdminProduct] productSet error: ' + setData.productSet.userErrors[0].message)
+      }
+      // Match returned variants by colour name (more reliable than index)
+      const createdEdges = setData.productSet.product?.variants.edges ?? []
+      await Promise.all(
+        colourVariants!.map(cv => {
+          const edge = createdEdges.find(e =>
+            e.node.selectedOptions.some(o => o.name.toLowerCase() === 'colour' && o.value === cv.colour)
+          )
+          const invId = edge?.node?.inventoryItem?.id
+          if (invId && cv.stock >= 0) {
+            return setInventoryQuantity(invId, cv.stock).catch(e =>
+              console.error(`[updateAdminProduct] inventory error for ${cv.colour}:`, String(e))
+            )
+          }
+        })
+      )
+    } else {
+      // ── Colour variants already exist: update price + stock per variant ──
+      const bulkVariants = colourVariants!.flatMap(cv => {
+        const edge = existingColourEdges.find(e =>
+          e.node.selectedOptions?.some(o => o.name.toLowerCase() === 'colour' && o.value === cv.colour)
+        )
+        if (!edge) return []
+        return [{ id: edge.node.id, price: String(cv.price), inventoryPolicy: 'DENY' as const }]
+      })
+      if (bulkVariants.length) {
+        await adminFetch<{ productVariantsBulkUpdate: { userErrors: { message: string }[] } }>(
+          `mutation UpdateColourVariants($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
+            productVariantsBulkUpdate(productId: $productId, variants: $variants) {
+              userErrors { field message }
+            }
+          }`,
+          { productId: gid, variants: bulkVariants }
+        )
+      }
+      // Update stock for each matched variant
+      await Promise.all(
+        colourVariants!.map(cv => {
+          const edge = existingColourEdges.find(e =>
+            e.node.selectedOptions?.some(o => o.name.toLowerCase() === 'colour' && o.value === cv.colour)
+          )
+          const invId = edge?.node?.inventoryItem?.id
+          if (invId && cv.stock >= 0) {
+            return setInventoryQuantity(invId, cv.stock).catch(e =>
+              console.error(`[updateAdminProduct] stock error for ${cv.colour}:`, String(e))
+            )
+          }
+        })
+      )
+    }
+  } else if (variants?.length) {
+    // Single variant — update price, compareAt, policy, enable tracking
     const variantNode = updated.variants?.edges?.[0]?.node
     if (variantNode) {
       const variantData = await adminFetch<{ productVariantsBulkUpdate: { userErrors: { field: string; message: string }[] } }>(

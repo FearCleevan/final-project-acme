@@ -22,7 +22,7 @@ interface CrateStore {
   _customerToken:  string | null   // set by initCart so addItem can use it without circular imports
   openCrate:       () => void
   closeCrate:      () => void
-  addItem:         (product: Product, finish: string, burnerSize: string) => void
+  addItem:         (product: Product, finish: string, burnerSize: string, selectedColour?: string) => void
   removeItem:      (productId: string) => void
   updateQuantity:  (productId: string, quantity: number) => void
   clearCrate:      () => void
@@ -45,7 +45,7 @@ export const useCrateStore = create<CrateStore>()(
       openCrate:  () => set({ isOpen: true }),
       closeCrate: () => set({ isOpen: false }),
 
-      addItem: (product, finish, burnerSize) => {
+      addItem: (product, finish, burnerSize, selectedColour = '') => {
         const existing = get().items.find(i => i.product.id === product.id)
 
         if (existing) {
@@ -77,7 +77,7 @@ export const useCrateStore = create<CrateStore>()(
           set({
             items: [
               ...get().items,
-              { product, quantity: 1, selectedFinish: finish, selectedBurnerSize: burnerSize, cartLineId: null },
+              { product, quantity: 1, selectedFinish: finish, selectedBurnerSize: burnerSize, selectedColour, cartLineId: null },
             ],
           })
 
