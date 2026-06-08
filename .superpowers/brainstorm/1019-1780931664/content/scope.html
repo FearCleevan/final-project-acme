@@ -1,0 +1,58 @@
+<h2>What we're designing</h2>
+<p class="subtitle">Three connected pieces — let's confirm scope before designing each one</p>
+
+<div class="section">
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:16px">
+
+    <div style="background:#f9f6f0;border:1px solid #e0d8c8;border-radius:8px;padding:16px">
+      <div class="label" style="color:#2E4A3F;margin-bottom:8px">① Account Orders Tab</div>
+      <div style="font-size:13px;color:#4A4D50;line-height:1.6">
+        Logged-in customer views their orders and can submit a <strong>cancellation request</strong> from
+        their account page — only visible on orders that haven't shipped yet.
+      </div>
+      <div style="margin-top:12px;font-size:12px;background:#e8f0ec;padding:8px;border-radius:4px;color:#2E4A3F">
+        Entry point → <code>/account?tab=orders</code>
+      </div>
+    </div>
+
+    <div style="background:#f9f6f0;border:1px solid #e0d8c8;border-radius:8px;padding:16px">
+      <div class="label" style="color:#2E4A3F;margin-bottom:8px">② Track Order (Guest)</div>
+      <div style="font-size:13px;color:#4A4D50;line-height:1.6">
+        Guest customer tracks their order by order # + email, and can submit a
+        <strong>cancellation request</strong> the same way — without needing an account.
+      </div>
+      <div style="margin-top:12px;font-size:12px;background:#e8f0ec;padding:8px;border-radius:4px;color:#2E4A3F">
+        Entry point → <code>/track-order</code>
+      </div>
+    </div>
+
+    <div style="background:#f9f6f0;border:1px solid #e0d8c8;border-radius:8px;padding:16px">
+      <div class="label" style="color:#2E4A3F;margin-bottom:8px">③ Admin + Email</div>
+      <div style="font-size:13px;color:#4A4D50;line-height:1.6">
+        Admin sees a <strong>cancellation requested</strong> flag on the order. Scott manually reviews
+        and approves/rejects. Shopify handles the refund. Customer gets email at each step.
+      </div>
+      <div style="margin-top:12px;font-size:12px;background:#e8f0ec;padding:8px;border-radius:4px;color:#2E4A3F">
+        Entry point → <code>/admin/orders/[id]</code>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section" style="margin-top:24px">
+  <div style="background:#fff8e6;border:1px solid #C29B47;border-radius:8px;padding:16px">
+    <div class="label" style="color:#9C7A2E;margin-bottom:6px">⚠ Policy context (from Scott's email)</div>
+    <div style="font-size:13px;color:#4A4D50;line-height:1.7">
+      Scott's position: <strong>"Not sure if we will accept returns on specialty items."</strong>
+      Terms & Conditions already say: <em>"all sales are considered final unless item arrives damaged or misdescribed."</em><br><br>
+      This means <strong>cancel ≠ automatic refund</strong>. It's a <em>request</em> that Scott reviews —
+      only feasible before the order ships.
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:24px">
+  <p style="font-size:14px;color:#4A4D50">Also noted: <strong>Returns, Shipping, and FAQ pages don't exist yet</strong> — the footer links to them but they 404.
+  These need to be created with Scott's actual answers. This is a separate (simpler) task from the cancel flow.</p>
+</div>

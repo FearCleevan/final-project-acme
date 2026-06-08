@@ -1,28 +1,34 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Product, FilterState } from '@/lib/types'
 import CatalogHeader from '@/components/catalog/CatalogHeader'
 import CatalogSidebar from '@/components/catalog/CatalogSidebar'
 import FilterSidebar from '@/components/catalog/FilterSidebar'
 import ProductGrid from '@/components/catalog/ProductGrid'
 
-function buildDefaults(initialCategory = 'all'): FilterState {
-  return { category: initialCategory, burnerSize: '', material: '', sortBy: 'curator' }
+function buildDefaults(category = 'all'): FilterState {
+  return { category, burnerSize: '', material: '', sortBy: 'curator' }
 }
 
 export default function CatalogClient({
   products,
-  initialCategory = 'all',
   title,
   crumbs,
 }: {
   products: Product[]
-  initialCategory?: string
   title?: string
   crumbs?: { label: string; href?: string }[]
 }) {
-  const [filters, setFilters] = useState<FilterState>(() => buildDefaults(initialCategory))
+  const searchParams = useSearchParams()
+  const categoryFromUrl = searchParams.get('category') || 'all'
+
+  const [filters, setFilters] = useState<FilterState>(() => buildDefaults(categoryFromUrl))
+
+  useEffect(() => {
+    setFilters(prev => ({ ...prev, category: categoryFromUrl }))
+  }, [categoryFromUrl])
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   const filteredProducts = useMemo(() => {

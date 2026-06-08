@@ -17,12 +17,20 @@ export default function BenchNotesCTA() {
     setErrorMessage('')
 
     try {
-      // Simulate real workshop database roundtrip latency delay
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      setStatus('success')
-      setEmail('')
-    } catch (error) {
+      const res = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      const json = await res.json()
+      if (json.success) {
+        setStatus('success')
+        setEmail('')
+      } else {
+        setStatus('error')
+        setErrorMessage('Something went wrong. Please try again.')
+      }
+    } catch {
       setStatus('error')
       setErrorMessage('Something went wrong. Please try again.')
     }

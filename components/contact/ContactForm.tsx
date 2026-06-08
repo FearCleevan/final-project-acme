@@ -36,6 +36,8 @@ export default function ContactForm() {
   const [form, setForm] = useState<FormState>({ name: '', email: '', subject: '', message: '' })
   const [errors, setErrors] = useState<FormErrors>({})
   const [submitted, setSubmitted] = useState(false)
+  const [sending, setSending] = useState(false)
+  const [sendError, setSendError] = useState(false)
 
   function validate(): FormErrors {
     const e: FormErrors = {}
@@ -48,7 +50,7 @@ export default function ContactForm() {
     return e
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     const errs = validate()
     if (Object.keys(errs).length > 0) {
@@ -56,7 +58,30 @@ export default function ContactForm() {
       return
     }
     setErrors({})
-    setSubmitted(true)
+    setSending(true)
+    setSendError(false)
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name:    form.name,
+          email:   form.email,
+          subject: form.subject,
+          message: form.message,
+        }),
+      })
+      const json = await res.json()
+      if (json.success) {
+        setSubmitted(true)
+      } else {
+        setSendError(true)
+      }
+    } catch {
+      setSendError(true)
+    } finally {
+      setSending(false)
+    }
   }
 
   function handleChange(field: keyof FormState, value: string) {
@@ -178,10 +203,16 @@ export default function ContactForm() {
         <div className="pt-2">
           <button
             type="submit"
-            className="w-full min-h-[56px] bg-green-brand text-[#F5F1E6] rounded-btn font-sans text-[16px] font-semibold hover:bg-green-deep hover:shadow-cta-hover hover:-translate-y-px active:translate-y-0 transition-all duration-200"
+            disabled={sending}
+            className="w-full min-h-[56px] bg-green-brand text-[#F5F1E6] rounded-btn font-sans text-[16px] font-semibold hover:bg-green-deep hover:shadow-cta-hover hover:-translate-y-px active:translate-y-0 transition-all duration-200 disabled:opacity-60 disabled:pointer-events-none"
           >
-            Send the note →
+            {sending ? 'Sending…' : 'Send the note →'}
           </button>
+          {sendError && (
+            <p className="mt-2 text-[12px] font-sans text-error">
+              Something went wrong — please try again or email us directly.
+            </p>
+          )}
           <p className="mt-3 text-[10px] font-mono uppercase tracking-eyebrow text-ink-soft leading-relaxed">
             We answer every message ourselves. No marketing list. No resale. No autoreplies.
           </p>

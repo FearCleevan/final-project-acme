@@ -7,16 +7,8 @@ import {
   BiPackage,
   BiLinkExternal,
 } from 'react-icons/bi'
-import {
-  mockRevenueStats,
-  mockOrderCount,
-  mockSessionCount,
-  mockConversionRate,
-  mockOrders,
-  mockInventoryAlerts,
-  mockAbandonedCheckouts,
-} from '@/lib/admin/mockData'
-import { formatCurrency, formatDate, formatRelativeTime } from '@/lib/admin/utils'
+import { getAdminAnalytics, getAdminOrders, getAdminProducts } from '@/lib/admin/shopifyAdmin'
+import { formatCurrency, formatDate } from '@/lib/admin/utils'
 import StatCard from '@/components/admin/shared/StatCard'
 import SectionCard from '@/components/admin/shared/SectionCard'
 import Badge, { orderStatusVariant, paymentStatusVariant } from '@/components/admin/shared/Badge'
@@ -25,44 +17,57 @@ import RevenueChart from '@/components/admin/charts/RevenueChart'
 import OrdersChart from '@/components/admin/charts/OrdersChart'
 import TopProductsTable from '@/components/admin/charts/TopProductsTable'
 
-const recentOrders = mockOrders.slice(0, 8)
+export default async function OverviewPage() {
+  const [analytics, recentOrders, products] = await Promise.all([
+    getAdminAnalytics(),
+    getAdminOrders(8),
+    getAdminProducts(),
+  ])
 
-export default function OverviewPage() {
+  const lowStockItems = products
+    .filter(p => p.stock <= 3)
+    .sort((a, b) => a.stock - b.stock)
+    .slice(0, 6)
+
+  const dateLabel = new Date().toLocaleDateString('en-CA', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+  })
+
   return (
     <div>
       <PageHeader
         title="Overview"
-        subtitle={`${new Date().toLocaleDateString('en-CA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} - Demo Data`}
+        subtitle={`${dateLabel} — Live Data`}
       />
 
       {/* Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <StatCard
           label="Revenue"
-          value={formatCurrency(mockRevenueStats.month)}
-          change={mockRevenueStats.monthChange}
+          value={formatCurrency(analytics.revenue.month)}
+          change={analytics.revenue.monthChange}
           period="Last 30 days"
           icon={<BiDollar size={16} />}
         />
         <StatCard
           label="Orders"
-          value={String(mockOrderCount.month)}
-          change={5}
+          value={String(analytics.orderCount.month)}
+          change={0}
           period="Last 30 days"
           icon={<BiCart size={16} />}
         />
         <StatCard
-          label="Sessions"
-          value={mockSessionCount.week.toLocaleString()}
-          change={mockSessionCount.weekChange}
-          period="Last 7 days"
+          label="Customers"
+          value={String(analytics.customers.total)}
+          change={analytics.customers.returningRate}
+          period={`${analytics.customers.repeat} repeat`}
           icon={<BiTrendingUp size={16} />}
         />
         <StatCard
-          label="Conversion"
-          value={`${mockConversionRate.value}%`}
-          change={mockConversionRate.change}
-          period="Last 30 days"
+          label="Avg. Order"
+          value={formatCurrency(analytics.avgOrderValue)}
+          change={0}
+          period="All time"
           icon={<BiPulse size={16} />}
         />
       </div>
@@ -70,10 +75,10 @@ export default function OverviewPage() {
       {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
         <SectionCard className="lg:col-span-2">
-          <RevenueChart />
+          <RevenueChart data={analytics.chartData} />
         </SectionCard>
         <SectionCard>
-          <OrdersChart />
+          <OrdersChart data={analytics.chartData} />
         </SectionCard>
       </div>
 
@@ -92,7 +97,9 @@ export default function OverviewPage() {
             </Link>
           </div>
           <div className="divide-y divide-(--admin-border)">
-            {recentOrders.map(order => (
+            {recentOrders.length === 0 ? (
+              <p className="px-5 py-4 text-[12px] text-(--admin-text-soft)">No orders yet.</p>
+            ) : recentOrders.map(order => (
               <Link
                 key={order.id}
                 href={`/admin/orders/${order.id}`}
@@ -100,7 +107,7 @@ export default function OverviewPage() {
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="text-[12px] font-medium text-(--admin-text)">{order.id}</p>
+                    <p className="text-[12px] font-medium text-(--admin-text)"> Order Number: {order.id}</p>
                     <Badge label={order.fulfillmentStatus} variant={orderStatusVariant(order.fulfillmentStatus)} />
                   </div>
                   <p className="text-[11px] text-(--admin-text-soft) mt-0.5 truncate">
@@ -130,11 +137,11 @@ export default function OverviewPage() {
                 Manage
               </Link>
             </div>
-            {mockInventoryAlerts.length === 0 ? (
+            {lowStockItems.length === 0 ? (
               <p className="px-4 py-4 text-[12px] text-(--admin-text-soft)">All items in stock.</p>
             ) : (
               <div className="divide-y divide-(--admin-border)">
-                {mockInventoryAlerts.map(p => (
+                {lowStockItems.map(p => (
                   <Link
                     key={p.id}
                     href={`/admin/products/${p.id}`}
@@ -155,34 +162,25 @@ export default function OverviewPage() {
 
           {/* Top Products */}
           <SectionCard>
-            <TopProductsTable />
+            <TopProductsTable products={analytics.topProducts} />
           </SectionCard>
 
-          {/* Abandoned Checkouts */}
+          {/* Summary Stats */}
           <SectionCard noPadding>
             <div className="flex items-center justify-between px-4 py-3.5 border-b border-(--admin-border)">
-              <div>
-                <p className="text-[13px] font-semibold text-(--admin-text)">Abandoned Checkouts</p>
-                <p className="text-[10px] text-(--admin-text-muted) mt-0.5">
-                  {mockAbandonedCheckouts.length} pending
-                </p>
-              </div>
+              <p className="text-[13px] font-semibold text-(--admin-text)">All-Time Summary</p>
               <BiPackage size={15} className="text-(--admin-text-muted)" />
             </div>
             <div className="divide-y divide-(--admin-border)">
-              {mockAbandonedCheckouts.map(a => (
-                <div key={a.id} className="flex items-center justify-between px-4 py-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[12px] text-(--admin-text) truncate">
-                      {a.customer}{a.email ? ` — ${a.email}` : ''}
-                    </p>
-                    <p className="text-[10px] text-(--admin-text-muted) mt-0.5">
-                      {formatRelativeTime(a.abandonedAt)} · {a.items} {a.items === 1 ? 'item' : 'items'}
-                    </p>
-                  </div>
-                  <span className="ml-3 shrink-0 text-[12px] font-semibold text-(--admin-text)">
-                    {formatCurrency(a.value)}
-                  </span>
+              {[
+                { label: 'Total Orders',    value: String(analytics.totalOrders) },
+                { label: 'Total Revenue',   value: formatCurrency(analytics.revenue.month > 0 ? analytics.totalOrders * analytics.avgOrderValue : 0) },
+                { label: 'Fulfilled',       value: String(analytics.fulfilledOrders) },
+                { label: 'Repeat Customers', value: `${analytics.customers.returningRate}%` },
+              ].map(row => (
+                <div key={row.label} className="flex items-center justify-between px-4 py-3">
+                  <p className="text-[12px] text-(--admin-text-soft)">{row.label}</p>
+                  <p className="text-[12px] font-semibold text-(--admin-text)">{row.value}</p>
                 </div>
               ))}
             </div>

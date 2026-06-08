@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { mockChartData } from '@/lib/admin/mockData'
+import type { ChartDataPoint } from '@/lib/admin/types'
 
 interface TooltipPayload {
   payload?: { orders: number; date: string }
@@ -27,8 +28,8 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Toolti
   )
 }
 
-export default function OrdersChart() {
-  const data = mockChartData.slice(-30)
+export default function OrdersChart({ data: allData }: { data?: ChartDataPoint[] }) {
+  const data = (allData ?? mockChartData).slice(-30)
 
   return (
     <div>

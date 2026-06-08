@@ -10,6 +10,8 @@ const CATALOG_DROPS = [
   { label: 'Pressure Lamps',       href: '/catalog?category=oil-lamp-pressure-lamps' },
   { label: 'Spreaders & Hardware', href: '/catalog?category=oil-lamp-spreaders' },
   { label: 'Wicks',                href: '/catalog?category=oil-lamp-wicks' },
+  { label: 'Books & Guides',       href: '/catalog?category=oil-lamp-books' },
+  { label: 'Signs',                href: '/catalog?category=signs' },
 ]
 
 const WORKSHOP_DROPS = [
