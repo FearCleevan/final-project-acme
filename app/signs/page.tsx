@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import type { Metadata } from 'next'
 import { getAllProducts } from '@/lib/shopify'
 import CatalogClient from '@/app/catalog/CatalogClient'
@@ -30,14 +31,16 @@ export const metadata: Metadata = {
 export default async function SignsPage() {
   const products = await getAllProducts()
   return (
-    <CatalogClient
-      products={products}
-      initialCategory="signs"
-      title="Signs"
-      crumbs={[
-        { label: 'Storefront', href: '/' },
-        { label: 'Signs' },
-      ]}
-    />
+    <Suspense fallback={null}>
+      <CatalogClient
+        products={products}
+        initialCategory="signs"
+        title="Signs"
+        crumbs={[
+          { label: 'Storefront', href: '/' },
+          { label: 'Signs' },
+        ]}
+      />
+    </Suspense>
   )
 }

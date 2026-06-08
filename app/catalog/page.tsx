@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { getAllProducts } from '@/lib/shopify'
 import type { Metadata } from 'next'
 import CatalogClient from './CatalogClient'
@@ -25,5 +26,9 @@ export const metadata: Metadata = {
 
 export default async function CatalogPage() {
   const products = await getAllProducts()
-  return <CatalogClient products={products} />
+  return (
+    <Suspense fallback={null}>
+      <CatalogClient products={products} />
+    </Suspense>
+  )
 }
