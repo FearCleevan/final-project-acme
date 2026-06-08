@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/cart/:path*',
-        destination: '/crate',
+        destination: '/',
         permanent: false,
       },
     ];
