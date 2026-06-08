@@ -14,15 +14,17 @@ function buildDefaults(category = 'all'): FilterState {
 
 export default function CatalogClient({
   products,
+  initialCategory = 'all',
   title,
   crumbs,
 }: {
   products: Product[]
+  initialCategory?: string
   title?: string
   crumbs?: { label: string; href?: string }[]
 }) {
   const searchParams = useSearchParams()
-  const categoryFromUrl = searchParams.get('category') || 'all'
+  const categoryFromUrl = searchParams.get('category') || initialCategory
 
   const [filters, setFilters] = useState<FilterState>(() => buildDefaults(categoryFromUrl))
 
