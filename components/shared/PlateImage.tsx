@@ -30,7 +30,7 @@ export default function PlateImage({
   label,
   className,
   priority = false,
-  objectFit = 'contain',
+  objectFit = 'cover',
   sizes = '(max-width: 768px) 100vw, 50vw',
 }: PlateImageProps) {
   return (

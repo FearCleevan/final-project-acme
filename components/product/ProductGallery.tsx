@@ -20,9 +20,9 @@ export default function ProductGallery({ images, productName, sku, dark = false 
       {/* Main image */}
       <div className="relative">
         <div className="absolute top-3 right-3 z-10 pointer-events-none">
-          <span className="text-[10px] font-mono uppercase tracking-eyebrow text-ink-soft bg-parchment/80 backdrop-blur-sm px-2 py-1 rounded-sm">
+          {/* <span className="text-[10px] font-mono uppercase tracking-eyebrow text-ink-soft bg-parchment/80 backdrop-blur-sm px-2 py-1 rounded-sm">
             Hover or tap to zoom
-          </span>
+          </span> */}
         </div>
 
         <div className="overflow-hidden rounded-sm group/main cursor-zoom-in">

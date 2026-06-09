@@ -1,191 +1,166 @@
 # Sprint Timeline
-## Acme Lamp & Sign Co. — Remaining Development
+## Acme Lamp & Sign Co. — Development Status
 
 **Developer:** PPlazan
 **Timeline Start:** May 26, 2026
-**Target Launch:** Week of June 23, 2026
+**Last Updated:** June 10, 2026
+**Target Launch:** TBD — pending Scott's confirmation
 
 ---
 
-## Overview
+## Overall Status
 
-| Week | Dates | Focus | Status |
-|---|---|---|---|
-| Week 1 | May 26 – May 30 | Product Data Entry | In Progress |
-| Week 2 | Jun 2 – Jun 6 | Checkout & Payment Integration | Upcoming |
-| Week 3 | Jun 9 – Jun 13 | Sanity CMS Integration | Upcoming |
-| Week 4 | Jun 16 – Jun 20 | Reviews & Customer Accounts | Upcoming |
-| Week 5 | Jun 23 – Jun 27 | Polish & Launch | Upcoming |
-
----
-
-## Week 1 — Product Data Entry
-**May 26 – May 30, 2026**
-
-Enter the remaining 15 products into Shopify using the established process from the first product.
-
-**Each product requires:**
-- [ ] Title, price, description (short — 1–2 sentences)
-- [ ] Collection assignment (Glass & Chimneys / Lighting Fixtures / Hardware / Signs)
-- [ ] Tags (`featured` where applicable)
-- [ ] Vendor: *Acme Lamp & Sign Co.*
-- [ ] All `acme.*` metafields filled (SKU, material, era, power source, condition, type, etc.)
-- [ ] Images uploaded (eBay CDN or local)
-
-**Fix on first product:**
-- [ ] Clear compare-at price (remove $135.85)
-- [ ] Confirm `featured` tag is applied
-- [ ] Confirm Vendor is set correctly
-
-**Owner:** PPlazan (product entry) · Scott (image assets, product details)
+| Phase | Focus | Status |
+|---|---|---|
+| Phase 1 | Core Storefront | ✅ Complete |
+| Phase 2 | Checkout & Cart | ✅ Complete |
+| Phase 3 | Admin Dashboard | ✅ Complete |
+| Phase 4 | Colour Variants & Multi-Colour Cart | ✅ Complete |
+| Phase 5 | Orders & Shipping | ✅ Complete |
+| Phase 6 | Content & CMS | ⏳ Deferred — waiting on Scott |
+| Phase 7 | Pre-Launch & Go-Live | ⏳ Blocked — waiting on Scott |
 
 ---
 
-## Week 2 — Checkout & Payment Integration
-**Jun 2 – Jun 6, 2026**
+## ✅ Phase 1 — Core Storefront
+**Complete**
 
-Wire the existing cart and checkout UI to live Shopify checkout. The UI is already built — this week connects it to real transactions.
-
-**Codebase tasks:**
-- [ ] Implement Shopify Storefront API cart creation (`cartCreate` mutation)
-- [ ] Add lines to cart (`cartLinesAdd`) on "Add to Crate"
-- [ ] Redirect to Shopify-hosted checkout (`cart.checkoutUrl`)
-- [ ] Handle cart persistence (replace Zustand-only state with Shopify cart ID)
-- [ ] Test full flow: Add product → View crate → Proceed to checkout → Payment
-
-**Shopify/Scott tasks (must be done before this week):**
-- [ ] Shopify Payments activated
-- [ ] Shipping zones and rates configured in Shopify
-- [ ] Test payment with real card (Scott + PPlazan together)
+- [x] Homepage, catalog page, product detail page (PDP)
+- [x] Crate (cart) drawer + full crate page
+- [x] Customer account (login, register, order history)
+- [x] Contact form + newsletter → Google Apps Script
+- [x] Breadcrumbs, reviews UI, related products, spec table
+- [x] Mobile-responsive across all breakpoints
+- [x] Deployed to Vercel — live at acmevintagesupply.com
 
 ---
 
-## Week 3 — Sanity CMS Integration
-**Jun 9 – Jun 13, 2026**
+## ✅ Phase 2 — Checkout & Cart
+**Complete**
 
-Connect the existing Sanity schema and client to live content. Sanity account access from Scott required before this week begins.
+- [x] Shopify Storefront API cart (`cartCreate`, `cartLinesAdd`, `cartLinesUpdate`)
+- [x] Redirect to Shopify-hosted checkout (`cart.checkoutUrl`)
+- [x] Cart persistence via Zustand + Shopify cart ID
+- [x] Full purchase flow: Add to Crate → View Crate → Proceed to Checkout → Payment
 
-**Content types to wire:**
+---
+
+## ✅ Phase 3 — Admin Dashboard
+**Complete** *(originally planned as post-launch; built early)*
+
+- [x] Protected `/admin` route (iron-session password login)
+- [x] Orders list — live order data from Shopify Admin API
+- [x] Order detail page — line items, variant titles, customer info
+- [x] Print Invoice + Print Shipping Label (CONTENTS section with item details)
+- [x] Revenue overview (daily/weekly/monthly)
+- [x] Inventory levels per product
+- [x] Add product form — writes to Shopify via Admin API
+- [x] Edit product form — updates Shopify
+- [x] Customer list — name, email, order count
+- [x] Fully styled to match Acme design system
+
+---
+
+## ✅ Phase 4 — Colour Variants & Multi-Colour Cart
+**Complete**
+
+- [x] Admin: colour variant toggle — create product with per-colour price + stock
+- [x] Admin: edit product — add new colours to existing products (persists correctly)
+- [x] Storefront: colour swatch selector on PDP — price + stock updates per variant
+- [x] Cart guard — must select a colour before adding to crate
+- [x] Multi-colour opt-in — "Buying multiple colours?" expands per-colour qty table
+- [x] Grouped cart display — variant items grouped by product in drawer + crate page
+- [x] Orders show `variantTitle` (e.g. Green, Ruby Red) on each line item
+
+---
+
+## ✅ Phase 5 — Orders & Shipping
+**Complete**
+
+- [x] Admin order detail: variant title shown on each line item
+- [x] Print Invoice: variant title included in line item rows
+- [x] Print Shipping Label: CONTENTS section lists item name, variant, SKU, and quantity
+
+**Deferred:**
+- [ ] Shipping label + invoice layout redesign — waiting on Scott's sample format
+- [ ] Order prefix `ACME` — Scott sets in Shopify Admin → Settings → General → Order ID format
+
+---
+
+## ⏳ Phase 6 — Content & CMS
+**Blocked — waiting on Scott**
+
+### Sanity CMS Integration
+- [ ] Sanity account created and project shared with PPlazan
 - [ ] Journal / Bench Notes (blog listing + individual post pages)
 - [ ] Heritage timeline entries
 - [ ] Testimonials (replace mock data in carousel)
 - [ ] Homepage hero content (editable headline, subtext, CTA)
 - [ ] Our Story page content
 
-**Codebase tasks:**
-- [ ] Verify Sanity client config (`lib/sanity.ts`)
-- [ ] Replace static content with `sanity.fetch()` calls per content type
-- [ ] GROQ queries for each content type
-- [ ] Test in Sanity Studio — create one real entry per type
-- [ ] ISR or on-demand revalidation for Sanity content updates
+### Product Data
+- [ ] 23 remaining products added to Shopify (CSV: `products-new-only-without-image.csv` on Desktop)
+- [ ] Photos uploaded for 11 products added June 9
+- [ ] Photos uploaded for remaining products
 
-**Scott tasks (must be done before this week):**
-- [ ] Sanity account created and project shared with PPlazan
-- [ ] Content populated in Sanity Studio (or at least placeholder entries)
-
----
-
-## Week 4 — Reviews & Customer Accounts
-**Jun 16 – Jun 20, 2026**
-
-Connect the existing reviews UI and auth modal to real data sources. Both UI shells are already built.
-
-**Reviews:**
-- [ ] Decide on reviews source: Sanity (manual entry) or third-party (Judge.me / Yotpo)
-- [ ] Replace `mockReviews.ts` with live data fetch
-- [ ] Wire aggregate rating + individual review cards to real data
-- [ ] Optional: Review submission form
-
-**Customer Accounts:**
-- [ ] Shopify Customer API — sign in (`customerAccessTokenCreate`)
-- [ ] Register (`customerCreate`)
-- [ ] Fetch order history for logged-in customer
-- [ ] Persist auth token (Zustand + `localStorage`)
-- [ ] Wire auth state to nav account icon / dropdown
-- [ ] Protected account dashboard (redirect if not logged in)
+### Analytics & Business Tools
+- [ ] Google Analytics 4 — Scott creates GA4 property → provides Measurement ID
+- [ ] Business email `scott@acmevintagesupply.ca` activation via Microsoft 365
+- [ ] Shopify store name updated from "My Store" (appears in receipts)
 
 ---
 
-## Week 5 — Polish & Launch
-**Jun 23 – Jun 27, 2026**
+## ⏳ Phase 7 — Pre-Launch & Go-Live
+**Blocked — launch date TBD, pending Scott's confirmation**
 
-Final QA, performance pass, and production launch.
-
-**QA checklist:**
+### QA Checklist
 - [ ] Full end-to-end purchase test (real product, real payment)
 - [ ] Mobile QA across breakpoints (320px, 375px, 768px, 1280px)
-- [ ] Keyboard navigation pass (all interactive elements reachable)
-- [ ] Screen reader test (VoiceOver / NVDA)
 - [ ] All pages load without console errors
 
-**Performance:**
+### Performance
 - [ ] Lighthouse score ≥ 90 on all key pages
 - [ ] `next/image` optimization verified on all images
-- [ ] Font loading — no FOUT on serif headings
 
-**Pre-launch cleanup:**
+### Pre-Launch Cleanup
 - [ ] Remove `app/api/test-shopify/route.ts`
 - [ ] Confirm all environment variables in Vercel production
-- [ ] Confirm Sanity CORS origin includes production domain
 - [ ] Confirm Shopify Storefront API token is production-scoped
 
-**Go-live:**
-- [ ] Domain pointed to Vercel (DNS propagation — allow 24–48 hrs)
+### Go-Live
+- [ ] Domain DNS pointed to Vercel (propagation — allow 24–48 hrs)
 - [ ] SSL certificate active (Vercel auto-provisions)
 - [ ] Smoke test on production URL
 - [ ] Announce to Scott ✓
 
-**Scott tasks (must be done before go-live):**
-- [ ] Domain purchased and DNS pointed to Vercel
-- [ ] Shopify store name updated from "My Store"
-- [ ] Shopify Payments fully activated and verified
-- [ ] Real product photography delivered (if replacing eBay images)
+---
+
+## Critical Path — Blocked on Scott
+
+These items will delay launch if not resolved:
+
+| Task | Impact if Late |
+|---|---|
+| Confirm launch date | Cannot schedule final QA or go-live |
+| Shopify Payments activation | Currently on test mode — real payments cannot be processed at launch |
+| Product photos uploaded | Placeholder images at launch |
+| 23 remaining products added | Incomplete catalog at launch |
+| Google Analytics Measurement ID | No analytics at launch |
+| Business email activated | No professional contact address |
+| Shopify store name updated | "My Store" appears in receipts |
+| Sample invoice/label format | Generic layout used |
+| Return policy written | Cancel/return flow cannot be built |
 
 ---
 
-## Critical Path — Scott's Tasks
+## Deferred Features (Post-Launch)
 
-These items are **blocked on the client** and will delay the schedule if not completed on time:
-
-| Task | Needed By | Impact if Late |
-|---|---|---|
-| Shopify Payments activation | Before Week 2 (Jun 2) | Checkout integration cannot be tested |
-| Sanity account access shared | Before Week 3 (Jun 9) | CMS integration cannot begin |
-| Domain purchase + DNS setup | Before Week 5 (Jun 23) | Launch delayed |
-| Real product photography | Before Week 5 (Jun 23) | eBay CDN images used at launch |
-| Shopify store name updated | Before Week 5 (Jun 23) | "My Store" appears in receipts |
+| Feature | Notes |
+|---|---|
+| Cancel / return flow | Design ready — blocked on Scott's written return policy |
+| Sanity CMS | Waiting on Scott's Sanity account access |
+| Reviews (live data) | Currently mock — needs Judge.me / Yotpo / Sanity decision |
 
 ---
 
-*Timeline created: 2026-05-26 · Developer: PPlazan*
-
----
-
-## Phase 2 — Post-Launch Features
-**July 2026 and beyond**
-
-Features planned after the store is live and stable. These are not part of the launch scope.
-
----
-
-### Custom Admin Dashboard
-**Estimated effort:** 1–2 weeks
-
-Build a protected `/admin` route inside this Next.js codebase that connects to the **Shopify Admin API** — giving Scott (and PPlazan) a personalized dashboard without needing to browse Shopify admin directly.
-
-**Planned features:**
-- [ ] Order tracking — live order list, status, fulfillment
-- [ ] Revenue overview — daily/weekly/monthly charts
-- [ ] Inventory levels — stock counts per product
-- [ ] Add / edit products — form that writes directly to Shopify via Admin API
-- [ ] Customer list — name, email, order count
-- [ ] Protected login — password or token-gated, only accessible by owner
-
-**Technical notes:**
-- Uses Shopify **Admin API** (not Storefront API — separate token required)
-- Dashboard route protected via middleware or session token
-- Charts via a lightweight library (e.g. Recharts)
-- Fully styled to match the Acme Lamp & Sign design system
-
-**Why post-launch:**
-Shopify admin already handles all of this reliably. Building a custom dashboard before launch would delay the go-live date. Once the store is live and Scott is comfortable, this becomes a high-value quality-of-life feature.
+*Timeline created: 2026-05-26 · Last updated: 2026-06-10 · Developer: PPlazan*
