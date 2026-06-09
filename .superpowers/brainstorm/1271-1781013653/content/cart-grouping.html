@@ -1,0 +1,154 @@
+<h2>Cart Display — Multi-Colour Items</h2>
+<p class="subtitle">Customer added Hurricane Glass: Clear ×2 and Emerald ×1. How should the crate show them?</p>
+
+<div class="split" style="gap:24px; align-items:start;">
+
+  <!-- Option X: Ungrouped — flat list -->
+  <div class="mockup" data-choice="x" onclick="toggleSelect(this)" style="cursor:pointer;">
+    <div class="mockup-header">X — Flat list (current behaviour, unchanged)</div>
+    <div class="mockup-body" style="background:#FAF7F2; padding:0; font-family:sans-serif; overflow:hidden;">
+
+      <div style="padding:12px 16px;border-bottom:1px solid #DDD8CE;background:#F2EDE4;">
+        <span style="font-size:11px;font-family:monospace;text-transform:uppercase;letter-spacing:.08em;color:#6B5E4E;">Your Crate · 3 items</span>
+      </div>
+
+      <!-- Item 1 -->
+      <div style="padding:14px 16px;border-bottom:1px solid #DDD8CE;display:flex;gap:12px;">
+        <div style="width:52px;height:52px;background:#E8E3D8;border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-family:monospace;color:#9A8870;">IMG</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;color:#4A4035;font-weight:500;line-height:1.3;margin-bottom:2px;">Hurricane Glass</div>
+          <div style="font-size:11px;font-family:monospace;color:#8C8070;margin-bottom:6px;">Clear · $55.00</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="display:flex;align-items:center;border:1px solid #DDD8CE;border-radius:3px;overflow:hidden;">
+              <span style="width:24px;height:22px;display:flex;align-items:center;justify-content:center;font-size:12px;border-right:1px solid #DDD8CE;color:#888;">−</span>
+              <span style="width:24px;text-align:center;font-size:11px;font-family:monospace;">2</span>
+              <span style="width:24px;height:22px;display:flex;align-items:center;justify-content:center;font-size:12px;border-left:1px solid #DDD8CE;color:#555;">+</span>
+            </div>
+            <span style="font-size:12px;font-family:monospace;color:#4A4035;margin-left:auto;">$110.00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Item 2 -->
+      <div style="padding:14px 16px;border-bottom:1px solid #DDD8CE;display:flex;gap:12px;">
+        <div style="width:52px;height:52px;background:#E8E3D8;border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-family:monospace;color:#9A8870;">IMG</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;color:#4A4035;font-weight:500;line-height:1.3;margin-bottom:2px;">Hurricane Glass</div>
+          <div style="font-size:11px;font-family:monospace;color:#8C8070;margin-bottom:6px;">Emerald · $55.00</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="display:flex;align-items:center;border:1px solid #DDD8CE;border-radius:3px;overflow:hidden;">
+              <span style="width:24px;height:22px;display:flex;align-items:center;justify-content:center;font-size:12px;border-right:1px solid #DDD8CE;color:#888;">−</span>
+              <span style="width:24px;text-align:center;font-size:11px;font-family:monospace;">1</span>
+              <span style="width:24px;height:22px;display:flex;align-items:center;justify-content:center;font-size:12px;border-left:1px solid #DDD8CE;color:#555;">+</span>
+            </div>
+            <span style="font-size:12px;font-family:monospace;color:#4A4035;margin-left:auto;">$55.00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Another product, unrelated -->
+      <div style="padding:14px 16px;border-bottom:1px solid #DDD8CE;display:flex;gap:12px;">
+        <div style="width:52px;height:52px;background:#E8E3D8;border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-family:monospace;color:#9A8870;">IMG</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;color:#4A4035;font-weight:500;line-height:1.3;margin-bottom:2px;">Aladdin Sol Shade 501</div>
+          <div style="font-size:11px;font-family:monospace;color:#8C8070;margin-bottom:6px;">$75.00</div>
+          <div style="display:flex;align-items:center;">
+            <div style="display:flex;align-items:center;border:1px solid #DDD8CE;border-radius:3px;overflow:hidden;">
+              <span style="width:24px;height:22px;display:flex;align-items:center;justify-content:center;font-size:12px;border-right:1px solid #DDD8CE;color:#888;">−</span>
+              <span style="width:24px;text-align:center;font-size:11px;font-family:monospace;">1</span>
+              <span style="width:24px;height:22px;display:flex;align-items:center;justify-content:center;font-size:12px;border-left:1px solid #DDD8CE;color:#555;">+</span>
+            </div>
+            <span style="font-size:12px;font-family:monospace;color:#4A4035;margin-left:auto;">$75.00</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:14px 16px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+          <span style="font-size:12px;font-family:monospace;color:#6B5E4E;">Total</span>
+          <span style="font-size:14px;font-family:monospace;font-weight:600;color:#4A4035;">$240.00</span>
+        </div>
+        <div style="background:#2A6B41;color:#F5F1E6;text-align:center;padding:10px;border-radius:4px;font-size:13px;font-weight:600;">Proceed to checkout</div>
+      </div>
+
+      <div style="padding:8px 16px 12px;font-size:10px;font-family:monospace;color:#9A8870;text-align:center;">Same product name appears twice. Simple to implement.<br>No grouping logic needed.</div>
+    </div>
+  </div>
+
+  <!-- Option Y: Grouped -->
+  <div class="mockup" data-choice="y" onclick="toggleSelect(this)" style="cursor:pointer;">
+    <div class="mockup-header">Y — Grouped under product name</div>
+    <div class="mockup-body" style="background:#FAF7F2; padding:0; font-family:sans-serif; overflow:hidden;">
+
+      <div style="padding:12px 16px;border-bottom:1px solid #DDD8CE;background:#F2EDE4;">
+        <span style="font-size:11px;font-family:monospace;text-transform:uppercase;letter-spacing:.08em;color:#6B5E4E;">Your Crate · 3 items</span>
+      </div>
+
+      <!-- Grouped product -->
+      <div style="border-bottom:1px solid #DDD8CE;">
+        <div style="padding:12px 16px 8px;display:flex;gap:12px;align-items:flex-start;">
+          <div style="width:52px;height:52px;background:#E8E3D8;border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-family:monospace;color:#9A8870;">IMG</div>
+          <div style="flex:1;">
+            <div style="font-size:13px;color:#4A4035;font-weight:600;margin-bottom:2px;">Hurricane Glass</div>
+            <div style="font-size:11px;font-family:monospace;color:#9A7B2A;">3 items · $165.00</div>
+          </div>
+        </div>
+        <!-- Colour rows indented -->
+        <div style="padding:0 16px 10px 80px;">
+          <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-top:1px solid #EDE9E1;">
+            <span style="width:7px;height:7px;border-radius:50%;background:#E8E8E8;border:1px solid #bbb;display:inline-block;flex-shrink:0;"></span>
+            <span style="font-size:11px;color:#6B5E4E;flex:1;font-family:monospace;">Clear</span>
+            <div style="display:flex;align-items:center;border:1px solid #DDD8CE;border-radius:3px;overflow:hidden;">
+              <span style="width:22px;height:20px;display:flex;align-items:center;justify-content:center;font-size:11px;border-right:1px solid #DDD8CE;color:#888;">−</span>
+              <span style="width:22px;text-align:center;font-size:11px;font-family:monospace;">2</span>
+              <span style="width:22px;height:20px;display:flex;align-items:center;justify-content:center;font-size:11px;border-left:1px solid #DDD8CE;color:#555;">+</span>
+            </div>
+            <span style="font-size:11px;font-family:monospace;color:#4A4035;min-width:40px;text-align:right;">$110</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-top:1px solid #EDE9E1;">
+            <span style="width:7px;height:7px;border-radius:50%;background:#2D7A47;border:1px solid #bbb;display:inline-block;flex-shrink:0;"></span>
+            <span style="font-size:11px;color:#6B5E4E;flex:1;font-family:monospace;">Emerald</span>
+            <div style="display:flex;align-items:center;border:1px solid #DDD8CE;border-radius:3px;overflow:hidden;">
+              <span style="width:22px;height:20px;display:flex;align-items:center;justify-content:center;font-size:11px;border-right:1px solid #DDD8CE;color:#888;">−</span>
+              <span style="width:22px;text-align:center;font-size:11px;font-family:monospace;">1</span>
+              <span style="width:22px;height:20px;display:flex;align-items:center;justify-content:center;font-size:11px;border-left:1px solid #DDD8CE;color:#555;">+</span>
+            </div>
+            <span style="font-size:11px;font-family:monospace;color:#4A4035;min-width:40px;text-align:right;">$55</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Unrelated product -->
+      <div style="padding:14px 16px;border-bottom:1px solid #DDD8CE;display:flex;gap:12px;">
+        <div style="width:52px;height:52px;background:#E8E3D8;border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-family:monospace;color:#9A8870;">IMG</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;color:#4A4035;font-weight:500;line-height:1.3;margin-bottom:2px;">Aladdin Sol Shade 501</div>
+          <div style="font-size:11px;font-family:monospace;color:#8C8070;margin-bottom:6px;">$75.00</div>
+          <div style="display:flex;align-items:center;">
+            <div style="display:flex;align-items:center;border:1px solid #DDD8CE;border-radius:3px;overflow:hidden;">
+              <span style="width:24px;height:22px;display:flex;align-items:center;justify-content:center;font-size:12px;border-right:1px solid #DDD8CE;color:#888;">−</span>
+              <span style="width:24px;text-align:center;font-size:11px;font-family:monospace;">1</span>
+              <span style="width:24px;height:22px;display:flex;align-items:center;justify-content:center;font-size:12px;border-left:1px solid #DDD8CE;color:#555;">+</span>
+            </div>
+            <span style="font-size:12px;font-family:monospace;color:#4A4035;margin-left:auto;">$75.00</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:14px 16px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+          <span style="font-size:12px;font-family:monospace;color:#6B5E4E;">Total</span>
+          <span style="font-size:14px;font-family:monospace;font-weight:600;color:#4A4035;">$240.00</span>
+        </div>
+        <div style="background:#2A6B41;color:#F5F1E6;text-align:center;padding:10px;border-radius:4px;font-size:13px;font-weight:600;">Proceed to checkout</div>
+      </div>
+
+      <div style="padding:8px 16px 12px;font-size:10px;font-family:monospace;color:#9A8870;text-align:center;">Product shown once, colours indented beneath.<br>Cleaner but requires grouping logic in the cart.</div>
+    </div>
+  </div>
+
+</div>
+
+<div style="margin-top:16px;padding:14px 16px;background:#F5F1E6;border-radius:6px;border:1px solid #DDD8CE;">
+  <p style="font-size:12px;font-family:monospace;color:#6B5E4E;margin:0;"><strong>My recommendation: X (flat list).</strong> It requires zero changes to the existing cart components — the cart already handles independent line items. Grouping (Y) requires a new grouping algorithm, more complex rendering, and needs to be kept in sync with Shopify's flat line-item model. For a store at this scale, the flat list is clear enough — the colour name on each row makes it readable.</p>
+</div>

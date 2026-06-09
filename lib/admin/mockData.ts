@@ -31,8 +31,8 @@ export const mockOrders: AdminOrder[] = [
     },
     date: '2026-05-27',
     items: [
-      { id: 'i1', productId: '', title: 'Embossed Satin Glass Shade — Powder Blue', sku: 'ACM-001', quantity: 1, unitPrice: 175.00, image: '' },
-      { id: 'i2', productId: '', title: 'No. 2 Duplex Burner Wick', sku: 'ACM-011', quantity: 2, unitPrice: 18.00, image: '' },
+      { id: 'i1', productId: '', title: 'Embossed Satin Glass Shade — Powder Blue', variantTitle: '', sku: 'ACM-001', quantity: 1, unitPrice: 175.00, image: '' },
+      { id: 'i2', productId: '', title: 'No. 2 Duplex Burner Wick', variantTitle: '', sku: 'ACM-011', quantity: 2, unitPrice: 18.00, image: '' },
     ],
     subtotal: 211.00,
     shipping: 18.50,
@@ -60,7 +60,7 @@ export const mockOrders: AdminOrder[] = [
     },
     date: '2026-05-26',
     items: [
-      { id: 'i3', productId: '', title: 'Open Tulip Etched Shade — Magenta', sku: 'ACM-002', quantity: 1, unitPrice: 175.00, image: '' },
+      { id: 'i3', productId: '', title: 'Open Tulip Etched Shade — Magenta', variantTitle: '', sku: 'ACM-002', quantity: 1, unitPrice: 175.00, image: '' },
     ],
     subtotal: 175.00,
     shipping: 14.00,
@@ -91,7 +91,7 @@ export const mockOrders: AdminOrder[] = [
     },
     date: '2026-05-25',
     items: [
-      { id: 'i4', productId: '', title: 'Butterfly Beehive Shade — Cranberry', sku: 'ACM-003', quantity: 1, unitPrice: 190.00, image: '' },
+      { id: 'i4', productId: '', title: 'Butterfly Beehive Shade — Cranberry', variantTitle: '', sku: 'ACM-003', quantity: 1, unitPrice: 190.00, image: '' },
     ],
     subtotal: 190.00,
     shipping: 16.00,
@@ -122,8 +122,8 @@ export const mockOrders: AdminOrder[] = [
     },
     date: '2026-05-24',
     items: [
-      { id: 'i5', productId: '', title: 'No. 1 Round Wick — Cotton', sku: 'ACM-012', quantity: 4, unitPrice: 12.00, image: '' },
-      { id: 'i6', productId: '', title: 'Brass Gallery Ring — 4 inch', sku: 'ACM-008', quantity: 1, unitPrice: 34.00, image: '' },
+      { id: 'i5', productId: '', title: 'No. 1 Round Wick — Cotton', variantTitle: '', sku: 'ACM-012', quantity: 4, unitPrice: 12.00, image: '' },
+      { id: 'i6', productId: '', title: 'Brass Gallery Ring — 4 inch', variantTitle: '', sku: 'ACM-008', quantity: 1, unitPrice: 34.00, image: '' },
     ],
     subtotal: 82.00,
     shipping: 10.00,
@@ -152,7 +152,7 @@ export const mockOrders: AdminOrder[] = [
     },
     date: '2026-05-22',
     items: [
-      { id: 'i7', productId: '', title: 'Oil Lamp Collector — Volume 2', sku: 'ACM-015', quantity: 1, unitPrice: 48.00, image: '' },
+      { id: 'i7', productId: '', title: 'Oil Lamp Collector — Volume 2', variantTitle: '', sku: 'ACM-015', quantity: 1, unitPrice: 48.00, image: '' },
     ],
     subtotal: 48.00,
     shipping: 8.00,
@@ -183,7 +183,7 @@ export const mockOrders: AdminOrder[] = [
     },
     date: '2026-05-20',
     items: [
-      { id: 'i8', productId: '', title: 'Embossed Satin Glass Shade — Powder Blue', sku: 'ACM-001', quantity: 1, unitPrice: 175.00, image: '' },
+      { id: 'i8', productId: '', title: 'Embossed Satin Glass Shade — Powder Blue', variantTitle: '', sku: 'ACM-001', quantity: 1, unitPrice: 175.00, image: '' },
     ],
     subtotal: 175.00,
     shipping: 14.00,
@@ -210,7 +210,7 @@ export const mockOrders: AdminOrder[] = [
     },
     date: '2026-05-18',
     items: [
-      { id: 'i9', productId: '', title: 'Aladdin Pressure Lamp — Complete', sku: 'ACM-005', quantity: 1, unitPrice: 320.00, image: '' },
+      { id: 'i9', productId: '', title: 'Aladdin Pressure Lamp — Complete', variantTitle: '', sku: 'ACM-005', quantity: 1, unitPrice: 320.00, image: '' },
     ],
     subtotal: 320.00,
     shipping: 22.00,
@@ -241,7 +241,7 @@ export const mockOrders: AdminOrder[] = [
     },
     date: '2026-05-15',
     items: [
-      { id: 'i10', productId: '', title: 'Nickel Spreader — No. 2 Fit', sku: 'ACM-009', quantity: 2, unitPrice: 28.00, image: '' },
+      { id: 'i10', productId: '', title: 'Nickel Spreader — No. 2 Fit', variantTitle: '', sku: 'ACM-009', quantity: 2, unitPrice: 28.00, image: '' },
     ],
     subtotal: 56.00,
     shipping: 10.00,

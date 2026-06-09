@@ -7,6 +7,7 @@ import { formatPrice } from "@/lib/utils";
 import { useCrateStore } from "@/store/crateStore";
 import FitmentBox from "./FitmentBox";
 import { getReviewsForProduct, getAggregateRating } from "@/lib/mockReviews";
+import { getColourHex } from '@/lib/cartGrouping'
 
 interface ProductInfoProps {
   product: Product;
@@ -18,6 +19,7 @@ const selectClass =
 export default function ProductInfo({ product }: ProductInfoProps) {
   const addItem        = useCrateStore((s) => s.addItem);
   const updateQuantity = useCrateStore((s) => s.updateQuantity);
+  const items          = useCrateStore((s) => s.items);
 
   // For colour-variant products each colour is its own cart entry (keyed by variant id)
   const hasColourVariants = product.colorVariants.length >= 1;
@@ -42,6 +44,23 @@ export default function ProductInfo({ product }: ProductInfoProps) {
   const [qty, setQty] = useState(existingQty || 1);
   const [added, setAdded] = useState(false);
 
+  const [multiMode,  setMultiMode]  = useState(false)
+  const [multiQtys,  setMultiQtys]  = useState<Map<string, number>>(new Map())
+
+  function setMultiQty(variantId: string, qty: number) {
+    setMultiQtys(prev => {
+      const next = new Map(prev)
+      if (qty === 0) next.delete(variantId)
+      else next.set(variantId, qty)
+      return next
+    })
+  }
+
+  const multiCount = Array.from(multiQtys.values()).reduce((s, q) => s + q, 0)
+  const multiTotal = product.colorVariants.reduce((s, cv) => {
+    return s + (multiQtys.get(cv.id) ?? 0) * cv.price
+  }, 0)
+
   // Sync qty when existingQty changes (e.g. post-hydration or drawer update).
   // React's recommended pattern: track last synced value and setState during render
   // so the reset happens in the same cycle, not as a cascading effect.
@@ -57,27 +76,49 @@ export default function ProductInfo({ product }: ProductInfoProps) {
   const lineTotal = activePrice * qty;
 
   function handleAdd() {
-    // Guard: colour-variant product needs a selection before adding
-    if (hasColourVariants && !selectedVariant) {
-      setVariantError(true);
-      return;
+    if (hasColourVariants && multiMode) {
+      if (multiCount === 0) return
+      for (const cv of product.colorVariants) {
+        const q = multiQtys.get(cv.id) ?? 0
+        if (q === 0) continue
+        const cvCartKey = `${product.id}-${cv.id}`
+        const existing  = items.find(i => i.product.id === cvCartKey)
+        if (existing) {
+          updateQuantity(cvCartKey, Math.min(existing.quantity + q, cv.stock))
+        } else {
+          const cartProduct = {
+            ...product,
+            id:            cvCartKey,
+            variantId:     cv.id,
+            price:         cv.price,
+            stockQuantity: cv.stock,
+          }
+          addItem(cartProduct, selectedFinish, selectedBurner, cv.colour, q)
+        }
+      }
+      setMultiQtys(new Map())
+      setAdded(true)
+      setTimeout(() => setAdded(false), 2000)
+      return
     }
 
-    // For colour-variant products, patch the product so the cart uses the
-    // correct variantId, price, and stock for the chosen colour.
+    // Single-select guard
+    if (hasColourVariants && !selectedVariant) {
+      setVariantError(true)
+      return
+    }
+
     const cartProduct = hasColourVariants && selectedVariant
       ? { ...product, id: cartKey, variantId: selectedVariant.id, price: selectedVariant.price, stockQuantity: selectedVariant.stock }
-      : product;
+      : product
 
     if (existingQty > 0) {
-      updateQuantity(cartKey, qty);
+      updateQuantity(cartKey, qty)
     } else {
-      for (let i = 0; i < qty; i++) {
-        addItem(cartProduct, selectedFinish, selectedBurner, selectedVariant?.colour ?? '');
-      }
+      addItem(cartProduct, selectedFinish, selectedBurner, selectedVariant?.colour ?? '', qty)
     }
-    setAdded(true);
-    setTimeout(() => setAdded(false), 2000);
+    setAdded(true)
+    setTimeout(() => setAdded(false), 2000)
   }
 
   return (
@@ -171,28 +212,99 @@ export default function ProductInfo({ product }: ProductInfoProps) {
         </p>
       </div>
 
-      {/* Colour variant swatches */}
-      {hasColourVariants && (
+      {/* Colour variant swatches — single-select mode */}
+      {hasColourVariants && !multiMode && (
         <div>
           <p className="text-[11px] font-mono uppercase tracking-eyebrow text-ink-soft mb-2">
-            Colour{selectedVariant ? ` — ${selectedVariant.colour}` : " — Select one"}
+            Colour{selectedVariant ? ` — ${selectedVariant.colour}` : ' — Select one'}
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 mb-2">
             {product.colorVariants.map((cv) => (
               <button
                 key={cv.id}
                 type="button"
-                onClick={() => { setSelectedVariant(cv); setVariantError(false); }}
+                onClick={() => { setSelectedVariant(cv); setVariantError(false) }}
                 className={`px-3 py-1.5 text-[13px] font-sans rounded-sm border transition-colors ${
                   selectedVariant?.id === cv.id
-                    ? "border-brass-deep bg-brass/10 text-brass-deep font-medium"
-                    : "border-ink-rule text-ink-iron hover:border-brass hover:bg-brass/5"
-                } ${cv.stock === 0 ? "opacity-40 pointer-events-none" : ""}`}
+                    ? 'border-brass-deep bg-brass/10 text-brass-deep font-medium'
+                    : 'border-ink-rule text-ink-iron hover:border-brass hover:bg-brass/5'
+                } ${cv.stock === 0 ? 'opacity-40 pointer-events-none' : ''}`}
               >
-                {cv.colour}
-                {cv.stock === 0 && " (sold out)"}
+                {cv.colour}{cv.stock === 0 && ' (sold out)'}
               </button>
             ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setMultiMode(true)
+              setVariantError(false)
+              if (selectedVariant) setMultiQty(selectedVariant.id, 1)
+            }}
+            className="text-[11px] font-mono text-brass-deep hover:text-brass transition-colors"
+          >
+            + Buying multiple colours?
+          </button>
+        </div>
+      )}
+
+      {/* Colour variant table — multi-select mode */}
+      {hasColourVariants && multiMode && (
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[11px] font-mono uppercase tracking-eyebrow text-ink-soft">
+              Colour &amp; Quantity
+            </p>
+            <button
+              type="button"
+              onClick={() => { setMultiMode(false); setMultiQtys(new Map()) }}
+              className="text-[11px] font-mono text-ink-soft hover:text-ink-iron transition-colors"
+            >
+              Single colour ✕
+            </button>
+          </div>
+          <div className="border border-ink-rule rounded-sm overflow-hidden">
+            {product.colorVariants.map((cv, idx) => {
+              const q   = multiQtys.get(cv.id) ?? 0
+              const hex = getColourHex(cv.colour)
+              return (
+                <div
+                  key={cv.id}
+                  className={`flex items-center gap-3 px-3 py-2.5 ${idx > 0 ? 'border-t border-ink-rule' : ''} ${cv.stock === 0 ? 'opacity-40' : ''}`}
+                >
+                  <span
+                    className="w-2.5 h-2.5 rounded-full shrink-0 border border-black/10"
+                    style={{ background: hex }}
+                  />
+                  <span className="text-[13px] font-sans text-ink-iron flex-1">{cv.colour}</span>
+                  {cv.stock === 0 ? (
+                    <span className="text-[11px] font-mono text-ink-soft">Sold out</span>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-0 border border-ink-rule rounded-sm">
+                        <button
+                          type="button"
+                          onClick={() => setMultiQty(cv.id, Math.max(0, q - 1))}
+                          className="w-8 h-8 flex items-center justify-center text-ink-iron hover:bg-parchment-2 text-[15px] font-mono border-r border-ink-rule transition-colors"
+                          aria-label={`Decrease ${cv.colour} quantity`}
+                        >−</button>
+                        <span className="w-9 text-center text-[13px] font-mono text-ink-iron tabular-nums">{q}</span>
+                        <button
+                          type="button"
+                          onClick={() => setMultiQty(cv.id, Math.min(cv.stock, q + 1))}
+                          disabled={q >= cv.stock}
+                          className="w-8 h-8 flex items-center justify-center text-ink-iron hover:bg-parchment-2 text-[15px] font-mono border-l border-ink-rule transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                          aria-label={`Increase ${cv.colour} quantity`}
+                        >+</button>
+                      </div>
+                      <span className={`text-[12px] font-mono text-ink-soft w-14 text-right tabular-nums ${q === 0 ? 'invisible' : ''}`}>
+                        {formatPrice(cv.price * q)}
+                      </span>
+                    </>
+                  )}
+                </div>
+              )
+            })}
           </div>
         </div>
       )}
@@ -259,45 +371,41 @@ export default function ProductInfo({ product }: ProductInfoProps) {
         </div>
       )}
 
-      {/* Quantity stepper */}
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <p className="text-[11px] font-mono uppercase tracking-eyebrow text-ink-soft">
-            Quantity
-          </p>
-          {activeInStock && activeStock <= 10 && (
-            <p className="text-[11px] font-mono text-brass-deep">
-              {activeStock} in stock
+      {/* Quantity stepper — hidden in multi-colour mode */}
+      {(!hasColourVariants || !multiMode) && (
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[11px] font-mono uppercase tracking-eyebrow text-ink-soft">
+              Quantity
             </p>
-          )}
+            {activeInStock && activeStock <= 10 && (
+              <p className="text-[11px] font-mono text-brass-deep">
+                {activeStock} in stock
+              </p>
+            )}
+          </div>
+          <div className="flex items-center gap-0 border border-ink-rule rounded-sm w-fit">
+            <button
+              onClick={() => setQty((q) => Math.max(1, q - 1))}
+              className="w-11 h-11 flex items-center justify-center text-ink-iron hover:bg-parchment-2 transition-colors text-[18px] font-mono border-r border-ink-rule"
+              aria-label="Decrease quantity"
+            >−</button>
+            <span
+              className="w-12 text-center text-[15px] font-mono text-ink-iron tabular-nums"
+              aria-live="polite"
+            >{qty}</span>
+            <button
+              onClick={() => setQty((q) => Math.min(activeStock, q + 1))}
+              disabled={qty >= activeStock}
+              className="w-11 h-11 flex items-center justify-center text-ink-iron hover:bg-parchment-2 transition-colors text-[18px] font-mono border-l border-ink-rule disabled:opacity-30 disabled:pointer-events-none"
+              aria-label="Increase quantity"
+            >+</button>
+          </div>
         </div>
-        <div className="flex items-center gap-0 border border-ink-rule rounded-sm w-fit">
-          <button
-            onClick={() => setQty((q) => Math.max(1, q - 1))}
-            className="w-11 h-11 flex items-center justify-center text-ink-iron hover:bg-parchment-2 transition-colors text-[18px] font-mono border-r border-ink-rule"
-            aria-label="Decrease quantity"
-          >
-            −
-          </button>
-          <span
-            className="w-12 text-center text-[15px] font-mono text-ink-iron tabular-nums"
-            aria-live="polite"
-          >
-            {qty}
-          </span>
-          <button
-            onClick={() => setQty((q) => Math.min(activeStock, q + 1))}
-            disabled={qty >= activeStock}
-            className="w-11 h-11 flex items-center justify-center text-ink-iron hover:bg-parchment-2 transition-colors text-[18px] font-mono border-l border-ink-rule disabled:opacity-30 disabled:pointer-events-none"
-            aria-label="Increase quantity"
-          >
-            +
-          </button>
-        </div>
-      </div>
+      )}
 
       {/* Cart guard — shown when colour-variant product has no selection */}
-      {variantError && (
+      {variantError && !multiMode && (
         <p className="text-[13px] font-sans text-amber-700 bg-amber-50 border border-amber-200 rounded-sm px-3 py-2">
           Please select a colour before adding to your crate.
         </p>
@@ -306,12 +414,16 @@ export default function ProductInfo({ product }: ProductInfoProps) {
       {/* Add to crate CTA */}
       <button
         onClick={handleAdd}
-        disabled={!activeInStock}
+        disabled={hasColourVariants && multiMode ? multiCount === 0 : !activeInStock}
         className="w-full min-h-15 flex items-center justify-center gap-2 bg-green-brand text-[#F5F1E6] rounded-btn font-sans text-[17px] font-semibold hover:bg-green-deep hover:shadow-cta-hover hover:-translate-y-px active:translate-y-0 transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none"
       >
         {added
-          ? "✓ Added to your crate"
-          : `Add to crate — ${formatPrice(lineTotal)}`}
+          ? '✓ Added to your crate'
+          : hasColourVariants && multiMode
+            ? multiCount > 0
+              ? `Add ${multiCount} item${multiCount !== 1 ? 's' : ''} to crate — ${formatPrice(multiTotal)}`
+              : 'Select quantities above'
+            : `Add to crate — ${formatPrice(lineTotal)}`}
       </button>
 
       {/* Trust signals */}

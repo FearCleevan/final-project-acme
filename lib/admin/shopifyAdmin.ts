@@ -463,31 +463,90 @@ export async function updateAdminProduct(shopifyId: string, input: ProductInput)
         })
       )
     } else {
-      // ── Colour variants already exist: update price + stock per variant ──
-      const bulkVariants = colourVariants!.flatMap(cv => {
+      // ── Colour variants already exist: split into update vs. create ──
+      type CV = { colour: string; price: number; compareAtPrice: number | null; stock: number }
+      const toUpdate: { cv: CV; edge: typeof existingColourEdges[0] }[] = []
+      const toCreate: CV[] = []
+      for (const cv of colourVariants!) {
         const edge = existingColourEdges.find(e =>
           e.node.selectedOptions?.some(o => o.name.toLowerCase() === 'colour' && o.value === cv.colour)
         )
-        if (!edge) return []
-        return [{ id: edge.node.id, price: String(cv.price), inventoryPolicy: 'DENY' as const }]
-      })
-      if (bulkVariants.length) {
+        if (edge) toUpdate.push({ cv, edge })
+        else toCreate.push(cv)
+      }
+
+      // Update existing variants (price + policy)
+      if (toUpdate.length) {
         await adminFetch<{ productVariantsBulkUpdate: { userErrors: { message: string }[] } }>(
           `mutation UpdateColourVariants($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
             productVariantsBulkUpdate(productId: $productId, variants: $variants) {
               userErrors { field message }
             }
           }`,
-          { productId: gid, variants: bulkVariants }
+          {
+            productId: gid,
+            variants: toUpdate.map(({ cv, edge }) => ({
+              id: edge.node.id,
+              price: String(cv.price),
+              ...(cv.compareAtPrice != null && { compareAtPrice: String(cv.compareAtPrice) }),
+              inventoryPolicy: 'DENY' as const,
+            })),
+          }
         )
       }
-      // Update stock for each matched variant
+
+      // Create brand-new colour variants and set their inventory
+      if (toCreate.length) {
+        const createData = await adminFetch<{
+          productVariantsBulkCreate: {
+            productVariants: { id: string; inventoryItem: { id: string } | null; selectedOptions: { name: string; value: string }[] }[]
+            userErrors: { field: string; message: string }[]
+          }
+        }>(
+          `mutation CreateColourVariants($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
+            productVariantsBulkCreate(productId: $productId, variants: $variants) {
+              productVariants {
+                id
+                inventoryItem { id }
+                selectedOptions { name value }
+              }
+              userErrors { field message }
+            }
+          }`,
+          {
+            productId: gid,
+            variants: toCreate.map(cv => ({
+              price:           String(cv.price),
+              ...(cv.compareAtPrice != null && { compareAtPrice: String(cv.compareAtPrice) }),
+              inventoryPolicy: 'DENY' as const,
+              inventoryItem:   { tracked: true },
+              optionValues:    [{ optionName: 'Colour', name: cv.colour }],
+            })),
+          }
+        )
+        if (createData.productVariantsBulkCreate.userErrors.length) {
+          console.error('[updateAdminProduct] create variant error:', createData.productVariantsBulkCreate.userErrors[0].message)
+        }
+        // Set inventory for newly created variants
+        await Promise.all(
+          toCreate.map(cv => {
+            const created = createData.productVariantsBulkCreate.productVariants.find(v =>
+              v.selectedOptions.some(o => o.name.toLowerCase() === 'colour' && o.value === cv.colour)
+            )
+            const invId = created?.inventoryItem?.id
+            if (invId && cv.stock >= 0) {
+              return setInventoryQuantity(invId, cv.stock).catch(e =>
+                console.error(`[updateAdminProduct] new variant stock error for ${cv.colour}:`, String(e))
+              )
+            }
+          })
+        )
+      }
+
+      // Update stock for existing matched variants
       await Promise.all(
-        colourVariants!.map(cv => {
-          const edge = existingColourEdges.find(e =>
-            e.node.selectedOptions?.some(o => o.name.toLowerCase() === 'colour' && o.value === cv.colour)
-          )
-          const invId = edge?.node?.inventoryItem?.id
+        toUpdate.map(({ cv, edge }) => {
+          const invId = edge.node.inventoryItem?.id
           if (invId && cv.stock >= 0) {
             return setInventoryQuantity(invId, cv.stock).catch(e =>
               console.error(`[updateAdminProduct] stock error for ${cv.colour}:`, String(e))
@@ -810,6 +869,7 @@ interface ShopifyOrderNode {
       node: {
         id: string
         title: string
+        variantTitle: string | null
         sku: string | null
         quantity: number
         originalUnitPriceSet: { shopMoney: { amount: string } }
@@ -851,13 +911,14 @@ function toAdminOrder(o: ShopifyOrderNode): AdminOrder {
   }
 
   const items: AdminOrderItem[] = o.lineItems.edges.map(e => ({
-    id:        e.node.id.replace('gid://shopify/LineItem/', ''),
-    productId: e.node.variant?.product?.id ?? '',
-    title:     e.node.title,
-    sku:       e.node.sku ?? '',
-    quantity:  e.node.quantity,
-    unitPrice: parseFloat(e.node.originalUnitPriceSet.shopMoney.amount),
-    image:     e.node.variant?.image?.url ?? e.node.variant?.product?.featuredImage?.url ?? '',
+    id:           e.node.id.replace('gid://shopify/LineItem/', ''),
+    productId:    e.node.variant?.product?.id ?? '',
+    title:        e.node.title,
+    variantTitle: e.node.variantTitle ?? undefined,
+    sku:          e.node.sku ?? '',
+    quantity:     e.node.quantity,
+    unitPrice:    parseFloat(e.node.originalUnitPriceSet.shopMoney.amount),
+    image:        e.node.variant?.image?.url ?? e.node.variant?.product?.featuredImage?.url ?? '',
   }))
 
   const trackingRef          = o.fulfillments[0]?.trackingInfo[0]?.number ?? ''
@@ -940,7 +1001,7 @@ const ORDER_FIELDS = `
   }
   lineItems(first: 20) {
     edges { node {
-      id title sku quantity
+      id title variantTitle sku quantity
       originalUnitPriceSet { shopMoney { amount } }
       variant {
         image { url }

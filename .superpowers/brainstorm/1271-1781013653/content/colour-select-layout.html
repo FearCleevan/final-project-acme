@@ -1,0 +1,163 @@
+<h2>Multi-Colour Selection Layout</h2>
+<p class="subtitle">3 approaches for selecting multiple colours + individual quantities. Which feels right for Acme?</p>
+
+<div class="cards" style="grid-template-columns: repeat(3, 1fr); gap: 20px;">
+
+  <!-- Option A -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#FAF7F2; padding:20px; font-family:sans-serif; min-height:340px;">
+      <div style="font-size:10px;font-family:monospace;text-transform:uppercase;letter-spacing:.08em;color:#8C8070;margin-bottom:8px;">Colour — 2 selected</div>
+
+      <!-- Swatch toggles -->
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">
+        <span style="padding:5px 12px;border:1.5px solid #C8A84B;background:#FDF5E6;color:#9A7B2A;font-size:12px;border-radius:3px;font-weight:600;">✓ Clear</span>
+        <span style="padding:5px 12px;border:1.5px solid #B0A898;color:#5C5448;font-size:12px;border-radius:3px;">Red</span>
+        <span style="padding:5px 12px;border:1.5px solid #C8A84B;background:#FDF5E6;color:#9A7B2A;font-size:12px;border-radius:3px;font-weight:600;">✓ Emerald</span>
+        <span style="padding:5px 12px;border:1.5px solid #B0A898;color:#5C5448;font-size:12px;border-radius:3px;opacity:.45;">Ruby Red (sold out)</span>
+      </div>
+
+      <!-- Per-colour qty rows appear below swatches -->
+      <div style="border-top:1px solid #DDD8CE;padding-top:12px;space-y:8px;">
+        <div style="font-size:10px;font-family:monospace;text-transform:uppercase;letter-spacing:.08em;color:#8C8070;margin-bottom:8px;">Quantity per colour</div>
+
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <span style="width:8px;height:8px;border-radius:50%;background:#E8E8E8;border:1px solid #aaa;display:inline-block;flex-shrink:0;"></span>
+          <span style="font-size:12px;color:#4A4035;font-weight:500;width:60px;">Clear</span>
+          <div style="display:flex;align-items:center;border:1px solid #DDD8CE;border-radius:3px;overflow:hidden;">
+            <span style="width:30px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#6B5E4E;border-right:1px solid #DDD8CE;background:#fff;">−</span>
+            <span style="width:32px;text-align:center;font-size:13px;font-family:monospace;color:#4A4035;">2</span>
+            <span style="width:30px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#6B5E4E;border-left:1px solid #DDD8CE;background:#fff;">+</span>
+          </div>
+          <span style="font-size:11px;color:#9A8870;font-family:monospace;">$110</span>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+          <span style="width:8px;height:8px;border-radius:50%;background:#2D7A47;border:1px solid #aaa;display:inline-block;flex-shrink:0;"></span>
+          <span style="font-size:12px;color:#4A4035;font-weight:500;width:60px;">Emerald</span>
+          <div style="display:flex;align-items:center;border:1px solid #DDD8CE;border-radius:3px;overflow:hidden;">
+            <span style="width:30px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#6B5E4E;border-right:1px solid #DDD8CE;background:#fff;">−</span>
+            <span style="width:32px;text-align:center;font-size:13px;font-family:monospace;color:#4A4035;">1</span>
+            <span style="width:30px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#6B5E4E;border-left:1px solid #DDD8CE;background:#fff;">+</span>
+          </div>
+          <span style="font-size:11px;color:#9A8870;font-family:monospace;">$55</span>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div style="background:#2A6B41;color:#F5F1E6;text-align:center;padding:11px;border-radius:4px;font-size:13px;font-weight:600;">
+        Add 3 items to crate — $165.00
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Toggle + Qty Rows</h3>
+      <p>Tap a colour to select it; a quantity row slides in below. Each row shows colour dot, name, stepper, subtotal. CTA shows combined total.</p>
+    </div>
+  </div>
+
+  <!-- Option B -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#FAF7F2; padding:20px; font-family:sans-serif; min-height:340px;">
+      <div style="font-size:10px;font-family:monospace;text-transform:uppercase;letter-spacing:.08em;color:#8C8070;margin-bottom:10px;">Colour &amp; Quantity</div>
+
+      <!-- All colours always visible as rows -->
+      <div style="border:1px solid #DDD8CE;border-radius:4px;overflow:hidden;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:#FDF5E6;border-bottom:1px solid #DDD8CE;">
+          <span style="width:10px;height:10px;border-radius:50%;background:#E8E8E8;border:1px solid #aaa;display:inline-block;flex-shrink:0;"></span>
+          <span style="font-size:12px;color:#4A4035;flex:1;font-weight:500;">Clear</span>
+          <div style="display:flex;align-items:center;border:1px solid #C8A84B;border-radius:3px;overflow:hidden;">
+            <span style="width:28px;height:26px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#6B5E4E;border-right:1px solid #DDD8CE;">−</span>
+            <span style="width:28px;text-align:center;font-size:12px;font-family:monospace;color:#4A4035;">2</span>
+            <span style="width:28px;height:26px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#6B5E4E;border-left:1px solid #DDD8CE;">+</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid #DDD8CE;">
+          <span style="width:10px;height:10px;border-radius:50%;background:#C0392B;border:1px solid #aaa;display:inline-block;flex-shrink:0;"></span>
+          <span style="font-size:12px;color:#9A8870;flex:1;">Red</span>
+          <div style="display:flex;align-items:center;border:1px solid #DDD8CE;border-radius:3px;overflow:hidden;opacity:.5;">
+            <span style="width:28px;height:26px;display:flex;align-items:center;justify-content:center;font-size:13px;border-right:1px solid #DDD8CE;">−</span>
+            <span style="width:28px;text-align:center;font-size:12px;font-family:monospace;">0</span>
+            <span style="width:28px;height:26px;display:flex;align-items:center;justify-content:center;font-size:13px;border-left:1px solid #DDD8CE;">+</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:#FDF5E6;border-bottom:1px solid #DDD8CE;">
+          <span style="width:10px;height:10px;border-radius:50%;background:#2D7A47;border:1px solid #aaa;display:inline-block;flex-shrink:0;"></span>
+          <span style="font-size:12px;color:#4A4035;flex:1;font-weight:500;">Emerald</span>
+          <div style="display:flex;align-items:center;border:1px solid #C8A84B;border-radius:3px;overflow:hidden;">
+            <span style="width:28px;height:26px;display:flex;align-items:center;justify-content:center;font-size:13px;border-right:1px solid #DDD8CE;">−</span>
+            <span style="width:28px;text-align:center;font-size:12px;font-family:monospace;">1</span>
+            <span style="width:28px;height:26px;display:flex;align-items:center;justify-content:center;font-size:13px;border-left:1px solid #DDD8CE;">+</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;opacity:.35;">
+          <span style="width:10px;height:10px;border-radius:50%;background:#8B1A1A;border:1px solid #aaa;display:inline-block;flex-shrink:0;"></span>
+          <span style="font-size:12px;color:#9A8870;flex:1;">Ruby Red</span>
+          <span style="font-size:10px;font-family:monospace;color:#9A8870;">Sold out</span>
+        </div>
+      </div>
+
+      <div style="background:#2A6B41;color:#F5F1E6;text-align:center;padding:11px;border-radius:4px;font-size:13px;font-weight:600;">
+        Add 3 items to crate — $165.00
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Always-visible Table</h3>
+      <p>All colours shown as rows upfront. Qty starts at 0; incrementing it "selects" the colour. Highlighted rows = active. No separate swatch section.</p>
+    </div>
+  </div>
+
+  <!-- Option C -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#FAF7F2; padding:20px; font-family:sans-serif; min-height:340px;">
+      <div style="font-size:10px;font-family:monospace;text-transform:uppercase;letter-spacing:.08em;color:#8C8070;margin-bottom:8px;">Colour — Emerald Green</div>
+
+      <!-- Swatches single-select by default -->
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
+        <span style="padding:5px 12px;border:1px solid #B0A898;color:#5C5448;font-size:12px;border-radius:3px;">Clear</span>
+        <span style="padding:5px 12px;border:1px solid #B0A898;color:#5C5448;font-size:12px;border-radius:3px;">Red</span>
+        <span style="padding:5px 12px;border:1.5px solid #C8A84B;background:#FDF5E6;color:#9A7B2A;font-size:12px;border-radius:3px;font-weight:600;">✓ Emerald</span>
+        <span style="padding:5px 12px;border:1px solid #B0A898;color:#5C5448;font-size:12px;border-radius:3px;opacity:.4;">Ruby Red</span>
+      </div>
+
+      <!-- "Buy multiple colours" toggle link -->
+      <div style="margin-bottom:12px;">
+        <span style="font-size:11px;color:#C8A84B;font-family:monospace;cursor:pointer;text-decoration:underline;">+ Buying multiple colours?</span>
+      </div>
+
+      <!-- Expanded multi-select panel (shown after clicking link) -->
+      <div style="border:1px dashed #C8A84B;border-radius:4px;padding:12px;background:#FFFDF7;margin-bottom:12px;">
+        <div style="font-size:10px;font-family:monospace;text-transform:uppercase;letter-spacing:.08em;color:#9A7B2A;margin-bottom:10px;">Add quantities per colour</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;">
+          <span style="width:8px;height:8px;border-radius:50%;background:#E8E8E8;border:1px solid #aaa;display:inline-block;"></span>
+          <span style="font-size:12px;color:#4A4035;width:56px;">Clear</span>
+          <div style="display:flex;align-items:center;border:1px solid #DDD8CE;border-radius:3px;overflow:hidden;">
+            <span style="width:28px;height:26px;display:flex;align-items:center;justify-content:center;font-size:13px;border-right:1px solid #DDD8CE;">−</span>
+            <span style="width:28px;text-align:center;font-size:12px;font-family:monospace;">1</span>
+            <span style="width:28px;height:26px;display:flex;align-items:center;justify-content:center;font-size:13px;border-left:1px solid #DDD8CE;">+</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="width:8px;height:8px;border-radius:50%;background:#2D7A47;border:1px solid #aaa;display:inline-block;"></span>
+          <span style="font-size:12px;color:#4A4035;width:56px;">Emerald</span>
+          <div style="display:flex;align-items:center;border:1px solid #DDD8CE;border-radius:3px;overflow:hidden;">
+            <span style="width:28px;height:26px;display:flex;align-items:center;justify-content:center;font-size:13px;border-right:1px solid #DDD8CE;">−</span>
+            <span style="width:28px;text-align:center;font-size:12px;font-family:monospace;">1</span>
+            <span style="width:28px;height:26px;display:flex;align-items:center;justify-content:center;font-size:13px;border-left:1px solid #DDD8CE;">+</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:#2A6B41;color:#F5F1E6;text-align:center;padding:11px;border-radius:4px;font-size:13px;font-weight:600;">
+        Add 2 items to crate — $110.00
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Single-select + Opt-in Multi</h3>
+      <p>Default stays single-select (current UX). A "Buying multiple colours?" link reveals a quantity panel. Lowest disruption; multi-buy is opt-in only.</p>
+    </div>
+  </div>
+
+</div>
+
+<div style="margin-top:16px;padding:14px 16px;background:#F5F1E6;border-radius:6px;border:1px solid #DDD8CE;">
+  <p style="font-size:12px;font-family:monospace;color:#6B5E4E;margin:0;"><strong>My recommendation:</strong> Option A — it's the most natural multi-select pattern for a retail storefront. Swatches feel like toggles, qty rows only appear when needed, and the CTA clearly communicates the combined order. Option B is good for B2B/wholesale. Option C minimises change but hides a useful feature behind a link.</p>
+</div>

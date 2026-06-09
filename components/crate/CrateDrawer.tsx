@@ -8,9 +8,14 @@ import { useCrateStore } from '@/store/crateStore'
 import CrateItem from './CrateItem'
 import CrateSummary from './CrateSummary'
 import Button from '@/components/shared/Button'
+import { groupCartItems, getColourHex } from '@/lib/cartGrouping'
+import { formatPrice } from '@/lib/utils'
+import PlateImage from '@/components/shared/PlateImage'
+import { CrateItem as CrateItemType } from '@/lib/types'
 
 export default function CrateDrawer() {
   const { isOpen, closeCrate, items } = useCrateStore()
+  const itemCount = useCrateStore(s => s.itemCount())
   const closeRef = useRef<HTMLButtonElement>(null)
 
   /* Focus trap — move focus into drawer on open */
@@ -64,7 +69,7 @@ export default function CrateDrawer() {
                   Your crate
                 </h2>
                 <p className="text-[10px] font-mono uppercase tracking-eyebrow text-brass-deep mt-0.5">
-                  {items.length} {items.length === 1 ? 'piece' : 'pieces'} selected
+                  {itemCount} {itemCount === 1 ? 'piece' : 'pieces'} selected
                 </p>
               </div>
               <button
@@ -93,9 +98,11 @@ export default function CrateDrawer() {
             ) : (
               <>
                 <div className="flex-1 overflow-y-auto px-6">
-                  {items.map(item => (
-                    <CrateItem key={item.product.id} item={item} />
-                  ))}
+                  {groupCartItems(items).map((entry) =>
+                    entry.isGroup
+                      ? <DrawerVariantGroup key={entry.name} name={entry.name} image={entry.image} items={entry.items} />
+                      : <CrateItem key={entry.item.product.id} item={entry.item} />
+                  )}
                 </div>
                 <CrateSummary onClose={closeCrate} />
               </>
@@ -104,5 +111,65 @@ export default function CrateDrawer() {
         </>
       )}
     </AnimatePresence>
+  )
+}
+
+function DrawerVariantGroup({ name, image, items }: { name: string; image: string; items: CrateItemType[] }) {
+  const removeItem     = useCrateStore(s => s.removeItem)
+  const updateQuantity = useCrateStore(s => s.updateQuantity)
+  const groupQty   = items.reduce((s, i) => s + i.quantity, 0)
+  const groupTotal = items.reduce((s, i) => s + i.product.price * i.quantity, 0)
+
+  return (
+    <div className="py-4 border-b border-ink-rule">
+      {/* Group header */}
+      <div className="flex gap-3 mb-3">
+        <div className="shrink-0 w-15">
+          <PlateImage src={image} alt={name} aspectRatio="4/5" label={undefined} />
+        </div>
+        <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
+          <p className="font-serif text-[14px] font-medium text-ink-iron leading-snug line-clamp-2">{name}</p>
+          <p className="text-[11px] font-mono text-brass-deep">
+            {groupQty} {groupQty === 1 ? 'item' : 'items'} · {formatPrice(groupTotal)}
+          </p>
+        </div>
+      </div>
+
+      {/* Per-colour rows */}
+      {items.map(item => {
+        const hex = getColourHex(item.selectedColour)
+        return (
+          <div key={item.product.id} className="flex items-center gap-2 pl-[72px] py-1.5 border-t border-ink-rule/50">
+            <span
+              className="w-2 h-2 rounded-full shrink-0 border border-black/10"
+              style={{ background: hex }}
+            />
+            <span className="text-[12px] font-sans text-ink-iron flex-1 truncate">{item.selectedColour}</span>
+            <div className="flex items-center gap-0 border border-ink-rule rounded-sm">
+              <button
+                onClick={() => {
+                  if (item.quantity <= 1) removeItem(item.product.id)
+                  else updateQuantity(item.product.id, item.quantity - 1)
+                }}
+                className="w-6 h-6 flex items-center justify-center text-ink-iron hover:bg-parchment-2 text-[12px] font-mono border-r border-ink-rule transition-colors"
+                aria-label={`Decrease ${item.selectedColour} quantity`}
+              >−</button>
+              <span className="w-6 text-center text-[11px] font-mono text-ink-iron tabular-nums">{item.quantity}</span>
+              <button
+                onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                disabled={item.quantity >= item.product.stockQuantity}
+                className="w-6 h-6 flex items-center justify-center text-ink-iron hover:bg-parchment-2 text-[12px] font-mono border-l border-ink-rule transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                aria-label={`Increase ${item.selectedColour} quantity`}
+              >+</button>
+            </div>
+            <button
+              onClick={() => removeItem(item.product.id)}
+              className="text-[11px] font-mono text-ink-soft hover:text-error transition-colors ml-1"
+              aria-label={`Remove ${item.selectedColour}`}
+            >×</button>
+          </div>
+        )
+      })}
+    </div>
   )
 }

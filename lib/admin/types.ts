@@ -38,6 +38,7 @@ export interface AdminOrderItem {
   id: string
   productId: string
   title: string
+  variantTitle?: string
   sku: string
   quantity: number
   unitPrice: number

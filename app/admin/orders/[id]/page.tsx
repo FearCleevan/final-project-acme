@@ -130,6 +130,9 @@ export default function OrderDetailPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[13px] text-(--admin-text) truncate">{item.title}</p>
+                    {item.variantTitle && item.variantTitle !== 'Default Title' && (
+                      <p className="text-[11px] text-(--admin-accent) font-medium mt-0.5">{item.variantTitle}</p>
+                    )}
                     <p className="text-[11px] text-(--admin-text-muted) mt-0.5">
                       {item.sku ? `SKU: ${item.sku} · ` : ''}Qty: {item.quantity}
                     </p>
@@ -317,7 +320,7 @@ export default function OrderDetailPage() {
           <div style={{ borderTop: '2px solid #000', marginBottom: 24 }} />
 
           {/* Order info + fragile notice */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
             <div>
               <div style={{ fontSize: 13, color: '#555' }}>ORDER</div>
               <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: 1 }}>{order.id}</div>
@@ -330,6 +333,27 @@ export default function OrderDetailPage() {
                 ⚠ FRAGILE — STRAW-PACKED CRATE
               </div>
             </div>
+          </div>
+
+          {/* Item list */}
+          <div style={{ borderTop: '1px solid #ccc', paddingTop: 16 }}>
+            <div style={{ fontSize: 10, letterSpacing: 2, color: '#888', marginBottom: 10 }}>CONTENTS</div>
+            {order.items.map(item => (
+              <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+                <div>
+                  <span style={{ fontSize: 13, fontWeight: 600 }}>{item.title}</span>
+                  {item.variantTitle && item.variantTitle !== 'Default Title' && (
+                    <span style={{ fontSize: 12, color: '#444', marginLeft: 8 }}>— {item.variantTitle}</span>
+                  )}
+                  {item.sku && (
+                    <span style={{ fontSize: 11, color: '#888', marginLeft: 8 }}>SKU: {item.sku}</span>
+                  )}
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 700, marginLeft: 24, whiteSpace: 'nowrap' }}>
+                  × {item.quantity}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -377,6 +401,9 @@ export default function OrderDetailPage() {
                 <tr key={item.id} style={{ borderBottom: '1px solid #eee' }}>
                   <td style={{ padding: '10px 0' }}>
                     <div>{item.title}</div>
+                    {item.variantTitle && item.variantTitle !== 'Default Title' && (
+                      <div style={{ fontSize: 12, color: '#444', marginTop: 2 }}>{item.variantTitle}</div>
+                    )}
                     {item.sku && <div style={{ fontSize: 11, color: '#888' }}>SKU: {item.sku}</div>}
                   </td>
                   <td style={{ textAlign: 'center', padding: '10px 0' }}>{item.quantity}</td>

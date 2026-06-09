@@ -9,6 +9,7 @@ import Eyebrow from '@/components/shared/Eyebrow'
 import CrateItem from '@/components/crate/CrateItem'
 import Button from '@/components/shared/Button'
 import PlateImage from '@/components/shared/PlateImage'
+import { groupCartItems, getColourHex } from '@/lib/cartGrouping'
 
 const FREIGHT_THRESHOLD = 150
 
@@ -83,63 +84,114 @@ export default function CratePage() {
           {/* Item list — full detail */}
           <div>
             <div className="border-t border-ink-rule">
-              {items.map(item => (
-                <div key={item.product.id} className="py-6 border-b border-ink-rule grid grid-cols-[80px_1fr] sm:grid-cols-[100px_1fr] gap-5 sm:gap-7">
-                  {/* Thumbnail */}
-                  <Link href={`/catalog/${item.product.slug}`} className="shrink-0">
-                    <PlateImage
-                      src={item.product.images[0]}
-                      alt={item.product.name}
-                      aspectRatio="4/5"
-                      dark={(item.product.category as string) === 'signs'}
-                      className="rounded-sm hover:opacity-90 transition-opacity"
-                    />
-                  </Link>
+              {groupCartItems(items).map((entry) => {
+  if (!entry.isGroup) {
+    const item = entry.item
+    return (
+      <div key={item.product.id} className="py-6 border-b border-ink-rule grid grid-cols-[80px_1fr] sm:grid-cols-[100px_1fr] gap-5 sm:gap-7">
+        <Link href={`/catalog/${item.product.slug}`} className="shrink-0">
+          <PlateImage
+            src={item.product.images[0]}
+            alt={item.product.name}
+            aspectRatio="4/5"
+            dark={(item.product.category as string) === 'signs'}
+            className="rounded-sm hover:opacity-90 transition-opacity"
+          />
+        </Link>
+        <div className="flex flex-col gap-2 min-w-0">
+          <div>
+            <p className="text-[10px] font-mono uppercase tracking-eyebrow text-brass-deep mb-1">
+              {item.product.sku} · {item.product.patent}
+            </p>
+            <Link href={`/catalog/${item.product.slug}`}>
+              <h2 className="font-serif text-[18px] sm:text-[20px] font-medium text-ink-charcoal leading-snug hover:text-brass-deep transition-colors">
+                {item.product.name}
+              </h2>
+            </Link>
+            {item.selectedFinish && (
+              <p className="text-[12px] font-sans text-ink-soft mt-1">Finish: {item.selectedFinish}</p>
+            )}
+            {item.selectedBurnerSize && (
+              <p className="text-[12px] font-sans text-ink-soft">Burner: {item.selectedBurnerSize}</p>
+            )}
+          </div>
+          <div className="flex items-center justify-between flex-wrap gap-4 mt-auto">
+            <div className="flex items-center gap-0 border border-ink-rule rounded-sm w-fit">
+              <CrateItemStepper item={item} />
+            </div>
+            <div className="text-right">
+              <p className="font-serif text-[22px] text-brass-deep leading-none">
+                {formatPrice(item.product.price * item.quantity)}
+              </p>
+              {item.quantity > 1 && (
+                <p className="text-[11px] font-mono text-ink-soft mt-0.5">{formatPrice(item.product.price)} each</p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
-                  {/* Details */}
-                  <div className="flex flex-col gap-2 min-w-0">
-                    <div>
-                      <p className="text-[10px] font-mono uppercase tracking-eyebrow text-brass-deep mb-1">
-                        {item.product.sku} · {item.product.patent}
-                      </p>
-                      <Link href={`/catalog/${item.product.slug}`}>
-                        <h2 className="font-serif text-[18px] sm:text-[20px] font-medium text-ink-charcoal leading-snug hover:text-brass-deep transition-colors">
-                          {item.product.name}
-                        </h2>
-                      </Link>
-                      {item.selectedFinish && (
-                        <p className="text-[12px] font-sans text-ink-soft mt-1">
-                          Finish: {item.selectedFinish}
-                        </p>
-                      )}
-                      {item.selectedBurnerSize && (
-                        <p className="text-[12px] font-sans text-ink-soft">
-                          Burner: {item.selectedBurnerSize}
-                        </p>
-                      )}
-                    </div>
+  // Variant group
+  const group = entry
+  const groupQty   = group.items.reduce((s, i) => s + i.quantity, 0)
+  const groupTotal = group.items.reduce((s, i) => s + i.product.price * i.quantity, 0)
+  return (
+    <div key={group.name} className="py-6 border-b border-ink-rule">
+      {/* Group header */}
+      <div className="grid grid-cols-[80px_1fr] sm:grid-cols-[100px_1fr] gap-5 sm:gap-7 mb-4">
+        <Link href={`/catalog/${group.items[0].product.slug}`} className="shrink-0">
+          <PlateImage
+            src={group.image}
+            alt={group.name}
+            aspectRatio="4/5"
+            dark={(group.items[0].product.category as string) === 'signs'}
+            className="rounded-sm hover:opacity-90 transition-opacity"
+          />
+        </Link>
+        <div className="flex flex-col justify-center gap-1 min-w-0">
+          <p className="text-[10px] font-mono uppercase tracking-eyebrow text-brass-deep">
+            {group.items[0].product.sku}
+          </p>
+          <Link href={`/catalog/${group.items[0].product.slug}`}>
+            <h2 className="font-serif text-[18px] sm:text-[20px] font-medium text-ink-charcoal leading-snug hover:text-brass-deep transition-colors">
+              {group.name}
+            </h2>
+          </Link>
+          <p className="text-[12px] font-mono text-brass-deep">
+            {groupQty} {groupQty === 1 ? 'item' : 'items'} · {formatPrice(groupTotal)}
+          </p>
+        </div>
+      </div>
 
-                    <div className="flex items-center justify-between flex-wrap gap-4 mt-auto">
-                      {/* Qty stepper */}
-                      <div className="flex items-center gap-0 border border-ink-rule rounded-sm w-fit">
-                        <CrateItemStepper item={item} />
-                      </div>
-
-                      {/* Price */}
-                      <div className="text-right">
-                        <p className="font-serif text-[22px] text-brass-deep leading-none">
-                          {formatPrice(item.product.price * item.quantity)}
-                        </p>
-                        {item.quantity > 1 && (
-                          <p className="text-[11px] font-mono text-ink-soft mt-0.5">
-                            {formatPrice(item.product.price)} each
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
+      {/* Per-colour rows */}
+      <div className="border border-ink-rule rounded-sm overflow-hidden ml-[calc(80px+20px)] sm:ml-[calc(100px+28px)]">
+        {group.items.map((item, rowIdx) => {
+          const hex = getColourHex(item.selectedColour)
+          return (
+            <div
+              key={item.product.id}
+              className={`flex items-center gap-4 px-4 py-3 ${rowIdx > 0 ? 'border-t border-ink-rule' : ''}`}
+            >
+              <span
+                className="w-3 h-3 rounded-full shrink-0 border border-black/10"
+                style={{ background: hex }}
+              />
+              <span className="text-[13px] font-sans text-ink-iron flex-1">{item.selectedColour}</span>
+              <div className="flex items-center gap-0 border border-ink-rule rounded-sm w-fit">
+                <CrateItemStepper item={item} />
+              </div>
+              <p className="font-serif text-[18px] text-brass-deep leading-none w-24 text-right tabular-nums">
+                {formatPrice(item.product.price * item.quantity)}
+              </p>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+})}
             </div>
 
             <div className="mt-6">

@@ -22,7 +22,7 @@ interface CrateStore {
   _customerToken:  string | null   // set by initCart so addItem can use it without circular imports
   openCrate:       () => void
   closeCrate:      () => void
-  addItem:         (product: Product, finish: string, burnerSize: string, selectedColour?: string) => void
+  addItem:         (product: Product, finish: string, burnerSize: string, selectedColour?: string, quantity?: number) => void
   removeItem:      (productId: string) => void
   updateQuantity:  (productId: string, quantity: number) => void
   clearCrate:      () => void
@@ -45,12 +45,12 @@ export const useCrateStore = create<CrateStore>()(
       openCrate:  () => set({ isOpen: true }),
       closeCrate: () => set({ isOpen: false }),
 
-      addItem: (product, finish, burnerSize, selectedColour = '') => {
+      addItem: (product, finish, burnerSize, selectedColour = '', quantity = 1) => {
         const existing = get().items.find(i => i.product.id === product.id)
 
         if (existing) {
           // ── Item already in cart — increment quantity (capped at stock) ────
-          const newQty = Math.min(existing.quantity + 1, existing.product.stockQuantity)
+          const newQty = Math.min(existing.quantity + quantity, existing.product.stockQuantity)
           if (newQty === existing.quantity) return // already at stock limit
           set({
             items: get().items.map(i =>
@@ -77,7 +77,7 @@ export const useCrateStore = create<CrateStore>()(
           set({
             items: [
               ...get().items,
-              { product, quantity: 1, selectedFinish: finish, selectedBurnerSize: burnerSize, selectedColour, cartLineId: null },
+              { product, quantity, selectedFinish: finish, selectedBurnerSize: burnerSize, selectedColour, cartLineId: null },
             ],
           })
 
@@ -136,7 +136,7 @@ export const useCrateStore = create<CrateStore>()(
               console.warn('[crateStore] Product has no variantId — not synced to Shopify cart:', product.name, product.id)
               return
             }
-            cartLinesAdd(cartId, [{ merchandiseId: product.variantId, quantity: 1 }]).then(lines => {
+            cartLinesAdd(cartId, [{ merchandiseId: product.variantId, quantity }]).then(lines => {
               if (!lines) return
               const line = lines.find(l => l.merchandise.id === product.variantId)
               if (!line) return
