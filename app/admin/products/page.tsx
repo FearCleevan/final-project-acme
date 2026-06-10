@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { BiPlus, BiPencil, BiTrash, BiExport, BiImport, BiX, BiFile, BiRefresh } from 'react-icons/bi'
+import { BiPlus, BiPencil, BiTrash, BiExport, BiImport, BiX, BiFile, BiRefresh, BiCopy, BiCheck } from 'react-icons/bi'
 import { formatCurrency, collectionLabel } from '@/lib/admin/utils'
 import { AdminCollection } from '@/lib/admin/types'
 import Toast, { ToastType } from '@/components/admin/shared/Toast'
@@ -79,6 +79,14 @@ export default function ProductsPage() {
   const [deleteTarget, setDeleteTarget] = useState<string[] | null>(null)
   const [syncing,      setSyncing]      = useState(false)
   const [toast,        setToast]        = useState<{ message: string; type: ToastType } | null>(null)
+  const [copiedId,     setCopiedId]     = useState<string | null>(null)
+
+  function copyTitle(id: string, title: string, e: React.MouseEvent) {
+    e.stopPropagation()
+    navigator.clipboard.writeText(title)
+    setCopiedId(id)
+    setTimeout(() => setCopiedId(null), 1500)
+  }
 
   async function handleSyncPublish() {
     setSyncing(true)
@@ -204,7 +212,19 @@ export default function ProductsPage() {
             }
           </div>
           <div className="min-w-0">
-            <p className="text-[13px] font-medium text-(--admin-text) truncate max-w-56">{row.title}</p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-[13px] font-medium text-(--admin-text) truncate max-w-120">{row.title}</p>
+              <button
+                onClick={e => copyTitle(row.id, row.title, e)}
+                className="shrink-0 text-(--admin-text-muted) hover:text-(--admin-text) transition-colors"
+                title="Copy product name"
+              >
+                {copiedId === row.id
+                  ? <BiCheck className="w-3.5 h-3.5 text-green-500" />
+                  : <BiCopy className="w-3.5 h-3.5" />
+                }
+              </button>
+            </div>
             <p className="text-[11px] text-(--admin-text-muted)">{row.sku}</p>
           </div>
         </div>
