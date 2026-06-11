@@ -40,6 +40,15 @@ export async function POST(req: NextRequest) {
     )
   }
 
+  // ── Check expiry ───────────────────────────────────────────────────────────
+  if (Date.now() > record.expiry) {
+    pendingOtps.delete(pendingToken)
+    return NextResponse.json(
+      { error: 'Session expired. Please sign in again.' },
+      { status: 401 }
+    )
+  }
+
   // ── Generate new OTP + update record ──────────────────────────────────────
   const otp       = generateOtp()
   record.otp      = otp

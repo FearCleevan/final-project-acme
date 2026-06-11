@@ -1,3 +1,4 @@
+import crypto from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { getIronSession } from 'iron-session'
@@ -64,7 +65,10 @@ export async function POST(req: NextRequest) {
   }
 
   // ── Verify code ────────────────────────────────────────────────────────────
-  if (code !== record.otp) {
+  // Pad both to equal length before timingSafeEqual (throws on length mismatch)
+  const supplied = Buffer.from(code.padEnd(6, ' '))
+  const stored   = Buffer.from(record.otp.padEnd(6, ' '))
+  if (!crypto.timingSafeEqual(supplied, stored)) {
     const remaining = 5 - record.attempts
     return NextResponse.json(
       { error: `Incorrect code. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining.` },
