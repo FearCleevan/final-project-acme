@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import HeroSection from '@/components/home/HeroSection'
 import CategoryGrid from '@/components/home/CategoryGrid'
 import PickedOffTheBench from '@/components/home/PickedOffTheBench'
-import TestimonialsCarousel from '@/components/home/TestimonialsCarousel'
+import TestimonialsWrapper from '@/components/home/TestimonialsWrapper'
 
 export const metadata: Metadata = {
   title: 'Oil Lamp Chimneys, Shades & Enamel Signs — Acme Vintage Supply',
@@ -16,7 +16,7 @@ export default function Home() {
       <HeroSection />
       <CategoryGrid />
       <PickedOffTheBench />
-      <TestimonialsCarousel />
+      <TestimonialsWrapper />
     </>
   )
 }

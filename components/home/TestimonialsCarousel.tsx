@@ -1,6 +1,6 @@
 'use client'
 
-import testimonials from '@/data/testimonials.json'
+import type { Testimonial } from '@/lib/types/content'
 
 function StarIcon() {
   return (
@@ -10,7 +10,11 @@ function StarIcon() {
   )
 }
 
-export default function TestimonialsCarousel() {
+interface Props {
+  testimonials: Testimonial[]
+}
+
+export default function TestimonialsCarousel({ testimonials }: Props) {
   return (
     <section
       className="relative bg-ink-charcoal py-16 sm:py-24 overflow-hidden"
@@ -22,7 +26,6 @@ export default function TestimonialsCarousel() {
           <span className="eyebrow text-brass mb-3 block">
             From the workshop floor
           </span>
-          {/* Note: Kept the clamp as it relies on specific fluid logic, not theme vars */}
           <h2 className="font-serif font-medium text-canvas-heading leading-tight text-fluid-heading">
             What they said when the lamp held.
           </h2>
@@ -34,7 +37,6 @@ export default function TestimonialsCarousel() {
               <div
                 key={i}
                 className="shrink-0 min-w-87.5 max-w-100 rounded-xl p-6 border border-parchment-3/20 mx-3 bg-white/4"
-              // aria-hidden={i >= testimonials.length}
               >
                 <span className="block text-center font-serif text-[48px] leading-none text-canvas-heading/20 mb-2" aria-hidden="true">&ldquo;</span>
                 <p className="font-serif italic leading-relaxed text-center text-canvas-heading text-[16px] subpixel-antialiased">

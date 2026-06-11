@@ -3,28 +3,41 @@ import { getFeaturedProducts } from '@/lib/shopify'
 import { mockProducts } from '@/lib/mockData'
 import Eyebrow from '@/components/shared/Eyebrow'
 import ProductCard from '@/components/catalog/ProductCard'
+import { getContent } from '@/lib/content'
+import type { BenchContent } from '@/lib/types/content'
+
+const FALLBACK: BenchContent = {
+  eyebrow:  'Hand-selected',
+  heading:  'Picked off the bench this week.',
+  linkText: 'See all 50 →',
+  linkHref: '/catalog',
+}
 
 export default async function PickedOffTheBench() {
-  const featured = await getFeaturedProducts().catch(() => mockProducts.slice(0, 3))
+  const [featured, bench] = await Promise.all([
+    getFeaturedProducts().catch(() => mockProducts.slice(0, 3)),
+    getContent<BenchContent>('bench').then(d => d ?? FALLBACK),
+  ])
+
   return (
     <section className="bg-parchment-2 px-6 py-24 border-t border-ink-rule">
       <div className="max-w-[1280px] mx-auto">
 
         <div className="flex items-end justify-between mb-10">
           <div>
-            <Eyebrow className="mb-3">Hand-selected</Eyebrow>
+            <Eyebrow className="mb-3">{bench.eyebrow}</Eyebrow>
             <h2
               className="font-serif font-medium text-ink-charcoal leading-tight"
               style={{ fontSize: 'clamp(24px, 3vw, 42px)' }}
             >
-              Picked off the bench this week.
+              {bench.heading}
             </h2>
           </div>
           <Link
-            href="/catalog"
+            href={bench.linkHref}
             className="hidden md:inline-block font-sans text-[14px] text-brass-deep hover:text-brass transition-colors border-b border-brass-deep/40 hover:border-brass pb-px whitespace-nowrap"
           >
-            See all 50 →
+            {bench.linkText}
           </Link>
         </div>
 
@@ -40,10 +53,10 @@ export default async function PickedOffTheBench() {
 
         <div className="mt-8 md:hidden text-center">
           <Link
-            href="/catalog"
+            href={bench.linkHref}
             className="font-sans text-[14px] text-brass-deep border-b border-brass-deep/40 pb-px"
           >
-            See all 50 →
+            {bench.linkText}
           </Link>
         </div>
       </div>
