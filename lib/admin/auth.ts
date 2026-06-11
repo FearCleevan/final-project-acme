@@ -18,6 +18,8 @@ export interface AdminSession {
 }
 
 // ─── OTP store ─────────────────────────────────────────────────────────────────
+const OTP_TTL_MS = 10 * 60 * 1000 // 10 minutes
+
 interface OtpRecord {
   otp: string
   expiry: number
@@ -27,12 +29,13 @@ interface OtpRecord {
 export const pendingOtps = new Map<string, OtpRecord>()
 
 export function generateOtp(): string {
-  return String(Math.floor(100000 + Math.random() * 900000))
+  const n = crypto.randomInt(0, 1_000_000)
+  return n.toString().padStart(6, '0')
 }
 
 export function createPendingToken(otp: string): string {
   const token = crypto.randomBytes(16).toString('hex')
-  pendingOtps.set(token, { otp, expiry: Date.now() + 10 * 60 * 1000, attempts: 0 })
+  pendingOtps.set(token, { otp, expiry: Date.now() + OTP_TTL_MS, attempts: 0 })
   return token
 }
 
@@ -48,6 +51,7 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 export async function sendOtpEmail(otp: string): Promise<void> {
   const adminEmail = process.env.ADMIN_EMAIL
   if (!adminEmail) throw new Error('ADMIN_EMAIL not configured')
+  if (!process.env.RESEND_API_KEY) throw new Error('RESEND_API_KEY not configured')
 
   await resend.emails.send({
     from:    'Acme Admin <no-reply@acmevintagesupply.com>',
@@ -64,7 +68,7 @@ export async function sendOtpEmail(otp: string): Promise<void> {
                     font-family:monospace;margin-bottom:24px;">
           ${otp}
         </div>
-        <p style="color:#999;font-size:12px;">This code expires in 10 minutes.</p>
+        <p style="color:#999;font-size:12px;">This code expires in ${OTP_TTL_MS / 60000} minutes.</p>
         <p style="color:#999;font-size:12px;">
           If you did not request this, your admin password may be compromised — change it immediately.
         </p>
