@@ -1,59 +1,131 @@
 'use client'
 
-import { useState, useEffect, useContext } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { BiLockAlt, BiEnvelope } from 'react-icons/bi'
 import Link from 'next/link'
-import { OTPInput, OTPInputContext } from 'input-otp'
 
-function OTPSlot({ index }: { index: number }) {
-  const { slots } = useContext(OTPInputContext)
-  const { char, hasFakeCaret, isActive } = slots[index]
+// ── 6-box OTP input ────────────────────────────────────────────────────────────
+function OTPBoxes({ value, onChange, onComplete, disabled, hasError }: {
+  value:      string
+  onChange:   (val: string) => void
+  onComplete: (val: string) => void
+  disabled:   boolean
+  hasError:   boolean
+}) {
+  const refs = useRef<(HTMLInputElement | null)[]>([])
+  const digits = Array.from({ length: 6 }, (_, i) => value[i] ?? '')
+
+  function handleChange(i: number, raw: string) {
+    const digit = raw.replace(/\D/g, '').slice(-1)
+    if (!digit) return
+    const next = digits.map((d, idx) => idx === i ? digit : d).join('')
+    onChange(next)
+    if (i < 5) refs.current[i + 1]?.focus()
+    if (next.length === 6) onComplete(next)
+  }
+
+  function handleKeyDown(i: number, e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Backspace') {
+      e.preventDefault()
+      if (digits[i]) {
+        onChange(digits.map((d, idx) => idx === i ? '' : d).join(''))
+      } else if (i > 0) {
+        onChange(digits.map((d, idx) => idx === i - 1 ? '' : d).join(''))
+        refs.current[i - 1]?.focus()
+      }
+    } else if (e.key === 'ArrowLeft' && i > 0) {
+      refs.current[i - 1]?.focus()
+    } else if (e.key === 'ArrowRight' && i < 5) {
+      refs.current[i + 1]?.focus()
+    }
+  }
+
+  function handlePaste(e: React.ClipboardEvent) {
+    e.preventDefault()
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6)
+    onChange(pasted)
+    refs.current[Math.min(pasted.length, 5)]?.focus()
+    if (pasted.length === 6) onComplete(pasted)
+  }
+
+  const base = 'w-11 h-13 text-center text-[22px] font-mono font-bold rounded-md border outline-none transition-all text-(--admin-text) bg-(--admin-surface-2) disabled:opacity-50 disabled:cursor-not-allowed'
+
   return (
-    <div className={`relative w-10 h-12 flex items-center justify-center rounded-md border text-[20px] font-mono font-semibold transition-all
-      ${isActive
-        ? 'border-(--admin-accent) ring-2 ring-(--admin-accent)/20 bg-(--admin-surface-2)'
-        : char
-          ? 'border-(--admin-accent)/40 bg-(--admin-surface-2)'
-          : 'border-(--admin-border) bg-(--admin-surface-2)'}
-      text-(--admin-text)`}
-    >
-      {char ?? <span className="text-(--admin-text-muted) text-[16px]">·</span>}
-      {hasFakeCaret && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="h-5 w-px animate-pulse bg-(--admin-text)" />
-        </div>
-      )}
+    <div className="flex items-center justify-between gap-1.5">
+      {[0, 1, 2].map(i => (
+        <input
+          key={i}
+          ref={el => { refs.current[i] = el }}
+          type="text"
+          inputMode="numeric"
+          maxLength={2}
+          value={digits[i]}
+          onChange={e => handleChange(i, e.target.value)}
+          onKeyDown={e => handleKeyDown(i, e)}
+          onPaste={handlePaste}
+          onFocus={e => e.target.select()}
+          disabled={disabled}
+          autoComplete={i === 0 ? 'one-time-code' : 'off'}
+          className={`${base} ${hasError ? 'border-(--admin-red)/70' : digits[i] ? 'border-(--admin-accent)/60' : 'border-(--admin-border) focus:border-(--admin-accent) focus:ring-2 focus:ring-(--admin-accent)/20'}`}
+        />
+      ))}
+      <span className="text-(--admin-text-muted) text-[18px] select-none mx-0.5">—</span>
+      {[3, 4, 5].map(i => (
+        <input
+          key={i}
+          ref={el => { refs.current[i] = el }}
+          type="text"
+          inputMode="numeric"
+          maxLength={2}
+          value={digits[i]}
+          onChange={e => handleChange(i, e.target.value)}
+          onKeyDown={e => handleKeyDown(i, e)}
+          onPaste={handlePaste}
+          onFocus={e => e.target.select()}
+          disabled={disabled}
+          autoComplete="off"
+          className={`${base} ${hasError ? 'border-(--admin-red)/70' : digits[i] ? 'border-(--admin-accent)/60' : 'border-(--admin-border) focus:border-(--admin-accent) focus:ring-2 focus:ring-(--admin-accent)/20'}`}
+        />
+      ))}
     </div>
   )
 }
 
+// ── Login page ─────────────────────────────────────────────────────────────────
 export default function AdminLoginPage() {
   const router = useRouter()
 
-  // ── Password step ──────────────────────────────────────────────────────────
-  const [password, setPassword] = useState('')
-  const [error,    setError]    = useState('')
-  const [loading,  setLoading]  = useState(false)
-
-  // ── OTP step ───────────────────────────────────────────────────────────────
+  const [password,        setPassword]        = useState('')
+  const [error,           setError]           = useState('')
+  const [loading,         setLoading]         = useState(false)
   const [step,            setStep]            = useState<'password' | 'otp'>('password')
   const [otp,             setOtp]             = useState('')
   const [pendingToken,    setPendingToken]     = useState('')
   const [maskedEmail,     setMaskedEmail]      = useState('')
   const [resendCountdown, setResendCountdown]  = useState(0)
+  const firstBoxRef = useRef<HTMLDivElement>(null)
 
-  // Resend countdown timer
+  // Resend countdown
   useEffect(() => {
     if (resendCountdown <= 0) return
     const id = setInterval(() => setResendCountdown(c => c - 1), 1000)
     return () => clearInterval(id)
   }, [resendCountdown])
 
+  // Focus first OTP box on step transition
+  useEffect(() => {
+    if (step === 'otp') {
+      setTimeout(() => {
+        const first = firstBoxRef.current?.querySelector('input')
+        first?.focus()
+      }, 50)
+    }
+  }, [step])
+
   async function handlePasswordSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!password.trim()) { setError('Password is required.'); return }
-
     setLoading(true)
     setError('')
 
@@ -68,7 +140,7 @@ export default function AdminLoginPage() {
       setPendingToken(data.pendingToken)
       setMaskedEmail(data.maskedEmail)
       setResendCountdown(60)
-      setPassword('')   // clear password from memory
+      setPassword('')
       setStep('otp')
     } else {
       setError(data.error ?? 'Something went wrong.')
@@ -76,8 +148,8 @@ export default function AdminLoginPage() {
     setLoading(false)
   }
 
-  async function handleOtpSubmit(code = otp) {
-    if (code.length !== 6 || loading) return
+  async function handleOtpComplete(code: string) {
+    if (loading) return
     setLoading(true)
     setError('')
 
@@ -126,6 +198,7 @@ export default function AdminLoginPage() {
     setPendingToken('')
     setMaskedEmail('')
     setResendCountdown(0)
+    setLoading(false)
   }
 
   return (
@@ -180,9 +253,9 @@ export default function AdminLoginPage() {
           </form>
         ) : (
           /* ── OTP form ── */
-          <div className="bg-(--admin-surface) border border-(--admin-border) rounded-lg p-6 space-y-4">
+          <div className="bg-(--admin-surface) border border-(--admin-border) rounded-lg p-6 space-y-5">
             <div>
-              <div className="flex items-center gap-2 mb-4">
+              <div className="flex items-center gap-2 mb-5">
                 <BiEnvelope size={15} className="text-(--admin-text-muted) shrink-0" />
                 <p className="text-[12px] text-(--admin-text-muted)">
                   Code sent to{' '}
@@ -193,24 +266,18 @@ export default function AdminLoginPage() {
               <label className="block text-[12px] font-medium text-(--admin-text) mb-3">
                 Verification code
               </label>
-              <OTPInput
-                maxLength={6}
-                value={otp}
-                onChange={val => { setOtp(val); setError('') }}
-                onComplete={handleOtpSubmit}
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                disabled={loading}
-                containerClassName={`flex gap-2 justify-between ${loading ? 'opacity-50 pointer-events-none' : ''}`}
-                render={({ slots }) => (
-                  <>
-                    {slots.slice(0, 3).map((_, i) => <OTPSlot key={i} index={i} />)}
-                    <div className="flex items-center text-(--admin-text-muted) text-[18px] font-light select-none">—</div>
-                    {slots.slice(3).map((_, i) => <OTPSlot key={i + 3} index={i + 3} />)}
-                  </>
-                )}
-              />
-              {error && <p className="text-[11px] text-(--admin-red) mt-1.5">{error}</p>}
+
+              <div ref={firstBoxRef}>
+                <OTPBoxes
+                  value={otp}
+                  onChange={val => { setOtp(val); setError('') }}
+                  onComplete={handleOtpComplete}
+                  disabled={loading}
+                  hasError={!!error}
+                />
+              </div>
+
+              {error && <p className="text-[11px] text-(--admin-red) mt-2">{error}</p>}
             </div>
 
             <button
