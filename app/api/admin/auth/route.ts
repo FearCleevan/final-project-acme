@@ -57,5 +57,7 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  return NextResponse.json({ pendingToken, maskedEmail: maskEmail(adminEmail) })
+  // Show masked version of first recipient only
+  const primaryEmail = adminEmail.split(',')[0].trim()
+  return NextResponse.json({ pendingToken, maskedEmail: maskEmail(primaryEmail) })
 }

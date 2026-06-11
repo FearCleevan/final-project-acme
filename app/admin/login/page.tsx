@@ -1,9 +1,32 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useContext } from 'react'
 import { useRouter } from 'next/navigation'
 import { BiLockAlt, BiEnvelope } from 'react-icons/bi'
 import Link from 'next/link'
+import { OTPInput, OTPInputContext } from 'input-otp'
+
+function OTPSlot({ index }: { index: number }) {
+  const { slots } = useContext(OTPInputContext)
+  const { char, hasFakeCaret, isActive } = slots[index]
+  return (
+    <div className={`relative w-10 h-12 flex items-center justify-center rounded-md border text-[20px] font-mono font-semibold transition-all
+      ${isActive
+        ? 'border-(--admin-accent) ring-2 ring-(--admin-accent)/20 bg-(--admin-surface-2)'
+        : char
+          ? 'border-(--admin-accent)/40 bg-(--admin-surface-2)'
+          : 'border-(--admin-border) bg-(--admin-surface-2)'}
+      text-(--admin-text)`}
+    >
+      {char ?? <span className="text-(--admin-text-muted) text-[16px]">·</span>}
+      {hasFakeCaret && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <div className="h-5 w-px animate-pulse bg-(--admin-text)" />
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function AdminLoginPage() {
   const router = useRouter()
@@ -19,13 +42,6 @@ export default function AdminLoginPage() {
   const [pendingToken,    setPendingToken]     = useState('')
   const [maskedEmail,     setMaskedEmail]      = useState('')
   const [resendCountdown, setResendCountdown]  = useState(0)
-  const otpInputRef = useRef<HTMLInputElement>(null)
-
-  // Auto-submit when 6 digits entered
-  useEffect(() => {
-    if (otp.length === 6) void handleOtpSubmit()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [otp])
 
   // Resend countdown timer
   useEffect(() => {
@@ -33,11 +49,6 @@ export default function AdminLoginPage() {
     const id = setInterval(() => setResendCountdown(c => c - 1), 1000)
     return () => clearInterval(id)
   }, [resendCountdown])
-
-  // Focus OTP input on step transition
-  useEffect(() => {
-    if (step === 'otp') otpInputRef.current?.focus()
-  }, [step])
 
   async function handlePasswordSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -65,15 +76,15 @@ export default function AdminLoginPage() {
     setLoading(false)
   }
 
-  async function handleOtpSubmit() {
-    if (otp.length !== 6 || loading) return
+  async function handleOtpSubmit(code = otp) {
+    if (code.length !== 6 || loading) return
     setLoading(true)
     setError('')
 
     const res  = await fetch('/api/admin/auth/otp', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ pendingToken, code: otp }),
+      body:    JSON.stringify({ pendingToken, code }),
     })
     const data = await res.json().catch(() => ({}))
 
@@ -179,22 +190,25 @@ export default function AdminLoginPage() {
                 </p>
               </div>
 
-              <label htmlFor="otp" className="block text-[12px] font-medium text-(--admin-text) mb-1.5">
+              <label className="block text-[12px] font-medium text-(--admin-text) mb-3">
                 Verification code
               </label>
-              <input
-                ref={otpInputRef}
-                id="otp"
-                type="text"
-                inputMode="numeric"
+              <OTPInput
                 maxLength={6}
-                pattern="[0-9]{6}"
                 value={otp}
-                onChange={e => { setOtp(e.target.value.replace(/\D/g, '')); setError('') }}
-                placeholder="000000"
-                disabled={loading}
+                onChange={val => { setOtp(val); setError('') }}
+                onComplete={handleOtpSubmit}
+                inputMode="numeric"
                 autoComplete="one-time-code"
-                className="w-full h-10 px-3 bg-(--admin-surface-2) border border-(--admin-border) rounded-md text-[22px] text-(--admin-text) text-center tracking-[0.4em] placeholder:text-(--admin-text-muted) placeholder:tracking-normal focus:outline-none focus:border-(--admin-accent) focus:ring-1 focus:ring-(--admin-accent)/20 transition-colors disabled:opacity-60"
+                disabled={loading}
+                containerClassName={`flex gap-2 justify-between ${loading ? 'opacity-50 pointer-events-none' : ''}`}
+                render={({ slots }) => (
+                  <>
+                    {slots.slice(0, 3).map((_, i) => <OTPSlot key={i} index={i} />)}
+                    <div className="flex items-center text-(--admin-text-muted) text-[18px] font-light select-none">—</div>
+                    {slots.slice(3).map((_, i) => <OTPSlot key={i + 3} index={i + 3} />)}
+                  </>
+                )}
               />
               {error && <p className="text-[11px] text-(--admin-red) mt-1.5">{error}</p>}
             </div>

@@ -53,9 +53,12 @@ export async function sendOtpEmail(otp: string): Promise<void> {
   if (!adminEmail) throw new Error('ADMIN_EMAIL not configured')
   if (!process.env.RESEND_API_KEY) throw new Error('RESEND_API_KEY not configured')
 
+  // Supports multiple comma-separated recipients e.g. "a@gmail.com,b@hotmail.com"
+  const recipients = adminEmail.split(',').map(e => e.trim()).filter(Boolean)
+
   await resend.emails.send({
     from:    'Acme Admin <no-reply@acmevintagesupply.com>',
-    to:      adminEmail,
+    to:      recipients,
     subject: `Your Acme admin login code: ${otp}`,
     html: `
       <div style="font-family:sans-serif;max-width:420px;margin:0 auto;padding:32px 24px;">

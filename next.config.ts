@@ -9,6 +9,12 @@ const nextConfig: NextConfig = {
   },
 
   async headers() {
+    // React dev mode (Turbopack) requires eval() — safe to allow in dev only
+    const isDev = process.env.NODE_ENV === 'development'
+    const scriptSrc = isDev
+      ? "'self' 'unsafe-inline' 'unsafe-eval'"
+      : "'self' 'unsafe-inline'"
+
     // Safe headers for storefront — no CSP (would break Shopify/Google Fonts CDN)
     const storefrontHeaders = [
       { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
@@ -25,7 +31,7 @@ const nextConfig: NextConfig = {
       { key: 'X-Frame-Options',                    value: 'DENY' },
       { key: 'Referrer-Policy',                    value: 'strict-origin-when-cross-origin' },
       { key: 'Permissions-Policy',                 value: 'camera=(), microphone=(), geolocation=()' },
-      { key: 'Content-Security-Policy',            value: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self'; frame-ancestors 'none'" },
+      { key: 'Content-Security-Policy',            value: `default-src 'self'; script-src ${scriptSrc}; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self'; frame-ancestors 'none'` },
       { key: 'Cache-Control',                      value: 'no-store, no-cache, must-revalidate' },
       { key: 'X-Permitted-Cross-Domain-Policies',  value: 'none' },
     ]
