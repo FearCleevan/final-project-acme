@@ -1,5 +1,6 @@
 import AdminThemeProvider from '@/components/admin/layout/AdminThemeProvider'
 import AdminShell from '@/components/admin/layout/AdminShell'
+import { Toaster } from '@/components/ui/sonner'
 
 export const metadata = {
   title: 'Admin — Acme Vintage Supply',
@@ -10,6 +11,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <AdminThemeProvider>
       <AdminShell>{children}</AdminShell>
+      <Toaster position="bottom-right" richColors />
     </AdminThemeProvider>
   )
 }
