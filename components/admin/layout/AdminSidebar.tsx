@@ -15,6 +15,7 @@ import {
   BiLogOut,
   BiSun,
   BiMoon,
+  BiEditAlt,
 } from 'react-icons/bi'
 import { useTheme } from 'next-themes'
 import { cn } from '@/lib/utils'
@@ -92,6 +93,7 @@ export default function AdminSidebar() {
     { label: 'Products',    href: '/admin/products',    icon: BiPackage                                         },
     { label: 'Inventory',   href: '/admin/inventory',   icon: BiArchive                                         },
     { label: 'Collections', href: '/admin/collections', icon: BiCollection                                      },
+    { label: 'Content',     href: '/admin/content/home', icon: BiEditAlt                                        },
     { label: 'Customers',   href: '/admin/customers',   icon: BiUser                                            },
     { label: 'Analytics',   href: '/admin/analytics',   icon: BiBarChartAlt2                                    },
   ]
