@@ -1,9 +1,14 @@
-'use client'
-
-import { useState } from 'react'
+import type { Metadata } from 'next'
 import Breadcrumb from '@/components/shared/Breadcrumb'
 import Eyebrow from '@/components/shared/Eyebrow'
 import Button from '@/components/shared/Button'
+import FaqAccordion from '@/components/faq/FaqAccordion'
+
+export const metadata: Metadata = {
+  title: 'Frequently Asked Questions — Acme Vintage Supply',
+  description: 'Answers to common questions about oil lamp parts, ordering, shipping, and returns at Acme Vintage Supply.',
+  alternates: { canonical: '/faq' },
+}
 
 const faqs = [
   {
@@ -59,37 +64,25 @@ const faqs = [
   },
 ]
 
-function FAQItem({ q, a }: { q: string; a: string }) {
-  const [open, setOpen] = useState(false)
-  return (
-    <div className="border-b border-ink-rule">
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="w-full flex items-start justify-between gap-4 py-5 text-left"
-        aria-expanded={open}
-      >
-        <span className="font-serif text-[17px] text-ink-charcoal font-medium leading-snug pr-2">
-          {q}
-        </span>
-        <span
-          className={`font-mono text-[18px] text-ink-soft shrink-0 transition-transform duration-200 mt-0.5 ${open ? 'rotate-45' : ''}`}
-          aria-hidden="true"
-        >
-          +
-        </span>
-      </button>
-      {open && (
-        <p className="font-sans text-[15px] text-ink-soft leading-relaxed pb-6 pr-8">
-          {a}
-        </p>
-      )}
-    </div>
-  )
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.flatMap(({ questions }) =>
+    questions.map(({ q, a }) => ({
+      '@type': 'Question',
+      name: q,
+      acceptedAnswer: { '@type': 'Answer', text: a },
+    }))
+  ),
 }
 
 export default function FAQPage() {
   return (
     <div className="bg-parchment min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       <div className="max-w-[860px] mx-auto px-6 py-14">
 
         <Breadcrumb
@@ -105,18 +98,7 @@ export default function FAQPage() {
           Frequently asked.
         </h1>
 
-        <div className="space-y-12">
-          {faqs.map(({ category, questions }) => (
-            <section key={category}>
-              <Eyebrow className="mb-1">{category}</Eyebrow>
-              <div className="border-t border-ink-rule mt-4">
-                {questions.map(item => (
-                  <FAQItem key={item.q} {...item} />
-                ))}
-              </div>
-            </section>
-          ))}
-        </div>
+        <FaqAccordion faqs={faqs} />
 
         <div className="border-t border-ink-rule mt-16 pt-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
           <div>
