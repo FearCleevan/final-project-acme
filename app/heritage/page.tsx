@@ -1,10 +1,24 @@
+import type { Metadata } from 'next'
 import HeritageHero from '@/components/heritage/HeritageHero'
 import WorkshopSection from '@/components/heritage/WorkshopSection'
 import Timeline from '@/components/heritage/Timeline'
 import Eyebrow from '@/components/shared/Eyebrow'
 import Button from '@/components/shared/Button'
+import { getContent } from '@/lib/content'
+import type { HeritageContent } from '@/lib/types/content'
+import fallbackData from '@/data/heritage.json'
 
-export default function HeritagePage() {
+export const metadata: Metadata = {
+  title: 'Heritage Timeline — Acme Vintage Supply',
+  description: 'One hundred and fifty years of oil lamp craftsmanship — from the 1873 Bradley & Hubbard patent to the 2026 North American launch.',
+  alternates: { canonical: '/heritage' },
+}
+
+export default async function HeritagePage() {
+  const entries =
+    (await getContent<HeritageContent>('heritage')) ??
+    (fallbackData as HeritageContent)
+
   return (
     <div className="min-h-screen">
 
@@ -12,7 +26,7 @@ export default function HeritagePage() {
 
       <WorkshopSection />
 
-      <Timeline />
+      <Timeline entries={entries} />
 
       {/* CTA */}
       <section className="bg-parchment-2 border-t border-ink-rule px-6 py-24">

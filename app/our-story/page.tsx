@@ -3,6 +3,8 @@ import Link from 'next/link'
 import PlateImage from '@/components/shared/PlateImage'
 import Eyebrow from '@/components/shared/Eyebrow'
 import Button from '@/components/shared/Button'
+import { getContent } from '@/lib/content'
+import type { StoryContent } from '@/lib/types/content'
 import storyData from '@/data/story.json'
 
 export const metadata: Metadata = {
@@ -11,7 +13,16 @@ export const metadata: Metadata = {
   alternates: { canonical: '/our-story' },
 }
 
-export default function OurStoryPage() {
+const FALLBACK: StoryContent = {
+  headline: 'A family that refused to turn off the light.',
+  intro:    'Most companies that made kerosene lamps shut their doors a hundred years ago. This is the story of why.',
+  imageUrl: '',
+  pillars:  storyData.pillars,
+}
+
+export default async function OurStoryPage() {
+  const story = (await getContent<StoryContent>('story')) ?? FALLBACK
+
   return (
     <div className="bg-parchment min-h-screen">
 
@@ -26,19 +37,17 @@ export default function OurStoryPage() {
               className="font-serif font-medium text-ink-charcoal leading-[0.96] mb-7"
               style={{ fontSize: 'clamp(36px, 5vw, 72px)' }}
             >
-              A family that{' '}
-              <em className="text-brass-deep not-italic italic">refused to</em>{' '}
-              turn off the light.
+              {story.headline}
             </h1>
             <p className="font-sans text-[18px] text-ink-soft leading-relaxed max-w-[52ch]">
-              Most companies that made kerosene lamps shut their doors a hundred years ago. We never did.
-              This is the story of why.
+              {story.intro}
             </p>
           </div>
 
           {/* Right plate */}
           <div className="relative">
             <PlateImage
+              src={story.imageUrl || undefined}
               alt="Workshop exterior, Pune press shop"
               aspectRatio="4/5"
               dark={false}
@@ -88,7 +97,7 @@ export default function OurStoryPage() {
             What we'll do for you, and what we won't.
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            {storyData.pillars.map(({ n, title, body }) => (
+            {story.pillars.map(({ n, title, body }) => (
               <div key={n} className="border-t-2 border-brass-deep pt-6">
                 <span className="font-mono text-[11px] text-brass-deep tracking-eyebrow block mb-3">{n}</span>
                 <h3 className="font-serif text-[20px] text-ink-charcoal font-medium mb-3 leading-snug">

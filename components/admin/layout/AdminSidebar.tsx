@@ -87,15 +87,15 @@ export default function AdminSidebar() {
       .catch(() => {})
   }, [])
 
-  const NAV_MAIN = [
-    { label: 'Overview',    href: '/admin/overview',    icon: BiHomeAlt                                         },
+  const NAV_MAIN: Array<{ label: string; href: string; icon: React.ElementType; badge?: number; activePrefix?: string }> = [
+    { label: 'Overview',    href: '/admin/overview',    icon: BiHomeAlt                                          },
     { label: 'Orders',      href: '/admin/orders',      icon: BiCart,        badge: unfulfilledCount || undefined },
-    { label: 'Products',    href: '/admin/products',    icon: BiPackage                                         },
-    { label: 'Inventory',   href: '/admin/inventory',   icon: BiArchive                                         },
-    { label: 'Collections', href: '/admin/collections', icon: BiCollection                                      },
-    { label: 'Content',     href: '/admin/content/home', icon: BiEditAlt                                        },
-    { label: 'Customers',   href: '/admin/customers',   icon: BiUser                                            },
-    { label: 'Analytics',   href: '/admin/analytics',   icon: BiBarChartAlt2                                    },
+    { label: 'Products',    href: '/admin/products',    icon: BiPackage                                          },
+    { label: 'Inventory',   href: '/admin/inventory',   icon: BiArchive                                          },
+    { label: 'Collections', href: '/admin/collections', icon: BiCollection                                       },
+    { label: 'Content',     href: '/admin/content/home', icon: BiEditAlt,    activePrefix: '/admin/content'      },
+    { label: 'Customers',   href: '/admin/customers',   icon: BiUser                                             },
+    { label: 'Analytics',   href: '/admin/analytics',   icon: BiBarChartAlt2                                     },
   ]
 
   async function handleLogout() {
@@ -128,7 +128,7 @@ export default function AdminSidebar() {
             <NavItem
               key={item.href}
               {...item}
-              active={pathname === item.href || (item.href !== '/admin/overview' && pathname.startsWith(item.href))}
+              active={pathname === item.href || (item.href !== '/admin/overview' && pathname.startsWith(item.activePrefix ?? item.href))}
             />
           ))}
 

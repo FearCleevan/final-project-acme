@@ -241,7 +241,7 @@ function BenchTab() {
       </Card>
       <Card>
         <CardHeader className="pb-3">
-          <p className="text-sm font-semibold">"See all" link</p>
+          <p className="text-sm font-semibold">&qout;See all&qout; link</p>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-3">

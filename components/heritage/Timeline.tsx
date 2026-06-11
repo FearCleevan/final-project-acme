@@ -1,7 +1,16 @@
 import Eyebrow from '@/components/shared/Eyebrow'
-import entries from '@/data/heritage.json'
 
-export default function Timeline() {
+interface Entry {
+  year:  string
+  title: string
+  body:  string
+}
+
+interface Props {
+  entries: Entry[]
+}
+
+export default function Timeline({ entries }: Props) {
   return (
     <section className="bg-parchment px-6 py-24">
       <div className="max-w-215 mx-auto">
