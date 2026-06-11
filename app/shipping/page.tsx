@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Breadcrumb from '@/components/shared/Breadcrumb'
 import Eyebrow from '@/components/shared/Eyebrow'
 import Button from '@/components/shared/Button'
@@ -8,6 +9,12 @@ const rows = [
   { zone: 'United Kingdom & Europe', method: 'DHL Express', time: '6–12 business days', rate: 'Free over local currency equivalent of $150 CAD' },
   { zone: 'Rest of world', method: 'DHL Express', time: '8–18 business days', rate: 'Free over local currency equivalent of $150 CAD' },
 ]
+
+export const metadata: Metadata = {
+  title: 'Shipping Information — Canada, US & Worldwide',
+  description: 'Free shipping over $150 CAD. Canada Post and DHL Express to Canada, USA, UK, Europe and worldwide. Ships from Dartmouth, Nova Scotia.',
+  alternates: { canonical: '/shipping' },
+}
 
 export default function ShippingPage() {
   return (
