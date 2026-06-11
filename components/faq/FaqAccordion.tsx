@@ -35,13 +35,14 @@ function FAQItem({ q, a, id }: FaqQuestion & { id: string }) {
           +
         </span>
       </button>
-      <p
+      <div
         id={panelId}
+        role="region"
         hidden={!open}
         className="font-sans text-[15px] text-ink-soft leading-relaxed pb-6 pr-8"
       >
-        {a}
-      </p>
+        <p>{a}</p>
+      </div>
     </div>
   )
 }
@@ -54,7 +55,7 @@ export default function FaqAccordion({ faqs }: { faqs: FaqCategory[] }) {
           <Eyebrow className="mb-1">{category}</Eyebrow>
           <div className="border-t border-ink-rule mt-4">
             {questions.map((item, qIdx) => (
-              <FAQItem key={`${catIdx}-${qIdx}`} id={`${catIdx}-${qIdx}`} {...item} />
+              <FAQItem key={item.q} id={`${catIdx}-${qIdx}`} {...item} />
             ))}
           </div>
         </section>
