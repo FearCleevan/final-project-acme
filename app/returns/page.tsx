@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import Breadcrumb from '@/components/shared/Breadcrumb'
 import Eyebrow from '@/components/shared/Eyebrow'
 import Button from '@/components/shared/Button'
+import { getContent } from '@/lib/content'
+import type { ReturnsContent } from '@/lib/types/content'
 
 export const metadata: Metadata = {
   title: 'Returns & Refunds — Acme Vintage Supply',
@@ -9,7 +11,19 @@ export const metadata: Metadata = {
   alternates: { canonical: '/returns' },
 }
 
-export default function ReturnsPage() {
+const FALLBACK: ReturnsContent = {
+  lead: 'Due to the specialty and fragile nature of our pieces, all sales are generally final. If something arrives damaged or is not as described, contact us — we will make it right.',
+  sections: [
+    { title: 'Damaged or misdescribed items', body: 'If your order arrives damaged in transit, or the item does not match its description, contact us at acmesign01@gmail.com within 14 days of delivery. Include your order number and photographs of the item and packaging. We will review each case individually and work with you toward a fair resolution. Damage caused by carrier mishandling must be claimed directly with the freight company — we will provide any documentation needed to support your claim.' },
+    { title: 'Specialty and fragile items', body: 'We carry antique glass, vintage porcelain, and reproduction lamp components — all of which are delicate specialty items. Because of their nature, we are not always able to accept change-of-mind returns. If you are unsure whether a piece is right for your lamp, please contact us before purchasing. We are happy to assist with fitment questions.' },
+    { title: 'How to contact us about an issue', body: 'Write to us at acmesign01@gmail.com with your order reference and a brief description of the issue. We respond to every message personally. We do not have an automated returns portal — you will hear from a person.' },
+    { title: 'Refund timing', body: 'When a refund is approved, it is issued to your original payment method. We will send you a confirmation when it has been processed. Timing depends on your bank or card provider, but typically appears within 3–5 business days.' },
+  ],
+}
+
+export default async function ReturnsPage() {
+  const returns = (await getContent<ReturnsContent>('returns')) ?? FALLBACK
+
   return (
     <div className="bg-parchment min-h-screen">
       <div className="max-w-[860px] mx-auto px-6 py-14">
@@ -30,30 +44,12 @@ export default function ReturnsPage() {
         {/* Lead statement */}
         <div className="border-l-4 border-brass-deep pl-6 py-2 my-10">
           <p className="font-serif italic text-[20px] text-ink-charcoal leading-relaxed">
-            Due to the specialty and fragile nature of our pieces, all sales are generally final.
-            If something arrives damaged or is not as described, contact us — we will make it right.
+            {returns.lead}
           </p>
         </div>
 
         <div className="space-y-10 mb-14">
-          {[
-            {
-              title: 'Damaged or misdescribed items',
-              body: "If your order arrives damaged in transit, or the item does not match its description, contact us at acmesign01@gmail.com within 14 days of delivery. Include your order number and photographs of the item and packaging. We will review each case individually and work with you toward a fair resolution. Damage caused by carrier mishandling must be claimed directly with the freight company — we will provide any documentation needed to support your claim.",
-            },
-            {
-              title: 'Specialty and fragile items',
-              body: "We carry antique glass, vintage porcelain, and reproduction lamp components — all of which are delicate specialty items. Because of their nature, we are not always able to accept change-of-mind returns. If you are unsure whether a piece is right for your lamp, please contact us before purchasing. We are happy to assist with fitment questions.",
-            },
-            {
-              title: 'How to contact us about an issue',
-              body: "Write to us at acmesign01@gmail.com with your order reference and a brief description of the issue. We respond to every message personally. We do not have an automated returns portal — you will hear from a person.",
-            },
-            {
-              title: 'Refund timing',
-              body: "When a refund is approved, it is issued to your original payment method. We will send you a confirmation when it has been processed. Timing depends on your bank or card provider, but typically appears within 3–5 business days.",
-            },
-          ].map(({ title, body }) => (
+          {returns.sections.map(({ title, body }) => (
             <div key={title} className="border-t border-ink-rule pt-8">
               <h2 className="font-serif text-[20px] font-medium text-ink-charcoal mb-3 leading-snug">{title}</h2>
               <p className="font-sans text-[15px] text-ink-soft leading-relaxed">{body}</p>
