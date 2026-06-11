@@ -351,7 +351,7 @@ function TestimonialsTab() {
 
 export default function ContentHomePage() {
   return (
-    <div className="p-6 max-w-3xl">
+    <div className="max-w-3xl">
       <div className="mb-6">
         <h1 className="text-[18px] font-semibold text-(--admin-text)">Home Page Content</h1>
         <p className="text-[13px] text-(--admin-text-muted) mt-1">Changes go live immediately after saving.</p>
