@@ -6,12 +6,31 @@ const hasUpstash =
   !!process.env.UPSTASH_REDIS_REST_TOKEN
 
 // 5 login attempts per IP per 15 minutes
-// Only active when Upstash credentials are configured
 export const loginRatelimit = hasUpstash
   ? new Ratelimit({
-      redis: Redis.fromEnv(),
-      limiter: Ratelimit.slidingWindow(5, '15 m'),
+      redis:     Redis.fromEnv(),
+      limiter:   Ratelimit.slidingWindow(5, '15 m'),
       analytics: false,
-      prefix: 'acme_admin_login',
+      prefix:    'acme_admin_login',
+    })
+  : null
+
+// 5 OTP verification attempts per IP per 10 minutes
+export const otpVerifyRatelimit = hasUpstash
+  ? new Ratelimit({
+      redis:     Redis.fromEnv(),
+      limiter:   Ratelimit.slidingWindow(5, '10 m'),
+      analytics: false,
+      prefix:    'acme_admin_otp_verify',
+    })
+  : null
+
+// 3 OTP resend requests per IP per 10 minutes
+export const otpResendRatelimit = hasUpstash
+  ? new Ratelimit({
+      redis:     Redis.fromEnv(),
+      limiter:   Ratelimit.slidingWindow(3, '10 m'),
+      analytics: false,
+      prefix:    'acme_admin_otp_resend',
     })
   : null
