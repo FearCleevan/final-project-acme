@@ -1,6 +1,13 @@
+import type { Metadata } from 'next'
 import Breadcrumb from '@/components/shared/Breadcrumb'
 import Eyebrow from '@/components/shared/Eyebrow'
 import Button from '@/components/shared/Button'
+
+export const metadata: Metadata = {
+  title: 'Returns & Refunds — Acme Vintage Supply',
+  description: 'All sales are final on specialty vintage items. Contact us before ordering if you have fitment questions. We resolve damaged or misdescribed items within 14 days.',
+  alternates: { canonical: '/returns' },
+}
 
 export default function ReturnsPage() {
   return (
