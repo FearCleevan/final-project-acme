@@ -1,7 +1,10 @@
 import type { Metadata } from 'next'
-import { Playfair_Display, Inter, JetBrains_Mono } from 'next/font/google'
+import { Playfair_Display, Inter, JetBrains_Mono, Geist } from 'next/font/google'
 import './globals.css'
 import ShellClient from '@/components/shared/ShellClient'
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -188,7 +191,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${playfair.variable} ${inter.variable} ${jetbrainsMono.variable}`}
+      className={cn(playfair.variable, inter.variable, jetbrainsMono.variable, "font-sans", geist.variable)}
       style={
         {
           '--font-serif': 'var(--font-playfair), "Cormorant Garamond", Georgia, serif',
