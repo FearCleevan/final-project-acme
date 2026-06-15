@@ -12,8 +12,9 @@ export async function POST(req: NextRequest) {
   const { email } = await req.json().catch(() => ({}))
 
   // Always return 200 — never reveal whether the email exists
-  const adminEmail = process.env.ADMIN_EMAIL
-  if (!email || !adminEmail || email !== adminEmail) {
+  const adminEmail = process.env.ADMIN_EMAIL ?? ''
+  const adminEmails = adminEmail.split(',').map(e => e.trim()).filter(Boolean)
+  if (!email || !adminEmails.includes(email)) {
     return NextResponse.json({ ok: true })
   }
 
@@ -26,7 +27,7 @@ export async function POST(req: NextRequest) {
 
   await resend.emails.send({
     from:    'Acme Admin <no-reply@acmevintagesupply.com>',
-    to:      adminEmail,
+    to:      adminEmails,
     subject: 'Reset your admin password',
     html: `
       <p>You requested a password reset for the Acme Lamp & Sign admin dashboard.</p>
