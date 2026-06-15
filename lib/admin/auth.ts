@@ -1,13 +1,33 @@
 import bcrypt from 'bcryptjs'
 import { Resend } from 'resend'
 import crypto from 'crypto'
+import { Redis } from '@upstash/redis'
 
 // ─── Password verification ─────────────────────────────────────────────────────
-// Compare against ADMIN_PASSWORD_HASH (bcrypt cost 12).
-// Generate: node -e "require('bcryptjs').hash('yourpassword',12,(e,h)=>console.log(h))"
+// Compare against hash stored in Redis (acme:admin:password_hash), falling back
+// to ADMIN_PASSWORD_HASH env var. The reset-password flow writes to Redis so
+// changes take effect immediately without a redeploy.
+// Generate hash: node -e "require('bcryptjs').hash('yourpassword',12,(e,h)=>console.log(h))"
 // Set result as ADMIN_PASSWORD_HASH in Vercel env vars. Delete ADMIN_PASSWORD.
 export async function verifyPassword(input: string): Promise<boolean> {
-  const hash = process.env.ADMIN_PASSWORD_HASH ?? ''
+  let hash: string | null = null
+
+  // Try Redis first (set by the reset flow)
+  try {
+    const redis = new Redis({
+      url:   process.env.UPSTASH_REDIS_REST_URL  ?? '',
+      token: process.env.UPSTASH_REDIS_REST_TOKEN ?? '',
+    })
+    hash = await redis.get<string>('acme:admin:password_hash')
+  } catch {
+    // Redis unavailable — fall through to env var
+  }
+
+  // Fall back to env var
+  if (!hash) {
+    hash = process.env.ADMIN_PASSWORD_HASH ?? ''
+  }
+
   if (!hash) return false
   return bcrypt.compare(input, hash)
 }
@@ -24,6 +44,7 @@ interface OtpRecord {
   otp: string
   expiry: number
   attempts: number
+  rememberMe: boolean
 }
 
 export const pendingOtps = new Map<string, OtpRecord>()
@@ -33,9 +54,9 @@ export function generateOtp(): string {
   return n.toString().padStart(6, '0')
 }
 
-export function createPendingToken(otp: string): string {
+export function createPendingToken(otp: string, rememberMe = false): string {
   const token = crypto.randomBytes(16).toString('hex')
-  pendingOtps.set(token, { otp, expiry: Date.now() + OTP_TTL_MS, attempts: 0 })
+  pendingOtps.set(token, { otp, expiry: Date.now() + OTP_TTL_MS, attempts: 0, rememberMe })
   return token
 }
 

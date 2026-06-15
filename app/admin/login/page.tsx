@@ -97,6 +97,7 @@ export default function AdminLoginPage() {
   const router = useRouter()
 
   const [password,        setPassword]        = useState('')
+  const [rememberMe,      setRememberMe]      = useState(false)
   const [error,           setError]           = useState('')
   const [loading,         setLoading]         = useState(false)
   const [step,            setStep]            = useState<'password' | 'otp'>('password')
@@ -132,7 +133,7 @@ export default function AdminLoginPage() {
     const res  = await fetch('/api/admin/auth', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ password }),
+      body:    JSON.stringify({ password, rememberMe }),
     })
     const data = await res.json().catch(() => ({}))
 
@@ -241,6 +242,17 @@ export default function AdminLoginPage() {
                 </Link>
               </div>
             </div>
+
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={e => setRememberMe(e.target.checked)}
+                disabled={loading}
+                className="w-3.5 h-3.5 rounded accent-(--admin-accent) disabled:opacity-50"
+              />
+              <span className="text-[12px] text-(--admin-text-muted)">Remember me for 7 days</span>
+            </label>
 
             <button
               type="submit"

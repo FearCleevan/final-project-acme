@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
 
   // ── Validate input ─────────────────────────────────────────────────────────
   const body = await req.json().catch(() => ({}))
-  const { password } = body as { password?: string }
+  const { password, rememberMe } = body as { password?: string; rememberMe?: boolean }
   if (!password?.trim()) {
     return NextResponse.json({ error: 'Password is required.' }, { status: 400 })
   }
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
 
   // ── Generate OTP + send email ──────────────────────────────────────────────
   const otp          = generateOtp()
-  const pendingToken = createPendingToken(otp)
+  const pendingToken = createPendingToken(otp, !!rememberMe)
   const adminEmail   = process.env.ADMIN_EMAIL ?? ''
 
   try {

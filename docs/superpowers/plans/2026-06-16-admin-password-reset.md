@@ -1,3 +1,148 @@
+# Admin Password Reset — Full Fix Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Fix 4 issues in the admin forgot/reset password flow: Redis-backed password storage (so resets actually work), eye icon toggles, real-time password match validation, and a password strength indicator.
+
+**Architecture:** Move the active password hash from a static env var into Upstash Redis so `verifyPassword()` can read it at runtime and the reset route can write to it. UI improvements are confined to `app/admin/reset-password/page.tsx`. No new dependencies needed — `@upstash/redis` is already installed.
+
+**Tech Stack:** Next.js 16 App Router, `@upstash/redis`, `bcryptjs`, `react-icons/bi`, Tailwind v4
+
+---
+
+## File Map
+
+| File | Action | What changes |
+|---|---|---|
+| `lib/admin/auth.ts` | Modify | `verifyPassword()` reads `acme:admin:password_hash` from Redis first, falls back to `ADMIN_PASSWORD_HASH` env var |
+| `app/api/admin/auth/reset/route.ts` | Modify | Writes new bcrypt hash to Redis after valid token; removes `console.log` hack; returns clean success |
+| `app/admin/reset-password/page.tsx` | Modify | Eye icon toggles, strength bar, real-time match error, updated success message |
+
+---
+
+## Task 1: Redis-backed `verifyPassword()`
+
+**Files:**
+- Modify: `lib/admin/auth.ts`
+
+- [ ] **Step 1: Add Redis import and update `verifyPassword()`**
+
+Open `lib/admin/auth.ts`. Replace the existing `verifyPassword` function with this:
+
+```typescript
+import { Redis } from '@upstash/redis'
+
+// ─── Password verification ─────────────────────────────────────────────────────
+// Reads active hash from Redis (acme:admin:password_hash) first.
+// Falls back to ADMIN_PASSWORD_HASH env var for first-time setup / local dev.
+export async function verifyPassword(input: string): Promise<boolean> {
+  let hash: string | null = null
+
+  // Try Redis first (set by the reset flow)
+  try {
+    const redis = new Redis({
+      url:   process.env.UPSTASH_REDIS_REST_URL  ?? '',
+      token: process.env.UPSTASH_REDIS_REST_TOKEN ?? '',
+    })
+    hash = await redis.get<string>('acme:admin:password_hash')
+  } catch {
+    // Redis unavailable — fall through to env var
+  }
+
+  // Fall back to env var
+  if (!hash) {
+    hash = process.env.ADMIN_PASSWORD_HASH ?? ''
+  }
+
+  if (!hash) return false
+  return bcrypt.compare(input, hash)
+}
+```
+
+Make sure the existing `import bcrypt from 'bcryptjs'` is still at the top of the file. Do NOT remove any other exports (`generateOtp`, `createPendingToken`, `maskEmail`, `sendOtpEmail`, `pendingOtps`, `AdminSession`).
+
+- [ ] **Step 2: Verify dev server compiles cleanly**
+
+Run `npm run dev` (or check the already-running dev server terminal). Confirm no TypeScript errors related to `lib/admin/auth.ts`. The admin login at `http://localhost:3000/admin/login` should still work with the existing password.
+
+- [ ] **Step 3: Commit**
+
+```
+git add lib/admin/auth.ts
+git commit -m "feat: verifyPassword reads Redis hash first, falls back to env var"
+```
+
+---
+
+## Task 2: Reset route writes new hash to Redis
+
+**Files:**
+- Modify: `app/api/admin/auth/reset/route.ts`
+
+- [ ] **Step 1: Rewrite the reset route**
+
+Replace the entire contents of `app/api/admin/auth/reset/route.ts` with:
+
+```typescript
+import { NextRequest, NextResponse } from 'next/server'
+import bcrypt from 'bcryptjs'
+import { Redis } from '@upstash/redis'
+import { resetTokens } from '../forgot/route'
+
+export async function POST(req: NextRequest) {
+  const { token, password } = await req.json().catch(() => ({}))
+
+  if (!token || !password || password.length < 8) {
+    return NextResponse.json({ error: 'Invalid request.' }, { status: 400 })
+  }
+
+  const record = resetTokens.get(token)
+  if (!record || Date.now() > record.expiry) {
+    return NextResponse.json(
+      { error: 'Reset link has expired or is invalid.' },
+      { status: 400 }
+    )
+  }
+
+  // Invalidate token immediately (single-use)
+  resetTokens.delete(token)
+
+  // Hash the new password and persist to Redis
+  const hash = await bcrypt.hash(password, 12)
+
+  const redis = new Redis({
+    url:   process.env.UPSTASH_REDIS_REST_URL  ?? '',
+    token: process.env.UPSTASH_REDIS_REST_TOKEN ?? '',
+  })
+  await redis.set('acme:admin:password_hash', hash)
+
+  return NextResponse.json({ ok: true })
+}
+```
+
+- [ ] **Step 2: Verify dev server compiles cleanly**
+
+Check the running dev server terminal for TypeScript errors. No errors expected.
+
+- [ ] **Step 3: Commit**
+
+```
+git add app/api/admin/auth/reset/route.ts
+git commit -m "feat: reset route writes new password hash to Redis"
+```
+
+---
+
+## Task 3: UI — eye icon, strength bar, real-time match
+
+**Files:**
+- Modify: `app/admin/reset-password/page.tsx`
+
+- [ ] **Step 1: Replace `ResetPasswordForm` with the updated version**
+
+Replace the entire contents of `app/admin/reset-password/page.tsx` with:
+
+```tsx
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
@@ -122,13 +267,12 @@ function ResetPasswordForm() {
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* New Password */}
       <div>
-        <label htmlFor="new-password" className="block text-[12px] font-medium text-(--admin-text) mb-1.5">
+        <label className="block text-[12px] font-medium text-(--admin-text) mb-1.5">
           New Password
         </label>
         <div className="relative">
           <BiLockAlt size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-(--admin-text-muted) pointer-events-none" />
           <input
-            id="new-password"
             type={showPassword ? 'text' : 'password'}
             value={password}
             onChange={e => { setPassword(e.target.value); setError('') }}
@@ -139,7 +283,6 @@ function ResetPasswordForm() {
           <button
             type="button"
             onClick={() => setShowPassword(v => !v)}
-            aria-label={showPassword ? 'Hide password' : 'Show password'}
             className="absolute right-2.5 top-1/2 -translate-y-1/2 text-(--admin-text-muted) hover:text-(--admin-text) transition-colors"
             tabIndex={-1}
           >
@@ -151,13 +294,12 @@ function ResetPasswordForm() {
 
       {/* Confirm Password */}
       <div>
-        <label htmlFor="confirm-password" className="block text-[12px] font-medium text-(--admin-text) mb-1.5">
+        <label className="block text-[12px] font-medium text-(--admin-text) mb-1.5">
           Confirm Password
         </label>
         <div className="relative">
           <BiLockAlt size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-(--admin-text-muted) pointer-events-none" />
           <input
-            id="confirm-password"
             type={showConfirm ? 'text' : 'password'}
             value={confirm}
             onChange={e => { setConfirm(e.target.value); setError('') }}
@@ -168,7 +310,6 @@ function ResetPasswordForm() {
           <button
             type="button"
             onClick={() => setShowConfirm(v => !v)}
-            aria-label={showConfirm ? 'Hide password' : 'Show password'}
             className="absolute right-2.5 top-1/2 -translate-y-1/2 text-(--admin-text-muted) hover:text-(--admin-text) transition-colors"
             tabIndex={-1}
           >
@@ -213,3 +354,61 @@ export default function ResetPasswordPage() {
     </div>
   )
 }
+```
+
+- [ ] **Step 2: Verify in browser**
+
+With dev server running, navigate to `http://localhost:3000/admin/reset-password?token=test`:
+
+1. Both password fields show a lock icon on the left and eye icon on the right
+2. Typing in New Password field shows the strength bar (Weak → Medium → Strong)
+3. Typing in Confirm Password field that doesn't match shows "Passwords do not match." in real time
+4. When both fields match, the mismatch error clears automatically
+5. Submit button is disabled when passwords don't match or are under 8 chars
+6. (Token `test` is invalid — submitting will show "Reset link has expired or is invalid." which is correct)
+
+- [ ] **Step 3: Commit**
+
+```
+git add app/admin/reset-password/page.tsx
+git commit -m "feat: reset password UI — eye icons, strength bar, real-time match validation"
+```
+
+---
+
+## Task 4: End-to-end verification on live site
+
+- [ ] **Step 1: Deploy to production**
+
+```
+vercel --prod --yes
+```
+
+Wait for deploy to complete.
+
+- [ ] **Step 2: Trigger a real forgot password flow**
+
+1. Go to `https://acmevintagesupply.com/admin/forgot-password`
+2. Enter `jonathan.mauring17@gmail.com` (or any of the 3 admin emails)
+3. Click "Send reset link"
+4. Check inbox — email arrives from `no-reply@acmevintagesupply.com`
+5. Click the reset link in the email
+
+- [ ] **Step 3: Set a new password and verify it works**
+
+On the reset page:
+1. Confirm eye icons, strength bar, and real-time match all work
+2. Enter a new strong password (e.g. `Acme@2026!Scott` — or change it to anything you like)
+3. Click "Update password"
+4. Success screen shows "Password updated successfully. You can now log in with your new password."
+5. Click "Go to login"
+6. Log in with the new password — OTP code arrives, enter it, access granted
+
+- [ ] **Step 4: Verify Redis has the new hash**
+
+```bash
+curl -s -X POST "https://hip-tortoise-117877.upstash.io/get/acme:admin:password_hash" \
+  -H "Authorization: Bearer gQAAAAAAAcx1AAIgcDFmOWMzZTczYmExODE0MWJjYjE5OTM2ODk2MzE2NWVjMw"
+```
+
+Expected: `{"result":"$2b$12$..."}` — a bcrypt hash, not null.

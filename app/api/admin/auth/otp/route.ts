@@ -77,8 +77,12 @@ export async function POST(req: NextRequest) {
   }
 
   // ── Create session ─────────────────────────────────────────────────────────
+  const { rememberMe } = record
   pendingOtps.delete(pendingToken)
-  const session = await getIronSession<AdminSession>(await cookies(), sessionOptions)
+  const opts = rememberMe
+    ? { ...sessionOptions, cookieOptions: { ...sessionOptions.cookieOptions, maxAge: 60 * 60 * 24 * 7 } }
+    : sessionOptions
+  const session = await getIronSession<AdminSession>(await cookies(), opts)
   session.isLoggedIn = true
   await session.save()
 
