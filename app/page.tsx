@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import HeroSection from '@/components/home/HeroSection'
 import CategoryGrid from '@/components/home/CategoryGrid'
 import PickedOffTheBench from '@/components/home/PickedOffTheBench'
+import CategoryRows from '@/components/home/CategoryRows'
 import TestimonialsWrapper from '@/components/home/TestimonialsWrapper'
 
 export const metadata: Metadata = {
@@ -16,6 +17,7 @@ export default function Home() {
       <HeroSection />
       <CategoryGrid />
       <PickedOffTheBench />
+      <CategoryRows />
       <TestimonialsWrapper />
     </>
   )

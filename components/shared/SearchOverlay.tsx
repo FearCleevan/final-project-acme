@@ -3,7 +3,6 @@
 import { useEffect, useRef, useMemo, useState, useCallback } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { BiSearch, BiX, BiHistory, BiChevronRight } from 'react-icons/bi'
-import { mockProducts } from '@/lib/mockData'
 import { formatPrice } from '@/lib/utils'
 import PlateImage from './PlateImage'
 import Link from 'next/link'
@@ -15,6 +14,18 @@ interface SearchOverlayProps {
   onQueryChange: (q: string) => void
 }
 
+type SearchProduct = {
+  id: string
+  slug: string
+  sku: string
+  name: string
+  price: number
+  images: string[]
+  shortDescription: string
+  burnerSize: string | null
+  featured: boolean
+}
+
 const CATEGORY_PILLS = [
   { label: 'Lighting Fixtures',  value: 'lighting' },
   { label: 'Glass & Chimneys',   value: 'glass-chimneys' },
@@ -24,8 +35,6 @@ const CATEGORY_PILLS = [
 
 const STORAGE_KEY = 'acme-search-recent'
 const MAX_RECENT  = 5
-
-const featured = mockProducts.filter(p => p.featured).slice(0, 4)
 
 function loadRecent(): string[] {
   if (typeof window === 'undefined') return []
@@ -43,20 +52,36 @@ function clearRecent() {
 }
 
 export default function SearchOverlay({ isOpen, onClose, query, onQueryChange }: SearchOverlayProps) {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const [recent, setRecent] = useState<string[]>([])
+  const inputRef       = useRef<HTMLInputElement>(null)
+  const [recent, setRecent]           = useState<string[]>([])
+  const [allProducts, setAllProducts] = useState<SearchProduct[]>([])
+  const [loading, setLoading]         = useState(false)
+  const fetchedRef = useRef(false)
 
   useEffect(() => {
-    if (isOpen) {
-      setRecent(loadRecent())
-      setTimeout(() => inputRef.current?.focus(), 60)
-    }
+    if (!isOpen) return
+    setRecent(loadRecent())
+    setTimeout(() => inputRef.current?.focus(), 60)
+
+    if (fetchedRef.current) return
+    fetchedRef.current = true
+    setLoading(true)
+    fetch('/api/search')
+      .then(r => r.json())
+      .then((data: SearchProduct[]) => setAllProducts(data))
+      .catch(() => {})
+      .finally(() => setLoading(false))
   }, [isOpen])
+
+  const featured = useMemo(() => {
+    const f = allProducts.filter(p => p.featured)
+    return (f.length > 0 ? f : allProducts).slice(0, 4)
+  }, [allProducts])
 
   const results = useMemo(() => {
     if (!query.trim()) return []
     const q = query.toLowerCase()
-    return mockProducts
+    return allProducts
       .filter(p =>
         p.name.toLowerCase().includes(q) ||
         p.sku.toLowerCase().includes(q) ||
@@ -64,7 +89,7 @@ export default function SearchOverlay({ isOpen, onClose, query, onQueryChange }:
         (p.burnerSize?.toLowerCase() ?? '').includes(q)
       )
       .slice(0, 7)
-  }, [query])
+  }, [query, allProducts])
 
   const handleResultClick = useCallback((term: string) => {
     if (term.trim()) { saveRecent(term.trim()); setRecent(loadRecent()) }
@@ -89,7 +114,6 @@ export default function SearchOverlay({ isOpen, onClose, query, onQueryChange }:
     if (e.key === 'Enter' && query.trim()) { saveRecent(query.trim()); setRecent(loadRecent()) }
   }, [query])
 
-  /* Close button: clear query first if present, otherwise close drawer */
   const handleClose = useCallback(() => {
     if (query) { onQueryChange('') } else { onClose() }
   }, [query, onQueryChange, onClose])
@@ -137,7 +161,6 @@ export default function SearchOverlay({ isOpen, onClose, query, onQueryChange }:
                   className="flex-1 bg-transparent font-serif text-[18px] sm:text-[20px] text-ink-charcoal placeholder:text-ink-soft/50 focus:outline-none"
                   aria-label="Search query"
                 />
-                {/* Single × — clears query if present, closes if empty */}
                 <button
                   onClick={handleClose}
                   className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-parchment-2 transition-colors text-ink-iron shrink-0"
@@ -168,7 +191,11 @@ export default function SearchOverlay({ isOpen, onClose, query, onQueryChange }:
 
                 {/* ── Active query: live results ── */}
                 {query.trim() ? (
-                  results.length > 0 ? (
+                  loading ? (
+                    <p className="font-serif italic text-[16px] text-ink-soft text-center py-10">
+                      Searching the catalog…
+                    </p>
+                  ) : results.length > 0 ? (
                     <div>
                       <p className="text-[10px] font-mono uppercase tracking-eyebrow text-brass-deep mb-3">
                         {results.length} result{results.length !== 1 ? 's' : ''}
@@ -263,31 +290,43 @@ export default function SearchOverlay({ isOpen, onClose, query, onQueryChange }:
                       <p className="text-[10px] font-mono uppercase tracking-eyebrow text-brass-deep mb-4">
                         Just in a collection
                       </p>
-                      <div className="grid grid-cols-4 gap-4">
-                        {featured.map(product => (
-                          <Link
-                            key={product.id}
-                            href={`/catalog/${product.slug}`}
-                            onClick={() => handleResultClick('')}
-                            className="group"
-                          >
-                            <div className="mb-2 overflow-hidden rounded-sm">
-                              <PlateImage
-                                src={product.images[0]}
-                                alt={product.name}
-                                aspectRatio="4/5"
-                                className="transition-transform duration-300 group-hover:scale-[1.03]"
-                              />
+                      {loading ? (
+                        <div className="grid grid-cols-4 gap-4">
+                          {[...Array(4)].map((_, i) => (
+                            <div key={i} className="animate-pulse">
+                              <div className="bg-ink-rule/30 rounded-sm aspect-[4/5] mb-2" />
+                              <div className="h-2 bg-ink-rule/30 rounded w-1/2 mb-1" />
+                              <div className="h-3 bg-ink-rule/30 rounded w-3/4" />
                             </div>
-                            <p className="text-[10px] font-mono uppercase tracking-eyebrow text-brass-deep truncate">
-                              {product.sku}
-                            </p>
-                            <p className="font-serif text-[13px] text-ink-iron group-hover:text-brass-deep transition-colors line-clamp-2 leading-snug">
-                              {product.name}
-                            </p>
-                          </Link>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-4 gap-4">
+                          {featured.map(product => (
+                            <Link
+                              key={product.id}
+                              href={`/catalog/${product.slug}`}
+                              onClick={() => handleResultClick('')}
+                              className="group"
+                            >
+                              <div className="mb-2 overflow-hidden rounded-sm">
+                                <PlateImage
+                                  src={product.images[0]}
+                                  alt={product.name}
+                                  aspectRatio="4/5"
+                                  className="transition-transform duration-300 group-hover:scale-[1.03]"
+                                />
+                              </div>
+                              <p className="text-[10px] font-mono uppercase tracking-eyebrow text-brass-deep truncate">
+                                {product.sku}
+                              </p>
+                              <p className="font-serif text-[13px] text-ink-iron group-hover:text-brass-deep transition-colors line-clamp-2 leading-snug">
+                                {product.name}
+                              </p>
+                            </Link>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                   </div>

@@ -303,7 +303,7 @@ export async function getProductsByCategory(category: Product['category']): Prom
   )
 }
 
-/** Fetch the 3 products tagged 'featured'. Used by PickedOffTheBench. */
+/** Fetch the 5 products tagged 'featured'. Used by PickedOffTheBench. */
 export async function getFeaturedProducts(): Promise<Product[]> {
   const data = await query<{ products: { edges: { node: ShopifyProduct }[] } }>(
     `${PRODUCT_FRAGMENT}
@@ -312,7 +312,7 @@ export async function getFeaturedProducts(): Promise<Product[]> {
          edges { node { ...ProductFields } }
        }
      }`,
-    { first: 3, tag: 'tag:featured' },
+    { first: 5, tag: 'tag:featured' },
   )
   return data.products.edges.map((e: { node: ShopifyProduct }) => shopifyProductToProduct(e.node))
 }

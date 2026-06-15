@@ -7,11 +7,9 @@ interface RelatedProductsProps {
   product: Product
 }
 
-const ASPECT_CYCLE: Array<'3/5' | '4/5' | '5/4'> = ['3/5', '4/5', '5/4']
-
 export default async function RelatedProducts({ product }: RelatedProductsProps) {
   const all = await getProductsByCategory(product.category)
-  const related = all.filter(p => p.id !== product.id).slice(0, 3)
+  const related = all.filter(p => p.id !== product.id).slice(0, 5)
 
   if (related.length === 0) return null
 
@@ -25,12 +23,12 @@ export default async function RelatedProducts({ product }: RelatedProductsProps)
         More from this collection.
       </h2>
 
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-3 sm:gap-x-5 gap-y-6 sm:gap-y-10 items-start">
-        {related.map((p, i) => (
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-3 sm:gap-x-5 gap-y-6 sm:gap-y-10 items-start">
+        {related.map(p => (
           <ProductCard
             key={p.id}
             product={p}
-            aspectRatio={ASPECT_CYCLE[i % ASPECT_CYCLE.length]}
+            aspectRatio="4/5"
           />
         ))}
       </div>

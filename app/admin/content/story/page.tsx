@@ -24,23 +24,24 @@ import type { StoryContent, StoryPillar, HeritageContent } from '@/lib/types/con
 
 // ── Defaults ──────────────────────────────────────────────────────────────────
 const STORY_DEFAULTS: StoryContent = {
-  headline: 'A family that refused to turn off the light.',
-  intro:    'Most companies that made kerosene lamps shut their doors a hundred years ago. This is the story of why.',
+  headline: 'A craft that has not changed its method in over a century.',
+  intro:    'Most companies that made kerosene lamps shut their doors a hundred years ago. The Oil Lamp Company in Melbourne kept going — on the original tooling.',
   imageUrl: '',
   pillars: [
-    { n: '01.', title: 'Craft over convenience.',    body: "Every burner is hand-fitted. Every shade is mouth-blown. Every sign is triple-fired. If a piece fails the 8-hour bench test, it never leaves the bench. We don't ship near-misses." },
-    { n: '02.', title: 'Provenance over inventory.', body: "We make 50 pieces a season, then we stop, then we make 50 more. There is no warehouse of yellowing surplus, no algorithmic restock. When this crate is empty, it's empty." },
-    { n: '03.', title: 'Honesty over marketing.',    body: "Our invoices are plain paper. Our phone rings to a person. Our returns policy fits in one sentence: if it arrives less than whole, send it back, on us, for thirty days." },
+    { n: '01.', title: 'Original tooling, not imitations.',      body: 'Our Duplex burners are pressed on the original Birmingham tooling — over a hundred years old and still in production. The dies have never been recut.' },
+    { n: '02.', title: 'Old world materials, period correct.',    body: 'Shades, chimneys, and fonts are produced in borosilicate glass to the original period specification. No modern substitute materials.' },
+    { n: '03.', title: 'Honesty over marketing.',                 body: "Our invoices are plain paper. Our phone rings to a person. Our returns policy fits in one sentence: if it arrives less than whole, send it back, on us, for thirty days." },
   ],
 }
 
 const HERITAGE_DEFAULTS: HeritageContent = [
-  { year: '1873', title: 'Cattaraugus patent filed',       body: 'Bradley & Hubbard file the center-draft burner patent that anchors our entire fixtures collection.' },
-  { year: '1881', title: 'Pittsburgh railroad order',      body: 'First gimbal-mounted caboose lamps roll out of the Pune works for the Indian railway.' },
-  { year: '1898', title: 'British Indian Lamp Co. closes', body: 'The dies stay. The Patel family buys the press shop for ₹140 and a promise.' },
-  { year: '1934', title: 'Porcelain signage line opens',   body: 'A third firing process is developed for the advertising-sign trade.' },
-  { year: '2003', title: 'Australian distribution begins', body: 'The first containers cross the Indian Ocean. The pieces find their first Western collectors through partners in Australia.' },
-  { year: '2026', title: 'North American launch',          body: 'Fifty pieces cross into North America for the first time. This is the website you are reading. No catalog will repeat exactly.' },
+  { year: 'c. 1870s', title: 'Victorian golden age of oil lamps',        body: 'The duplex burner becomes the standard for domestic lighting across Britain and its colonies. Birmingham becomes the centre of lamp manufacturing.' },
+  { year: 'c. 1880s', title: 'Birmingham tooling forged',                body: 'The presses, dies, and moulds used to produce Duplex burners are manufactured in Birmingham. These are the same tools still in use today.' },
+  { year: 'c. 1920s', title: 'Collecting becomes obsession',             body: 'As electric light displaces oil, antique lamp components become collector items. The original tooling is preserved rather than scrapped.' },
+  { year: 'c. 2000', title: 'Original Birmingham tooling acquired',      body: 'The Oil Lamp Company is offered the original Birmingham presses and dies — over a century old. They say yes, ship them to Melbourne, and begin production again.' },
+  { year: 'c. 2000s', title: 'Duplex Burner made again in Melbourne',   body: 'Running on the original tooling, the Melbourne workshop begins producing Duplex burners to the original specification. Supply goes to Australian collectors.' },
+  { year: 'Ongoing', title: 'India: shades, fonts, glassware',          body: 'Shades, chimneys, fonts, and glassware are manufactured in India using moulds owned outright by the Oil Lamp Company. Over two decades of uninterrupted supply.' },
+  { year: '2026',    title: 'North American launch',                     body: 'For the first time, the same catalog that has supplied Australian collectors for over two decades is available in North America through Acme Vintage Supply.' },
 ]
 
 // ── Shared helpers ────────────────────────────────────────────────────────────
@@ -294,7 +295,7 @@ function HeritageTab() {
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function ContentStoryPage() {
   return (
-    <div className="p-6 max-w-3xl">
+    <div className="max-w-3xl">
       <div className="mb-6">
         <h1 className="text-[18px] font-semibold text-(--admin-text)">Story &amp; Heritage Content</h1>
         <p className="text-[13px] text-(--admin-text-muted) mt-1">Changes go live immediately after saving.</p>

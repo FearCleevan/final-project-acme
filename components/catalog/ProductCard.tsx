@@ -93,7 +93,7 @@ const ProductCard = memo(function ProductCard({
         {/* Product name */}
         <Link href={`/catalog/${product.slug}`}>
           <h3
-            className={`font-serif font-bold text-ink-iron group-hover:text-brass-deep transition-colors leading-snug mb-1 sm:mb-2 ${
+            className={`font-serif font-bold text-ink-iron group-hover:text-brass-deep transition-colors leading-snug mb-1 sm:mb-2 line-clamp-2 ${
               large ? 'text-[14px] sm:text-[22px]' : 'text-[12px] sm:text-[18px]'
             }`}
           >

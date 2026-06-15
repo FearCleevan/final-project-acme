@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { getFeaturedProducts } from '@/lib/shopify'
-import { mockProducts } from '@/lib/mockData'
 import Eyebrow from '@/components/shared/Eyebrow'
 import ProductCard from '@/components/catalog/ProductCard'
 import { getContent } from '@/lib/content'
@@ -15,12 +14,12 @@ const FALLBACK: BenchContent = {
 
 export default async function PickedOffTheBench() {
   const [featured, bench] = await Promise.all([
-    getFeaturedProducts().catch(() => mockProducts.slice(0, 3)),
+    getFeaturedProducts().catch(() => []),
     getContent<BenchContent>('bench').then(d => d ?? FALLBACK),
   ])
 
   return (
-    <section className="bg-parchment-2 px-6 py-24 border-t border-ink-rule">
+    <section className="bg-parchment-2 px-6 py-14 md:py-24 border-t border-ink-rule">
       <div className="max-w-[1280px] mx-auto">
 
         <div className="flex items-end justify-between mb-10">
@@ -41,13 +40,14 @@ export default async function PickedOffTheBench() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-3 sm:gap-x-5 gap-y-6 sm:gap-y-10 lg:gap-10 items-start">
-          {featured.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              aspectRatio="4/5"
-            />
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-3 sm:gap-x-5 gap-y-6 sm:gap-y-10 items-start">
+          {featured.map((product, i) => (
+            <div key={product.id} className={i === 4 ? 'hidden sm:block' : ''}>
+              <ProductCard
+                product={product}
+                aspectRatio="4/5"
+              />
+            </div>
           ))}
         </div>
 
