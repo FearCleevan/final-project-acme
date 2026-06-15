@@ -10,7 +10,7 @@ import fallbackData from '@/data/heritage.json'
 
 export const metadata: Metadata = {
   title: 'Heritage Timeline — Acme Vintage Supply',
-  description: 'One hundred and fifty years of oil lamp craftsmanship — from the 1873 Bradley & Hubbard patent to the 2026 North American launch.',
+  description: 'From Victorian Birmingham tooling to a Melbourne workshop to your door in North America — the full heritage timeline of Acme Vintage Supply.',
   alternates: { canonical: '/heritage' },
 }
 

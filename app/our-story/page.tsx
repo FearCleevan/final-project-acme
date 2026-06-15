@@ -8,8 +8,8 @@ import type { StoryContent } from '@/lib/types/content'
 import storyData from '@/data/story.json'
 
 export const metadata: Metadata = {
-  title: 'Our Story — Antique Oil Lamp Specialists Since 1898',
-  description: 'Acme Vintage Supply sources authentic Victorian oil lamp parts and original enamel advertising signs from Dartmouth, Nova Scotia. Bench-tested and shipped across North America.',
+  title: 'Our Story — Acme Vintage Supply',
+  description: 'The story behind Acme Vintage Supply — original Birmingham tooling, borosilicate glass, and over two decades of supplying collectors. Now available in North America.',
   alternates: { canonical: '/our-story' },
 }
 
@@ -48,10 +48,10 @@ export default async function OurStoryPage() {
           <div className="relative">
             <PlateImage
               src={story.imageUrl || undefined}
-              alt="Workshop exterior, Pune press shop"
+              alt="Original oil lamp workshop — Melbourne, Australia"
               aspectRatio="4/5"
               dark={false}
-              label="EST. 1898 / PUNE · NOW IN NORTH AMERICA"
+              label="MELBOURNE WORKSHOP · NOW IN NORTH AMERICA"
               priority
               className="rounded-sm"
             />
@@ -73,14 +73,13 @@ export default async function OurStoryPage() {
           </blockquote>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-left max-w-[720px] mx-auto">
             <p className="font-sans text-[16px] text-ink-soft leading-relaxed">
-              The Patel family has operated the same press shop in Pune since 1898. The dies have not been
-              recut. The alloy specification has not changed. The eight-hour burn test has never been
-              reduced to four.
+              The original Birmingham tooling used to press our Duplex burners is over a century old. The
+              dies have not been recut. The borosilicate glass formula for our shades and chimneys has not
+              been reformulated. The brass alloy has not been changed for cost.
             </p>
             <p className="font-sans text-[16px] text-ink-soft leading-relaxed">
-              These pieces have been distributed through our partners in Australia for over two decades.
-              Now, for the first time, they are available here — in North America. The workshop in Pune
-              stays exactly where it was. It always will.
+              These pieces have supplied collectors in Australia for over two decades. Now, for the first
+              time, they are available in North America. The tooling stays exactly where it was. It always will.
             </p>
           </div>
         </div>
@@ -115,12 +114,12 @@ export default async function OurStoryPage() {
         <div className="max-w-[760px] mx-auto">
           <span className="font-serif text-[72px] text-brass leading-none block mb-4" aria-hidden="true">"</span>
           <blockquote className="font-serif italic text-[22px] text-canvas-body leading-relaxed mb-8">
-            My grandfather bought the press shop for a hundred and forty rupees and a promise.
-            The promise was that we would still be running the same dies in a hundred years.
-            We are. The next hundred is paid for.
+            We were offered the original tooling and dies — over a hundred years old — and we said yes.
+            We shipped them to Melbourne, set them up, and started making Duplex burners again.
+            That's the whole story, really. The rest is just keeping the presses running.
           </blockquote>
           <footer className="font-mono text-[11px] uppercase tracking-eyebrow text-canvas-dim">
-            R.K. Patel &nbsp;/&nbsp; Third-generation press operator · Pune, India
+            The Oil Lamp Company &nbsp;/&nbsp; Melbourne, Australia
           </footer>
         </div>
       </section>

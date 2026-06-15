@@ -5,17 +5,17 @@ const proofPoints = [
   {
     n: '01.',
     title: 'Pressed on original dies',
-    body: 'Eight of our nine brass parts come off tooling first cut between 1901 and 1908.',
+    body: 'Our Duplex burners run off the original Birmingham tooling — over a century old and still in production.',
   },
   {
     n: '02.',
-    title: 'Tested for the night burn',
-    body: 'Every lamp runs an 8-hour bench test on No. 2 wick before it earns its tag.',
+    title: 'Owned moulds, not licensed',
+    body: 'Every mould and tool used in India is owned outright. Nothing is contracted out to a third-party die shop.',
   },
   {
     n: '03.',
-    title: 'Plain paper invoice',
-    body: 'A real receipt, a real return address, and a real person at the other end of the phone.',
+    title: 'Borosilicate, not substitute glass',
+    body: 'Shades, chimneys, and fonts are produced in borosilicate glass to the original period specification.',
   },
 ]
 
@@ -29,18 +29,18 @@ export default function WorkshopSection() {
           {/* Stacked plates */}
           <div className="grid grid-cols-2 gap-4 pt-12">
             <PlateImage
-              alt="Pune brass furnaces"
+              alt="Original Birmingham presses on the workshop floor"
               aspectRatio="3/5"
               dark
-              label="BRASS FURNACE · PUNE"
+              label="ORIGINAL BIRMINGHAM PRESS · MELBOURNE"
               className="rounded-sm"
             />
             <div className="pt-10">
               <PlateImage
-                alt="Lathe room, 1940s"
+                alt="Borosilicate glass shades, India production"
                 aspectRatio="3/5"
                 dark
-                label="LATHE ROOM · 1940S"
+                label="GLASSWARE · INDIA"
                 className="rounded-sm"
               />
             </div>
@@ -48,22 +48,23 @@ export default function WorkshopSection() {
 
           {/* Copy */}
           <div className="pt-16">
-            <Eyebrow light className="mb-4">A catalog 125 years in the making</Eyebrow>
+            <Eyebrow light className="mb-4">A catalog built over decades</Eyebrow>
             <h2
               className="font-serif font-medium text-canvas-heading leading-tight mb-7"
               style={{ fontSize: 'clamp(24px, 3vw, 40px)' }}
             >
-              Spun in Pune. Shipped through Adelaide. Now available in North America.
+              Made in Melbourne &amp; India. Collected for decades. Now in North America.
             </h2>
             <p className="font-sans text-[17px] text-canvas-body leading-relaxed mb-5">
-              The Patel family has operated the Pune press shop since 1898, when the British Indian Lamp Co. closed
-              and left the tooling behind. The dies stayed. The family bought them for one hundred and forty rupees
-              and a promise.
+              What began as a collector's obsession became a manufacturing operation. When the components
+              that made antique oil lamps worth restoring disappeared from the market, the only answer was
+              to make them again — on the original tooling, with the original materials.
             </p>
             <p className="font-sans text-[17px] text-canvas-body leading-relaxed mb-12">
-              For over two decades, these pieces reached collectors through our partners in Australia. Now, for the
-              first time, the same catalog — same brass alloy, same bench test, same hand-numbered tag — is
-              available here in North America.
+              Original 100-year-old Duplex presses were sourced from Birmingham and put back into production
+              in Melbourne. Shades, fonts, chimneys, and glassware are manufactured in India using moulds
+              owned outright — over two decades of uninterrupted production. For years these pieces supplied
+              collectors in Australia. Now, for the first time, the same catalog is available in North America.
             </p>
 
             {/* Proof points */}
