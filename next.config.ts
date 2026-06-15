@@ -1,6 +1,7 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'i.ebayimg.com' },
@@ -18,11 +19,15 @@ const nextConfig: NextConfig = {
 
     // Safe headers for storefront — no CSP (would break Shopify/Google Fonts CDN)
     const storefrontHeaders = [
-      { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
-      { key: 'X-Content-Type-Options',    value: 'nosniff' },
-      { key: 'X-Frame-Options',           value: 'SAMEORIGIN' },
-      { key: 'Referrer-Policy',           value: 'strict-origin-when-cross-origin' },
-      { key: 'Permissions-Policy',        value: 'camera=(), microphone=(), geolocation=()' },
+      { key: 'Strict-Transport-Security',   value: 'max-age=31536000; includeSubDomains' },
+      { key: 'X-Content-Type-Options',      value: 'nosniff' },
+      { key: 'X-Frame-Options',             value: 'SAMEORIGIN' },
+      { key: 'Referrer-Policy',             value: 'strict-origin-when-cross-origin' },
+      { key: 'Permissions-Policy',          value: 'camera=(), microphone=(), geolocation=()' },
+      // COOP: allow-popups so Shopify checkout window still opens
+      { key: 'Cross-Origin-Opener-Policy',  value: 'same-origin-allow-popups' },
+      // CORP: cross-origin so Shopify/CDN can load our assets
+      { key: 'Cross-Origin-Resource-Policy', value: 'cross-origin' },
     ]
 
     // Strict headers for /admin/* — admin loads nothing external
@@ -35,6 +40,8 @@ const nextConfig: NextConfig = {
       { key: 'Content-Security-Policy',            value: `default-src 'self'; script-src ${scriptSrc}; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self'; frame-ancestors 'none'` },
       { key: 'Cache-Control',                      value: 'no-store, no-cache, must-revalidate' },
       { key: 'X-Permitted-Cross-Domain-Policies',  value: 'none' },
+      { key: 'Cross-Origin-Opener-Policy',         value: 'same-origin' },
+      { key: 'Cross-Origin-Resource-Policy',       value: 'same-origin' },
     ]
 
     return [
