@@ -17,11 +17,11 @@ const cards = [
   },
   {
     n: '02',
-    eyebrow: 'Pune Workshop · Press Shop 4',
-    address: ['Press Shop 4, Shivaji Nagar Industrial Estate', 'Pune, Maharashtra 411 005 — India'],
-    phone: '+91 20 6600 1873',
+    eyebrow: 'OLC · Melbourne Workshop',
+    address: ['Oil Lamp Company', 'Melbourne, Victoria — Australia'],
+    phone: '+61 3 9000 0000',
     email: 'workshop@acmelamp.co',
-    hours: 'Mon–Sat · 8:00–18:00 IST',
+    hours: 'Mon–Fri · 8:00–17:00 AEST',
   },
 ]
 

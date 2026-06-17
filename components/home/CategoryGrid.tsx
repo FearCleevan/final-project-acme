@@ -146,7 +146,7 @@ export default function CategoryGrid() {
             href="/catalog"
             className="font-sans text-[14px] text-brass-deep border-b border-brass-deep/40 pb-px"
           >
-            Browse all 50 pieces →
+            Browse the full catalog →
           </Link>
         </div>
       </div>

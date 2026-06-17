@@ -72,7 +72,7 @@ export default function Footer() {
               Bench notes, once a month.
             </h3>
             <p className="text-[14px] text-ink-soft leading-relaxed">
-              One letter each season, plus a head-start on the next crate of fifty.
+              One letter each season, plus a head-start on new arrivals.
               Real writing from the workshop. No promo codes shouted in all caps.
             </p>
           </div>
@@ -135,8 +135,8 @@ export default function Footer() {
               </p>
               <p className="text-[13px] text-canvas-muted leading-relaxed mb-5">
                 Precision-reproduced antique oil lamp parts, hand-blown glass, and
-                triple-fired porcelain signs — crafted in Pune, now available
-                across North America for the first time.
+                reproduction porcelain signs — made on original OLC tooling in Melbourne,
+                now available across North America for the first time.
               </p>
               <Eyebrow light className="mb-2">North America · Distribution</Eyebrow>
               <address className="not-italic text-[13px] text-canvas-muted leading-relaxed">

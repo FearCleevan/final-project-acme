@@ -23,11 +23,11 @@ import {
 import type { HeroContent, BenchContent, Testimonial } from '@/lib/types/content'
 
 const HERO_DEFAULTS: HeroContent = {
-  eyebrow:      'No. 01 · Spring · Fifty/Fifty',
-  headline:     'Authentic light from a forgotten era.',
-  italicWord:   'forgotten',
-  subtext:      'Fifty pieces of precision-reproduced antique oil lamp parts, hand-blown chimneys, and porcelain advertising signs — crafted at a Pune press shop running original dies since 1898, and now available in North America for the first time.',
-  ctaPrimary:   { label: 'Enter the Catalog', href: '/catalog' },
+  eyebrow:      'Handcrafted · Original Tooling · North America',
+  headline:     'Old world craftsmanship. Every detail, period-correct.',
+  italicWord:   'craftsmanship',
+  subtext:      'Hand-blown glass shades, precision Duplex burners, and borosilicate chimneys — made on century-old tooling by the Oil Lamp Company in Melbourne, now available in North America for the first time.',
+  ctaPrimary:   { label: 'Shop the Collection', href: '/catalog' },
   ctaSecondary: { label: 'Read the Story',    href: '/our-story' },
   imageUrl:     '/assets/HeroSampleImage0.webp',
 }
@@ -117,7 +117,7 @@ function HeroTab() {
         <CardContent className="space-y-4">
           <div className="space-y-1.5">
             <Label>Eyebrow label</Label>
-            <Input value={form.eyebrow} onChange={e => set('eyebrow', e.target.value)} placeholder="No. 01 · Spring · Fifty/Fifty" />
+            <Input value={form.eyebrow} onChange={e => set('eyebrow', e.target.value)} placeholder="Handcrafted · Original Tooling · North America" />
           </div>
           <div className="space-y-1.5">
             <Label>Headline</Label>

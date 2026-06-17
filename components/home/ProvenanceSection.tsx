@@ -32,16 +32,16 @@ export default function ProvenanceSection() {
           {/* Large plate — Workshop Interior 1940s (355x592 dimension profile) */}
           <PlateImage
             src="/assets/HeroSampleImage1.1.webp"
-            alt="Pune brass furnaces at the lathe, 1940s"
+            alt="Original Birmingham tooling on the Melbourne workshop floor"
             aspectRatio="3/5"
             dark
           />
-          
-          {/* Smaller plate — Office Furnace Press Shop (237x296 dimension profile) */}
+
+          {/* Smaller plate — Workshop detail */}
           <div className="pt-12">
             <PlateImage
               src="/assets/HeroSampleImage2.1.webp"
-              alt="Office furnace before, Pune workshop"
+              alt="OLC press and lathe, Melbourne workshop"
               aspectRatio="4/5"
               dark
             />
@@ -57,18 +57,18 @@ export default function ProvenanceSection() {
             className="font-serif font-medium text-canvas-heading leading-tight mb-6"
             style={{ fontSize: 'clamp(28px, 3.5vw, 48px)' }}
           >
-            Spun in Pune. Shipped through Adelaide. Now landing in North America.
+            Made in Melbourne. On tooling that has not changed in over a century.
           </h2>
           <p className="font-sans text-[17px] text-canvas-body leading-relaxed mb-4">
-            The press shop in Pune has been running the same dies since the Patel family bought it
-            in 1898 — for ₹140 and a promise that the method wouldn&apos;t change. It hasn&apos;t. Every
-            brass fitting in this catalog was pressed on original tooling, hand-fitted, and bench-tested
-            before it left the floor.
+            The Oil Lamp Company acquired the original 100-year-old Duplex Burner tooling —
+            presses, dies, and lathes — from Birmingham, England, and shipped them to Melbourne.
+            Nothing was recut. Every brass fitting in this catalog is pressed on that same original
+            tooling, hand-fitted, and bench-tested before it leaves the floor.
           </p>
           <p className="font-sans text-[17px] text-canvas-body leading-relaxed mb-12">
-            These pieces have long been available through our Australian partners — but this is the
-            first time they have crossed into North America. Straw-packed, hand-numbered, and
-            offered here as a single release. When the crate is empty, that&apos;s the run.
+            OLC owns the moulds and tooling for everything they manufacture — shades, fonts,
+            chimneys, glassware, brassware. These pieces have supplied Australian collectors for
+            over two decades. This is the first time they have crossed into North America.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">

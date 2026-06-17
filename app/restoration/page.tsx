@@ -6,7 +6,7 @@ const services = [
   {
     n: '01',
     title: 'Burner replacement & fitting',
-    body: "We source period-correct burners from our Pune inventory and fit them to your existing lamp body. The fitting is adjusted by hand on the bench, not by spec sheet. Turnaround: 5–7 working days from receipt.",
+    body: "We source period-correct burners from our OLC inventory and fit them to your existing lamp body. The fitting is adjusted by hand on the bench, not by spec sheet. Turnaround: 5–7 working days from receipt.",
     price: 'From $45',
   },
   {
