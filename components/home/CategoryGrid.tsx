@@ -130,7 +130,7 @@ export default function CategoryGrid() {
                 className="font-serif text-parchment leading-none font-medium"
                 style={{ fontSize: 'clamp(36px, 4vw, 56px)' }}
               >
-                50+<br />pieces
+                Full<br />Catalog
               </p>
               <span className="font-mono text-[11px] uppercase tracking-widest text-parchment/80 border border-parchment/40 group-hover:border-parchment/70 rounded-sm px-4 py-2 transition-colors">
                 Shop now →
