@@ -232,26 +232,30 @@ export default function ProductsPage() {
     setImportProgress(0)
     setImportResults([])
 
-    try {
-      const res = await fetch('/api/admin/products/import', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ rows }),
-      })
-      const results = await res.json()
-      if (!res.ok) throw new Error(results.error ?? 'Import failed')
-      setImportResults(results)
-      setImportProgress(100)
-      setImportDone(true)
-      await loadProducts()
-      const created = results.filter((r: { status: string }) => r.status === 'created').length
-      if (created > 0) {
-        setToast({ message: `${created} product${created !== 1 ? 's' : ''} imported to Shopify.`, type: 'success' })
+    const accumulated: { title: string; status: 'created' | 'duplicate' | 'error'; message: string; productId?: string }[] = []
+
+    for (let i = 0; i < rows.length; i++) {
+      try {
+        const res = await fetch('/api/admin/products/import', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ rows: [rows[i]] }),
+        })
+        const [result] = await res.json()
+        accumulated.push(res.ok ? result : { title: rows[i].title, status: 'error' as const, message: result?.error ?? 'Import failed' })
+      } catch (err) {
+        accumulated.push({ title: rows[i].title, status: 'error' as const, message: String(err) })
       }
-    } catch (err) {
-      setToast({ message: String(err), type: 'error' })
-    } finally {
-      setImporting(false)
+      setImportProgress(Math.round(((i + 1) / rows.length) * 100))
+      setImportResults([...accumulated])
+    }
+
+    setImportDone(true)
+    setImporting(false)
+    await loadProducts()
+    const created = accumulated.filter(r => r.status === 'created').length
+    if (created > 0) {
+      setToast({ message: `${created} product${created !== 1 ? 's' : ''} imported to Shopify.`, type: 'success' })
     }
   }
 
@@ -655,19 +659,44 @@ export default function ProductsPage() {
                 </div>
 
               ) : importing ? (
-                <div className="py-8 text-center space-y-4">
-                  <p className="text-[13px] font-medium text-(--admin-text)">
-                    Importing products into Shopify…
-                  </p>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[13px] font-medium text-(--admin-text)">
+                      Importing into Shopify…
+                    </p>
+                    <span className="text-[12px] text-(--admin-text-muted) tabular-nums">
+                      {importResults.length} of {importTotal} · {importProgress}%
+                    </span>
+                  </div>
                   <div className="w-full bg-(--admin-border) rounded-full h-2 overflow-hidden">
                     <div
-                      className="h-full rounded-full animate-pulse w-full"
-                      style={{ background: 'var(--admin-accent)' }}
+                      className="h-full rounded-full transition-all duration-300"
+                      style={{ width: `${importProgress}%`, background: 'var(--admin-accent)' }}
                     />
                   </div>
-                  <p className="text-[11px] text-(--admin-text-muted)">
-                    Creating {importTotal} product{importTotal !== 1 ? 's' : ''} — this may take a moment
-                  </p>
+                  {importResults.length > 0 && (
+                    <div className="overflow-y-auto max-h-52 rounded-md border border-(--admin-border)">
+                      <table className="w-full text-left text-[11px]">
+                        <tbody>
+                          {importResults.map((r, i) => (
+                            <tr key={i} className="border-b border-(--admin-border) last:border-0">
+                              <td className="px-3 py-1.5 w-6 text-center">
+                                {r.status === 'created'   && <span className="text-(--admin-green) font-bold">✓</span>}
+                                {r.status === 'duplicate' && <span className="text-amber-600 font-bold">~</span>}
+                                {r.status === 'error'     && <span className="text-(--admin-red) font-bold">✗</span>}
+                              </td>
+                              <td className="px-3 py-1.5 text-(--admin-text) truncate max-w-[180px]">{r.title || '—'}</td>
+                              <td className="px-3 py-1.5 text-right whitespace-nowrap">
+                                {r.status === 'created'   && <span className="text-(--admin-green)">Created</span>}
+                                {r.status === 'duplicate' && <span className="text-amber-600">Duplicate</span>}
+                                {r.status === 'error'     && <span className="text-(--admin-red)">{r.message || 'Error'}</span>}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
 
               ) : (
