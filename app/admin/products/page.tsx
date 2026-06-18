@@ -212,7 +212,7 @@ export default function ProductsPage() {
       if (lines.length < 2) return
       const headers = lines[0].split(',').map(h => h.replace(/^"|"$/g, '').trim())
       const rows: ParsedRow[] = lines.slice(1).map(line => {
-        const vals = line.match(/("(?:[^"]|"")*"|[^,]*)/g) ?? []
+        const vals = line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)
         const row: ParsedRow = {}
         headers.forEach((h, i) => {
           row[h] = (vals[i] ?? '').replace(/^"|"$/g, '').replace(/""/g, '"').trim()
