@@ -743,6 +743,21 @@ export async function deleteAdminProduct(shopifyId: string): Promise<void> {
   }
 }
 
+export async function updateProductStatus(shopifyId: string, status: 'ACTIVE' | 'DRAFT'): Promise<void> {
+  const gid = shopifyId.startsWith('gid://') ? shopifyId : `gid://shopify/Product/${shopifyId}`
+  const data = await adminFetch<{ productUpdate: { userErrors: { message: string }[] } }>(
+    `mutation UpdateProductStatus($input: ProductInput!) {
+      productUpdate(input: $input) {
+        userErrors { field message }
+      }
+    }`,
+    { input: { id: gid, status } }
+  )
+  if (data.productUpdate.userErrors.length) {
+    throw new Error(data.productUpdate.userErrors[0].message)
+  }
+}
+
 // ─── Shop owner ──────────────────────────────────────────────────────────────
 
 export async function getShopOwner(): Promise<{ name: string; email: string }> {

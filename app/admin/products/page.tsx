@@ -461,6 +461,48 @@ export default function ProductsPage() {
         {selectedIds.size > 0 && (
           <div className="flex items-center gap-3 px-5 py-2.5 bg-(--admin-surface-2) border-b border-(--admin-border)">
             <span className="text-[12px] text-(--admin-text-soft)">{selectedIds.size} selected</span>
+
+            {/* Change Status */}
+            <select
+              defaultValue=""
+              onChange={async e => {
+                const newStatus = e.target.value as 'active' | 'draft'
+                if (!newStatus) return
+                e.target.value = ''
+                const ids = Array.from(selectedIds)
+                try {
+                  const res = await fetch('/api/admin/products/bulk-status', {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify({ ids, status: newStatus }),
+                  })
+                  const results = await res.json()
+                  if (!res.ok) throw new Error(results.error ?? 'Update failed')
+                  const failed = results.filter((r: { ok: boolean }) => !r.ok).length
+                  await loadProducts()
+                  setSelectedIds(new Set())
+                  if (failed > 0) {
+                    setToast({ message: `${ids.length - failed} updated, ${failed} failed.`, type: 'error' })
+                  } else {
+                    setToast({ message: `${ids.length} product${ids.length !== 1 ? 's' : ''} set to ${newStatus}.`, type: 'success' })
+                  }
+                } catch (err) {
+                  setToast({ message: String(err), type: 'error' })
+                }
+              }}
+              className="h-7 px-2 pr-6 text-[11px] rounded-md border cursor-pointer appearance-none"
+              style={{
+                borderColor:      'var(--admin-border)',
+                color:            'var(--admin-text-soft)',
+                background:       'var(--admin-surface) url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'6\'%3E%3Cpath d=\'M0 0l5 6 5-6z\' fill=\'%23999\'/%3E%3C/svg%3E") no-repeat right 8px center',
+                backgroundSize:   '8px',
+              }}
+            >
+              <option value="" disabled>Change status…</option>
+              <option value="active">Set Active</option>
+              <option value="draft">Set Draft</option>
+            </select>
+
             <button
               onClick={() => setDeleteTarget(Array.from(selectedIds))}
               className="flex items-center gap-1.5 h-7 px-3 text-[11px] text-(--admin-red) bg-(--admin-red-bg) border border-(--admin-red)/20 rounded-md hover:opacity-80 transition-opacity"
