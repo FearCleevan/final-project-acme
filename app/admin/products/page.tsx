@@ -136,10 +136,14 @@ export default function ProductsPage() {
   useEffect(() => { loadProducts() }, [])
 
   // Import modal state
-  const [showImport,   setShowImport]   = useState(false)
-  const [importFile,   setImportFile]   = useState<File | null>(null)
-  const [importRows,   setImportRows]   = useState<ParsedRow[]>([])
-  const [importDone,   setImportDone]   = useState(false)
+  const [showImport,     setShowImport]     = useState(false)
+  const [importFile,     setImportFile]     = useState<File | null>(null)
+  const [importRows,     setImportRows]     = useState<ParsedRow[]>([])
+  const [importing,      setImporting]      = useState(false)
+  const [importProgress, setImportProgress] = useState(0)
+  const [importTotal,    setImportTotal]    = useState(0)
+  const [importDone,     setImportDone]     = useState(false)
+  const [importResults,  setImportResults]  = useState<{ title: string; status: 'created'|'duplicate'|'error'; message: string }[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const filtered = useMemo(() => {
@@ -164,38 +168,101 @@ export default function ProductsPage() {
   const handleTabChange = (v: TabFilter) => { setTab(v); setPage(1) }
   const handleSearch    = (v: string)    => { setSearch(v); setPage(1) }
 
+  function parseImportRows(rows: ParsedRow[]) {
+    return rows.map(r => ({
+      title:            r['Title']?.trim() ?? '',
+      shortDescription: r['Short Description']?.trim() ?? '',
+      sku:              r['SKU']?.trim() ?? '',
+      price:            parseFloat(r['Price'] ?? '0') || 0,
+      compareAtPrice:   r['Compare-at Price']?.trim() ? parseFloat(r['Compare-at Price']) : null,
+      stock:            parseInt(r['Stock'] ?? '0', 10) || 0,
+      status:           (r['Status']?.trim() === 'active' ? 'active' : 'draft') as 'active' | 'draft',
+      collections:      (r['Collections'] ?? '').split(';').map((s: string) => s.trim()).filter(Boolean),
+      tags:             (r['Tags'] ?? '').split(';').map((s: string) => s.trim()).filter(Boolean),
+      vendor:           r['Vendor']?.trim() ?? '',
+      material:         r['Material']?.trim() ?? '',
+      colour:           r['Colour']?.trim() ?? '',
+      style:            r['Style']?.trim() ?? '',
+      brand:            r['Brand']?.trim() ?? '',
+      vintage:          r['Vintage']?.trim() ?? '',
+      burnerSize:       r['Burner Size']?.trim() ?? '',
+      fits:             r['Fits']?.trim() ?? '',
+      powerSource:      r['Power Source']?.trim() ?? '',
+      era:              r['Era']?.trim() ?? '',
+      productType:      r['Product Type']?.trim() ?? '',
+      condition:        r['Condition']?.trim() ?? '',
+      edition:          r['Edition']?.trim() ?? '',
+      workshop:         r['Workshop']?.trim() ?? '',
+      benchTester:      r['Bench Tester']?.trim() ?? '',
+      benchTestDate:    r['Bench Test Date']?.trim() ?? '',
+      netWeight:        r['Net Weight']?.trim() ?? '',
+    }))
+  }
+
   function handleFileSelect(file: File | null) {
     if (!file) return
     setImportFile(file)
     setImportDone(false)
+    setImportResults([])
+    setImportProgress(0)
     const reader = new FileReader()
     reader.onload = e => {
       const text = e.target?.result as string
-      const lines = text.trim().split('\n')
+      const lines = text.trim().split(/\r?\n/)
       if (lines.length < 2) return
       const headers = lines[0].split(',').map(h => h.replace(/^"|"$/g, '').trim())
-      const rows: ParsedRow[] = lines.slice(1, 6).map(line => {
-        const vals = line.match(/(".*?"|[^,]+)/g) ?? []
+      const rows: ParsedRow[] = lines.slice(1).map(line => {
+        const vals = line.match(/("(?:[^"]|"")*"|[^,]*)/g) ?? []
         const row: ParsedRow = {}
         headers.forEach((h, i) => {
-          row[h] = (vals[i] ?? '').replace(/^"|"$/g, '').trim()
+          row[h] = (vals[i] ?? '').replace(/^"|"$/g, '').replace(/""/g, '"').trim()
         })
         return row
-      })
+      }).filter(r => Object.values(r).some(v => v !== ''))
       setImportRows(rows)
     }
     reader.readAsText(file)
   }
 
-  function handleImportConfirm() {
-    setImportDone(true)
+  async function handleImportConfirm() {
+    if (!importFile || importRows.length === 0) return
+    const rows = parseImportRows(importRows)
+    setImporting(true)
+    setImportTotal(rows.length)
+    setImportProgress(0)
+    setImportResults([])
+
+    try {
+      const res = await fetch('/api/admin/products/import', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ rows }),
+      })
+      const results = await res.json()
+      if (!res.ok) throw new Error(results.error ?? 'Import failed')
+      setImportResults(results)
+      setImportProgress(100)
+      setImportDone(true)
+      await loadProducts()
+      const created = results.filter((r: { status: string }) => r.status === 'created').length
+      if (created > 0) {
+        setToast({ message: `${created} product${created !== 1 ? 's' : ''} imported to Shopify.`, type: 'success' })
+      }
+    } catch (err) {
+      setToast({ message: String(err), type: 'error' })
+    } finally {
+      setImporting(false)
+    }
   }
 
   function closeImportModal() {
+    if (importing) return
     setShowImport(false)
     setImportFile(null)
     setImportRows([])
     setImportDone(false)
+    setImportResults([])
+    setImportProgress(0)
   }
 
   const COLUMNS: Column<AdminProduct>[] = [
@@ -508,7 +575,7 @@ export default function ProductsPage() {
       {/* Import CSV modal */}
       {showImport && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40" onClick={closeImportModal} aria-hidden="true" />
+          <div className="absolute inset-0 bg-black/40" onClick={importing ? undefined : closeImportModal} aria-hidden="true" />
           <div
             className="relative w-full max-w-2xl rounded-lg shadow-xl border"
             style={{ background: 'var(--admin-surface)', borderColor: 'var(--admin-border)' }}
@@ -522,25 +589,89 @@ export default function ProductsPage() {
             </div>
 
             <div className="px-5 py-4 space-y-4">
+
+              {/* ── Done: results summary ── */}
               {importDone ? (
-                <div className="py-8 text-center">
-                  <p className="text-[14px] font-medium" style={{ color: 'var(--admin-green)' }}>
-                    {importRows.length} product{importRows.length !== 1 ? 's' : ''} imported successfully.
-                  </p>
-                  <p className="text-[12px] mt-1" style={{ color: 'var(--admin-text-muted)' }}>
-                    Plan 1: preview only — real import syncs to Shopify in Plan 2.
-                  </p>
-                  <button
-                    onClick={closeImportModal}
-                    className="mt-4 h-9 px-5 text-[12px] font-medium rounded-md"
-                    style={{ background: 'var(--admin-accent)', color: 'var(--admin-accent-text)' }}
-                  >
-                    Done
-                  </button>
+                <div className="space-y-3">
+                  {(() => {
+                    const created   = importResults.filter(r => r.status === 'created').length
+                    const duplicate = importResults.filter(r => r.status === 'duplicate').length
+                    const error     = importResults.filter(r => r.status === 'error').length
+                    return (
+                      <div className="flex gap-3 flex-wrap">
+                        {created > 0 && (
+                          <span className="text-[12px] px-2.5 py-1 rounded-full bg-(--admin-green-bg) text-(--admin-green) font-medium">
+                            {created} created
+                          </span>
+                        )}
+                        {duplicate > 0 && (
+                          <span className="text-[12px] px-2.5 py-1 rounded-full bg-(--admin-amber-bg) text-amber-700 font-medium">
+                            {duplicate} duplicate{duplicate !== 1 ? 's' : ''}
+                          </span>
+                        )}
+                        {error > 0 && (
+                          <span className="text-[12px] px-2.5 py-1 rounded-full bg-(--admin-red-bg) text-(--admin-red) font-medium">
+                            {error} error{error !== 1 ? 's' : ''}
+                          </span>
+                        )}
+                      </div>
+                    )
+                  })()}
+
+                  <div className="overflow-x-auto rounded-md border border-(--admin-border) max-h-72 overflow-y-auto">
+                    <table className="w-full text-left text-[11px]">
+                      <thead className="sticky top-0 bg-(--admin-surface-2) border-b border-(--admin-border)">
+                        <tr>
+                          <th className="px-3 py-2 text-(--admin-text-muted) uppercase tracking-wide">Product</th>
+                          <th className="px-3 py-2 text-(--admin-text-muted) uppercase tracking-wide w-24">Result</th>
+                          <th className="px-3 py-2 text-(--admin-text-muted) uppercase tracking-wide">Note</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {importResults.map((r, i) => (
+                          <tr key={i} className="border-b border-(--admin-border) last:border-0">
+                            <td className="px-3 py-2 text-(--admin-text) truncate max-w-52">{r.title || '—'}</td>
+                            <td className="px-3 py-2">
+                              {r.status === 'created'   && <span className="text-(--admin-green) font-medium">Created</span>}
+                              {r.status === 'duplicate' && <span className="text-amber-600 font-medium">Duplicate</span>}
+                              {r.status === 'error'     && <span className="text-(--admin-red) font-medium">Error</span>}
+                            </td>
+                            <td className="px-3 py-2 text-(--admin-text-muted) truncate max-w-52">{r.message || '—'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      onClick={closeImportModal}
+                      className="h-9 px-5 text-[12px] font-medium rounded-md"
+                      style={{ background: 'var(--admin-accent)', color: 'var(--admin-accent-text)' }}
+                    >
+                      Done
+                    </button>
+                  </div>
                 </div>
+
+              ) : importing ? (
+                <div className="py-8 text-center space-y-4">
+                  <p className="text-[13px] font-medium text-(--admin-text)">
+                    Importing products into Shopify…
+                  </p>
+                  <div className="w-full bg-(--admin-border) rounded-full h-2 overflow-hidden">
+                    <div
+                      className="h-full rounded-full animate-pulse w-full"
+                      style={{ background: 'var(--admin-accent)' }}
+                    />
+                  </div>
+                  <p className="text-[11px] text-(--admin-text-muted)">
+                    Creating {importTotal} product{importTotal !== 1 ? 's' : ''} — this may take a moment
+                  </p>
+                </div>
+
               ) : (
                 <>
-                  {/* Drop zone */}
                   <div
                     className="border-2 border-dashed border-(--admin-border) rounded-md p-6 text-center cursor-pointer hover:border-(--admin-accent)/30 transition-colors"
                     onClick={() => fileInputRef.current?.click()}
@@ -553,7 +684,7 @@ export default function ProductsPage() {
                       : <p className="text-[12px] text-(--admin-text-soft)">Drop CSV here or click to select</p>
                     }
                     <p className="text-[10px] text-(--admin-text-muted) mt-1">
-                      Use Export CSV first to get the correct column format.
+                      Use Export CSV first to get the correct column format. &quot;Scott No.&quot; column is ignored automatically.
                     </p>
                     <input
                       ref={fileInputRef}
@@ -564,29 +695,27 @@ export default function ProductsPage() {
                     />
                   </div>
 
-                  {/* Preview table */}
                   {importRows.length > 0 && (
                     <div>
                       <p className="text-[11px] text-(--admin-text-muted) mb-2">
-                        Preview — first {importRows.length} row{importRows.length !== 1 ? 's' : ''}
+                        Preview — first {Math.min(importRows.length, 5)} of {importRows.length} row{importRows.length !== 1 ? 's' : ''}
                       </p>
                       <div className="overflow-x-auto rounded-md border border-(--admin-border)">
                         <table className="w-full text-left text-[11px]">
                           <thead>
                             <tr className="border-b border-(--admin-border) bg-(--admin-surface-2)">
-                              {['Title', 'SKU', 'Price', 'Stock', 'Status'].map(h => (
+                              {['Title', 'SKU', 'Status', 'Collections'].map(h => (
                                 <th key={h} className="px-3 py-2 uppercase tracking-wide text-(--admin-text-muted) whitespace-nowrap">{h}</th>
                               ))}
                             </tr>
                           </thead>
                           <tbody>
-                            {importRows.map((row, i) => (
+                            {importRows.slice(0, 5).map((row, i) => (
                               <tr key={i} className="border-b border-(--admin-border) last:border-0">
                                 <td className="px-3 py-2 text-(--admin-text) truncate max-w-40">{row['Title'] || '—'}</td>
                                 <td className="px-3 py-2 text-(--admin-text-muted)">{row['SKU'] || '—'}</td>
-                                <td className="px-3 py-2 text-(--admin-text)">{row['Price'] || '—'}</td>
-                                <td className="px-3 py-2 text-(--admin-text)">{row['Stock'] || '—'}</td>
-                                <td className="px-3 py-2 text-(--admin-text-soft) capitalize">{row['Status'] || '—'}</td>
+                                <td className="px-3 py-2 text-(--admin-text-soft) capitalize">{row['Status'] || 'draft'}</td>
+                                <td className="px-3 py-2 text-(--admin-text-muted) truncate max-w-32">{row['Collections'] || '—'}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -606,7 +735,7 @@ export default function ProductsPage() {
                     </button>
                     <button
                       type="button"
-                      disabled={!importFile || importRows.length === 0}
+                      disabled={!importFile || importRows.length === 0 || importing}
                       onClick={handleImportConfirm}
                       className="h-9 px-4 text-[12px] font-medium rounded-md transition-opacity hover:opacity-90 disabled:opacity-40"
                       style={{ background: 'var(--admin-accent)', color: 'var(--admin-accent-text)' }}
