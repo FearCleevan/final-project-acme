@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import type { Metadata } from 'next'
 import HeritageHero from '@/components/heritage/HeritageHero'
 import WorkshopSection from '@/components/heritage/WorkshopSection'

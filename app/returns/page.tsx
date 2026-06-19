@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import type { Metadata } from 'next'
 import Breadcrumb from '@/components/shared/Breadcrumb'
 import Eyebrow from '@/components/shared/Eyebrow'
@@ -26,7 +28,7 @@ export default async function ReturnsPage() {
 
   return (
     <div className="bg-parchment min-h-screen">
-      <div className="max-w-[860px] mx-auto px-6 py-14">
+      <div className="max-w-215 mx-auto px-6 py-14">
 
         <Breadcrumb
           crumbs={[{ label: 'Storefront', href: '/' }, { label: 'Returns & Refunds' }]}
