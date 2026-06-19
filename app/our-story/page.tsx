@@ -53,7 +53,6 @@ export default async function OurStoryPage() {
               alt="Original oil lamp workshop — Melbourne, Australia"
               aspectRatio="4/5"
               dark={false}
-              label="MELBOURNE WORKSHOP · NOW IN NORTH AMERICA"
               priority
               className="rounded-sm"
             />
