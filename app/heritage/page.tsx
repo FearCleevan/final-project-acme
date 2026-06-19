@@ -17,18 +17,21 @@ export const metadata: Metadata = {
 }
 
 export default async function HeritagePage() {
-  const entries =
-    (await getContent<HeritageContent>('heritage')) ??
-    (fallbackData as HeritageContent)
+  const raw = await getContent<HeritageContent>('heritage')
+
+  // Handle old array format (pre-migration) and new object format
+  const content: HeritageContent = Array.isArray(raw)
+    ? { heroImageUrl: '', pressImageUrl: '', glasswareImageUrl: '', entries: raw as unknown as HeritageContent['entries'] }
+    : raw ?? { heroImageUrl: '', pressImageUrl: '', glasswareImageUrl: '', entries: fallbackData as HeritageContent['entries'] }
 
   return (
     <div className="min-h-screen">
 
-      <HeritageHero />
+      <HeritageHero imageUrl={content.heroImageUrl} />
 
-      <WorkshopSection />
+      <WorkshopSection pressImageUrl={content.pressImageUrl} glasswareImageUrl={content.glasswareImageUrl} />
 
-      <Timeline entries={entries} />
+      <Timeline entries={content.entries} />
 
       {/* CTA */}
       <section className="bg-parchment-2 border-t border-ink-rule px-6 py-24">

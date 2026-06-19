@@ -2,7 +2,7 @@ import PlateImage from '@/components/shared/PlateImage'
 import Eyebrow from '@/components/shared/Eyebrow'
 import ParallaxLayer from '@/components/home/ParallaxLayer'
 
-export default function HeritageHero() {
+export default function HeritageHero({ imageUrl }: { imageUrl?: string }) {
   return (
     <section className="canvas-dark pt-24 pb-20 px-6">
       <div className="max-w-[1280px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 xl:gap-20 items-center">
@@ -25,6 +25,7 @@ export default function HeritageHero() {
         {/* Parallax plate */}
         <ParallaxLayer offset={0.25} className="rounded-sm overflow-hidden">
           <PlateImage
+            src={imageUrl || undefined}
             alt="Original Birmingham tooling on the Melbourne workshop floor"
             aspectRatio="4/5"
             dark
