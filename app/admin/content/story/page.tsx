@@ -1,14 +1,14 @@
-'use client'
+"use client";
 
-import { useState, useEffect, useRef } from 'react'
-import { toast } from 'sonner'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
-import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
+import { useState, useEffect, useRef } from "react";
+import { toast } from "sonner";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,107 +19,165 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
-import type { StoryContent, StoryPillar, HeritageContent, HeritageEntry, HeritageProofPoint } from '@/lib/types/content'
+} from "@/components/ui/alert-dialog";
+import type {
+  StoryContent,
+  StoryPillar,
+  HeritageContent,
+  HeritageEntry,
+  HeritageProofPoint,
+} from "@/lib/types/content";
 
 // ── Defaults ──────────────────────────────────────────────────────────────────
 const STORY_DEFAULTS: StoryContent = {
-  headline: 'A craft that has not changed its method in over a century.',
-  intro:    'Most companies that made kerosene lamps shut their doors a hundred years ago. The Oil Lamp Company in Melbourne kept going — on the original tooling.',
-  imageUrl: '',
+  headline: "A craft that has not changed its method in over a century.",
+  intro:
+    "Most companies that made kerosene lamps shut their doors a hundred years ago. The Oil Lamp Company in Melbourne kept going — on the original tooling.",
+  imageUrl: "",
   pillars: [
-    { n: '01.', title: 'Original tooling, not imitations.',      body: 'Our Duplex burners are pressed on the original Birmingham tooling — over a hundred years old and still in production. The dies have never been recut.' },
-    { n: '02.', title: 'Old world materials, period correct.',    body: 'Shades, chimneys, and fonts are produced in borosilicate glass to the original period specification. No modern substitute materials.' },
-    { n: '03.', title: 'Honesty over marketing.',                 body: "Our invoices are plain paper. Our phone rings to a person. Our returns policy fits in one sentence: if it arrives less than whole, send it back, on us, for thirty days." },
+    {
+      n: "01.",
+      title: "Original tooling, not imitations.",
+      body: "Our Duplex burners are pressed on the original Birmingham tooling — over a hundred years old and still in production. The dies have never been recut.",
+    },
+    {
+      n: "02.",
+      title: "Old world materials, period correct.",
+      body: "Shades, chimneys, and fonts are produced in borosilicate glass to the original period specification. No modern substitute materials.",
+    },
+    {
+      n: "03.",
+      title: "Honesty over marketing.",
+      body: "Our invoices are plain paper. Our phone rings to a person. Our returns policy fits in one sentence: if it arrives less than whole, send it back, on us, for thirty days.",
+    },
   ],
-}
+};
 
 const HERITAGE_DEFAULTS: HeritageEntry[] = [
-  { year: 'c. 1870s', title: 'Victorian golden age of oil lamps',        body: 'The duplex burner becomes the standard for domestic lighting across Britain and its colonies. Birmingham becomes the centre of lamp manufacturing.' },
-  { year: 'c. 1880s', title: 'Birmingham tooling forged',                body: 'The presses, dies, and moulds used to produce Duplex burners are manufactured in Birmingham. These are the same tools still in use today.' },
-  { year: 'c. 1920s', title: 'Collecting becomes obsession',             body: 'As electric light displaces oil, antique lamp components become collector items. The original tooling is preserved rather than scrapped.' },
-  { year: 'c. 2000', title: 'Original Birmingham tooling acquired',      body: 'The Oil Lamp Company is offered the original Birmingham presses and dies — over a century old. They say yes, ship them to Melbourne, and begin production again.' },
-  { year: 'c. 2000s', title: 'Duplex Burner made again in Melbourne',   body: 'Running on the original tooling, the Melbourne workshop begins producing Duplex burners to the original specification. Supply goes to Australian collectors.' },
-  { year: 'Ongoing', title: 'India: shades, fonts, glassware',          body: 'Shades, chimneys, fonts, and glassware are manufactured in India using moulds owned outright by the Oil Lamp Company. Over two decades of uninterrupted supply.' },
-  { year: '2026',    title: 'North American launch',                     body: 'For the first time, the same catalog that has supplied Australian collectors for over two decades is available in North America through Acme Vintage Supply.' },
-]
+  {
+    year: "c. 1870s",
+    title: "Victorian golden age of oil lamps",
+    body: "The duplex burner becomes the standard for domestic lighting across Britain and its colonies. Birmingham becomes the centre of lamp manufacturing.",
+  },
+  {
+    year: "c. 1880s",
+    title: "Birmingham tooling forged",
+    body: "The presses, dies, and moulds used to produce Duplex burners are manufactured in Birmingham. These are the same tools still in use today.",
+  },
+  {
+    year: "c. 1920s",
+    title: "Collecting becomes obsession",
+    body: "As electric light displaces oil, antique lamp components become collector items. The original tooling is preserved rather than scrapped.",
+  },
+  {
+    year: "c. 2000",
+    title: "Original Birmingham tooling acquired",
+    body: "The Oil Lamp Company is offered the original Birmingham presses and dies — over a century old. They say yes, ship them to Melbourne, and begin production again.",
+  },
+  {
+    year: "c. 2000s",
+    title: "Duplex Burner made again in Melbourne",
+    body: "Running on the original tooling, the Melbourne workshop begins producing Duplex burners to the original specification. Supply goes to Australian collectors.",
+  },
+  {
+    year: "Ongoing",
+    title: "India: shades, fonts, glassware",
+    body: "Shades, chimneys, fonts, and glassware are manufactured in India using moulds owned outright by the Oil Lamp Company. Over two decades of uninterrupted supply.",
+  },
+  {
+    year: "2026",
+    title: "North American launch",
+    body: "For the first time, the same catalog that has supplied Australian collectors for over two decades is available in North America through Acme Vintage Supply.",
+  },
+];
 
 // ── Shared helpers ────────────────────────────────────────────────────────────
 async function saveContent(key: string, data: unknown): Promise<boolean> {
   const res = await fetch(`/api/admin/content/${key}`, {
-    method:  'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify(data),
-  })
-  return res.ok
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return res.ok;
 }
 
 async function uploadImage(file: File): Promise<string | null> {
-  const fd = new FormData()
-  fd.append('file', file)
-  const res = await fetch('/api/admin/content/upload', { method: 'POST', body: fd })
-  if (!res.ok) return null
-  const { url } = await res.json()
-  return url as string
+  const fd = new FormData();
+  fd.append("file", file);
+  const res = await fetch("/api/admin/content/upload", {
+    method: "POST",
+    body: fd,
+  });
+  if (!res.ok) return null;
+  const { url } = await res.json();
+  return url as string;
 }
 
 // ── Our Story Tab ─────────────────────────────────────────────────────────────
 function StoryTab() {
-  const [form,      setForm]      = useState<StoryContent>(STORY_DEFAULTS)
-  const [loading,   setLoading]   = useState(true)
-  const [saving,    setSaving]    = useState(false)
-  const [uploading, setUploading] = useState(false)
-  const fileRef = useRef<HTMLInputElement>(null)
+  const [form, setForm] = useState<StoryContent>(STORY_DEFAULTS);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    fetch('/api/admin/content/story')
-      .then(r => r.json())
-      .then(({ data }) => { if (data) setForm(data) })
+    fetch("/api/admin/content/story")
+      .then((r) => r.json())
+      .then(({ data }) => {
+        if (data) setForm(data);
+      })
       .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [])
+      .finally(() => setLoading(false));
+  }, []);
 
   function set(field: keyof StoryContent, value: string) {
-    setForm(prev => ({ ...prev, [field]: value }))
+    setForm((prev) => ({ ...prev, [field]: value }));
   }
 
   function updatePillar(idx: number, field: keyof StoryPillar, value: string) {
-    setForm(prev => ({
+    setForm((prev) => ({
       ...prev,
-      pillars: prev.pillars.map((p, i) => i === idx ? { ...p, [field]: value } : p),
-    }))
+      pillars: prev.pillars.map((p, i) =>
+        i === idx ? { ...p, [field]: value } : p,
+      ),
+    }));
   }
 
   function addPillar() {
-    const next = (form.pillars.length + 1).toString().padStart(2, '0') + '.'
-    setForm(prev => ({
+    const next = (form.pillars.length + 1).toString().padStart(2, "0") + ".";
+    setForm((prev) => ({
       ...prev,
-      pillars: [...prev.pillars, { n: next, title: '', body: '' }],
-    }))
+      pillars: [...prev.pillars, { n: next, title: "", body: "" }],
+    }));
   }
 
   function removePillar(idx: number) {
-    setForm(prev => ({ ...prev, pillars: prev.pillars.filter((_, i) => i !== idx) }))
+    setForm((prev) => ({
+      ...prev,
+      pillars: prev.pillars.filter((_, i) => i !== idx),
+    }));
   }
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setUploading(true)
-    const url = await uploadImage(file)
-    if (url) setForm(prev => ({ ...prev, imageUrl: url }))
-    else toast.error('Image upload failed')
-    setUploading(false)
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const url = await uploadImage(file);
+    if (url) setForm((prev) => ({ ...prev, imageUrl: url }));
+    else toast.error("Image upload failed");
+    setUploading(false);
   }
 
   async function handleSave() {
-    setSaving(true)
-    const ok = await saveContent('story', form)
-    ok ? toast.success('Our Story saved') : toast.error('Failed to save')
-    setSaving(false)
+    setSaving(true);
+    const ok = await saveContent("story", form);
+    ok ? toast.success("Our Story saved") : toast.error("Failed to save");
+    setSaving(false);
   }
 
-  if (loading) return <p className="text-sm text-muted-foreground p-4">Loading…</p>
+  if (loading)
+    return <p className="text-sm text-muted-foreground p-4">Loading…</p>;
 
   return (
     <div className="space-y-6">
@@ -130,11 +188,19 @@ function StoryTab() {
         <CardContent className="space-y-4">
           <div className="space-y-1.5">
             <Label>Headline</Label>
-            <Input value={form.headline} onChange={e => set('headline', e.target.value)} placeholder="A family that refused to turn off the light." />
+            <Input
+              value={form.headline}
+              onChange={(e) => set("headline", e.target.value)}
+              placeholder="A family that refused to turn off the light."
+            />
           </div>
           <div className="space-y-1.5">
             <Label>Intro paragraph</Label>
-            <Textarea rows={3} value={form.intro} onChange={e => set('intro', e.target.value)} />
+            <Textarea
+              rows={3}
+              value={form.intro}
+              onChange={(e) => set("intro", e.target.value)}
+            />
           </div>
         </CardContent>
       </Card>
@@ -145,19 +211,44 @@ function StoryTab() {
         </CardHeader>
         <CardContent className="space-y-4">
           {form.imageUrl && (
-            <img src={form.imageUrl} alt="Story" className="w-40 h-40 object-cover rounded-md border" />
+            <img
+              src={form.imageUrl}
+              alt="Story"
+              className="w-40 h-40 object-cover rounded-md border"
+            />
           )}
-          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-          <Button type="button" variant="outline" size="sm" disabled={uploading} onClick={() => fileRef.current?.click()}>
-            {uploading ? 'Uploading…' : form.imageUrl ? 'Replace image' : 'Upload image'}
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleImageUpload}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={uploading}
+            onClick={() => fileRef.current?.click()}
+          >
+            {uploading
+              ? "Uploading…"
+              : form.imageUrl
+                ? "Replace image"
+                : "Upload image"}
           </Button>
-          <p className="text-xs text-muted-foreground">JPEG, PNG, or WebP. Displays in the hero plate on the Our Story page.</p>
+          <p className="text-xs text-muted-foreground">
+            JPEG, PNG, or WebP. Displays in the hero plate on the Our Story
+            page.
+          </p>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader className="pb-3">
-          <p className="text-sm font-semibold">Pillars — "Three things we believe"</p>
+          <p className="text-sm font-semibold">
+            Pillars — &quot;Three things we believe&quot;
+          </p>
         </CardHeader>
         <CardContent className="space-y-4">
           {form.pillars.map((p, idx) => (
@@ -165,148 +256,216 @@ function StoryTab() {
               <div className="grid grid-cols-[80px_1fr] gap-3">
                 <div className="space-y-1.5">
                   <Label>Number</Label>
-                  <Input value={p.n} onChange={e => updatePillar(idx, 'n', e.target.value)} placeholder="01." />
+                  <Input
+                    value={p.n}
+                    onChange={(e) => updatePillar(idx, "n", e.target.value)}
+                    placeholder="01."
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <Label>Title</Label>
-                  <Input value={p.title} onChange={e => updatePillar(idx, 'title', e.target.value)} placeholder="Craft over convenience." />
+                  <Input
+                    value={p.title}
+                    onChange={(e) => updatePillar(idx, "title", e.target.value)}
+                    placeholder="Craft over convenience."
+                  />
                 </div>
               </div>
               <div className="space-y-1.5">
                 <Label>Body</Label>
-                <Textarea rows={3} value={p.body} onChange={e => updatePillar(idx, 'body', e.target.value)} />
+                <Textarea
+                  rows={3}
+                  value={p.body}
+                  onChange={(e) => updatePillar(idx, "body", e.target.value)}
+                />
               </div>
               <Separator />
               <AlertDialog>
-                <AlertDialogTrigger render={<Button variant="destructive" size="sm" />}>
+                <AlertDialogTrigger
+                  render={<Button variant="destructive" size="sm" />}
+                >
                   Remove pillar
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>Remove pillar?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      This will remove "{p.title || 'this pillar'}" from the Our Story page. Save to apply.
+                      This will remove &quot;{p.title || "this pillar"}&quot; from the Our
+                      Story page. Save to apply.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => removePillar(idx)}>Remove</AlertDialogAction>
+                    <AlertDialogAction onClick={() => removePillar(idx)}>
+                      Remove
+                    </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
             </div>
           ))}
-          <Button variant="outline" onClick={addPillar} className="w-full">+ Add pillar</Button>
+          <Button variant="outline" onClick={addPillar} className="w-full">
+            + Add pillar
+          </Button>
         </CardContent>
       </Card>
 
       <Button onClick={handleSave} disabled={saving}>
-        {saving ? 'Saving…' : 'Save Our Story'}
+        {saving ? "Saving…" : "Save Our Story"}
       </Button>
     </div>
-  )
+  );
 }
 
 // ── Heritage Timeline Tab ─────────────────────────────────────────────────────
 const HERITAGE_FORM_DEFAULTS: HeritageContent = {
-  heroHeadline:    'A craft that has not changed its method in over a century.',
-  heroBody:        'The Duplex presses run on original Birmingham tooling. The borosilicate glass formula has not changed. The brass alloy has not been reformulated. What has changed is only the address on the invoice.',
-  heroImageUrl:    '',
-  workshopHeading: 'Made in Melbourne & India. Collected for decades. Now in North America.',
-  workshopBody1:   "What began as a collector's obsession became a manufacturing operation. When the components that made antique oil lamps worth restoring disappeared from the market, the only answer was to make them again — on the original tooling, with the original materials.",
-  workshopBody2:   'Original 100-year-old Duplex presses were sourced from Birmingham and put back into production in Melbourne. Shades, fonts, chimneys, and glassware are manufactured in India using moulds owned outright — over two decades of uninterrupted production. For years these pieces supplied collectors in Australia. Now, for the first time, the same catalog is available in North America.',
-  pressImageUrl:     '',
-  glasswareImageUrl: '',
+  heroHeadline: "A craft that has not changed its method in over a century.",
+  heroBody:
+    "The Duplex presses run on original Birmingham tooling. The borosilicate glass formula has not changed. The brass alloy has not been reformulated. What has changed is only the address on the invoice.",
+  heroImageUrl: "",
+  workshopHeading:
+    "Made in Melbourne & India. Collected for decades. Now in North America.",
+  workshopBody1:
+    "What began as a collector's obsession became a manufacturing operation. When the components that made antique oil lamps worth restoring disappeared from the market, the only answer was to make them again — on the original tooling, with the original materials.",
+  workshopBody2:
+    "Original 100-year-old Duplex presses were sourced from Birmingham and put back into production in Melbourne. Shades, fonts, chimneys, and glassware are manufactured in India using moulds owned outright — over two decades of uninterrupted production. For years these pieces supplied collectors in Australia. Now, for the first time, the same catalog is available in North America.",
+  pressImageUrl: "",
+  glasswareImageUrl: "",
   proofPoints: [
-    { n: '01.', title: 'Pressed on original dies',           body: 'Our Duplex burners run off the original Birmingham tooling — over a century old and still in production.' },
-    { n: '02.', title: 'Owned moulds, not licensed',         body: 'Every mould and tool used in India is owned outright. Nothing is contracted out to a third-party die shop.' },
-    { n: '03.', title: 'Borosilicate, not substitute glass', body: 'Shades, chimneys, and fonts are produced in borosilicate glass to the original period specification.' },
+    {
+      n: "01.",
+      title: "Pressed on original dies",
+      body: "Our Duplex burners run off the original Birmingham tooling — over a century old and still in production.",
+    },
+    {
+      n: "02.",
+      title: "Owned moulds, not licensed",
+      body: "Every mould and tool used in India is owned outright. Nothing is contracted out to a third-party die shop.",
+    },
+    {
+      n: "03.",
+      title: "Borosilicate, not substitute glass",
+      body: "Shades, chimneys, and fonts are produced in borosilicate glass to the original period specification.",
+    },
   ],
   entries: HERITAGE_DEFAULTS,
-}
+};
 
 function HeritageTab() {
-  const [form,      setForm]      = useState<HeritageContent>(HERITAGE_FORM_DEFAULTS)
-  const [loading,   setLoading]   = useState(true)
-  const [saving,    setSaving]    = useState(false)
-  const [uploading, setUploading] = useState<string | null>(null)
+  const [form, setForm] = useState<HeritageContent>(HERITAGE_FORM_DEFAULTS);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState<string | null>(null);
 
-  const heroRef      = useRef<HTMLInputElement>(null)
-  const pressRef     = useRef<HTMLInputElement>(null)
-  const glasswareRef = useRef<HTMLInputElement>(null)
+  const heroRef = useRef<HTMLInputElement>(null);
+  const pressRef = useRef<HTMLInputElement>(null);
+  const glasswareRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    fetch('/api/admin/content/heritage')
-      .then(r => r.json())
+    fetch("/api/admin/content/heritage")
+      .then((r) => r.json())
       .then(({ data }) => {
-        if (!data) return
+        if (!data) return;
         if (Array.isArray(data)) {
-          setForm(prev => ({ ...prev, entries: data }))
+          setForm((prev) => ({ ...prev, entries: data }));
         } else {
-          setForm(prev => ({ ...prev, ...data, entries: data.entries ?? prev.entries }))
+          setForm((prev) => ({
+            ...prev,
+            ...data,
+            entries: data.entries ?? prev.entries,
+          }));
         }
       })
       .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [])
+      .finally(() => setLoading(false));
+  }, []);
 
-  function set<K extends keyof HeritageContent>(field: K, value: HeritageContent[K]) {
-    setForm(prev => ({ ...prev, [field]: value }))
+  function set<K extends keyof HeritageContent>(
+    field: K,
+    value: HeritageContent[K],
+  ) {
+    setForm((prev) => ({ ...prev, [field]: value }));
   }
 
   function updateEntry(idx: number, field: keyof HeritageEntry, value: string) {
-    setForm(prev => ({
+    setForm((prev) => ({
       ...prev,
-      entries: prev.entries.map((e, i) => i === idx ? { ...e, [field]: value } : e),
-    }))
+      entries: prev.entries.map((e, i) =>
+        i === idx ? { ...e, [field]: value } : e,
+      ),
+    }));
   }
 
   function addEntry() {
-    setForm(prev => ({ ...prev, entries: [...prev.entries, { year: '', title: '', body: '' }] }))
+    setForm((prev) => ({
+      ...prev,
+      entries: [...prev.entries, { year: "", title: "", body: "" }],
+    }));
   }
 
   function removeEntry(idx: number) {
-    setForm(prev => ({ ...prev, entries: prev.entries.filter((_, i) => i !== idx) }))
+    setForm((prev) => ({
+      ...prev,
+      entries: prev.entries.filter((_, i) => i !== idx),
+    }));
   }
 
-  function updateProof(idx: number, field: keyof HeritageProofPoint, value: string) {
-    setForm(prev => ({
+  function updateProof(
+    idx: number,
+    field: keyof HeritageProofPoint,
+    value: string,
+  ) {
+    setForm((prev) => ({
       ...prev,
-      proofPoints: prev.proofPoints.map((p, i) => i === idx ? { ...p, [field]: value } : p),
-    }))
+      proofPoints: prev.proofPoints.map((p, i) =>
+        i === idx ? { ...p, [field]: value } : p,
+      ),
+    }));
   }
 
   function addProof() {
-    const next = (form.proofPoints.length + 1).toString().padStart(2, '0') + '.'
-    setForm(prev => ({ ...prev, proofPoints: [...prev.proofPoints, { n: next, title: '', body: '' }] }))
+    const next =
+      (form.proofPoints.length + 1).toString().padStart(2, "0") + ".";
+    setForm((prev) => ({
+      ...prev,
+      proofPoints: [...prev.proofPoints, { n: next, title: "", body: "" }],
+    }));
   }
 
   function removeProof(idx: number) {
-    setForm(prev => ({ ...prev, proofPoints: prev.proofPoints.filter((_, i) => i !== idx) }))
+    setForm((prev) => ({
+      ...prev,
+      proofPoints: prev.proofPoints.filter((_, i) => i !== idx),
+    }));
   }
 
-  async function handleImageUpload(field: 'heroImageUrl' | 'pressImageUrl' | 'glasswareImageUrl', e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setUploading(field)
-    const url = await uploadImage(file)
-    if (url) setForm(prev => ({ ...prev, [field]: url }))
-    else toast.error('Image upload failed')
-    setUploading(null)
+  async function handleImageUpload(
+    field: "heroImageUrl" | "pressImageUrl" | "glasswareImageUrl",
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(field);
+    const url = await uploadImage(file);
+    if (url) setForm((prev) => ({ ...prev, [field]: url }));
+    else toast.error("Image upload failed");
+    setUploading(null);
   }
 
   async function handleSave() {
-    setSaving(true)
-    const ok = await saveContent('heritage', form)
-    ok ? toast.success('Heritage content saved') : toast.error('Failed to save')
-    setSaving(false)
+    setSaving(true);
+    const ok = await saveContent("heritage", form);
+    ok
+      ? toast.success("Heritage content saved")
+      : toast.error("Failed to save");
+    setSaving(false);
   }
 
-  if (loading) return <p className="text-sm text-muted-foreground p-4">Loading…</p>
+  if (loading)
+    return <p className="text-sm text-muted-foreground p-4">Loading…</p>;
 
   return (
     <div className="space-y-6">
-
       {/* ── Hero section ── */}
       <Card>
         <CardHeader className="pb-3">
@@ -315,28 +474,56 @@ function HeritageTab() {
         <CardContent className="space-y-4">
           <div className="space-y-1.5">
             <Label>Headline</Label>
-            <Textarea rows={2} value={form.heroHeadline} onChange={e => set('heroHeadline', e.target.value)} />
+            <Textarea
+              rows={2}
+              value={form.heroHeadline}
+              onChange={(e) => set("heroHeadline", e.target.value)}
+            />
           </div>
           <div className="space-y-1.5">
             <Label>Body paragraph</Label>
-            <Textarea rows={3} value={form.heroBody} onChange={e => set('heroBody', e.target.value)} />
+            <Textarea
+              rows={3}
+              value={form.heroBody}
+              onChange={(e) => set("heroBody", e.target.value)}
+            />
           </div>
         </CardContent>
-      </Card>
-
-      <Card>
         <CardHeader className="pb-3">
           <p className="text-sm font-semibold">Hero image</p>
         </CardHeader>
         <CardContent className="space-y-3">
           {form.heroImageUrl && (
-            <img src={form.heroImageUrl} alt="Hero" className="w-40 h-40 object-cover rounded-md border" />
+            <img
+              src={form.heroImageUrl}
+              alt="Hero"
+              className="w-40 h-40 object-cover rounded-md border"
+            />
           )}
-          <input ref={heroRef} type="file" accept="image/*" className="hidden" onChange={e => handleImageUpload('heroImageUrl', e)} />
-          <Button type="button" variant="outline" size="sm" disabled={uploading === 'heroImageUrl'} onClick={() => heroRef.current?.click()}>
-            {uploading === 'heroImageUrl' ? 'Uploading…' : form.heroImageUrl ? 'Replace image' : 'Upload image'}
+          <input
+            ref={heroRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => handleImageUpload("heroImageUrl", e)}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={uploading === "heroImageUrl"}
+            onClick={() => heroRef.current?.click()}
+          >
+            {uploading === "heroImageUrl"
+              ? "Uploading…"
+              : form.heroImageUrl
+                ? "Replace image"
+                : "Upload image"}
           </Button>
-          <p className="text-xs text-muted-foreground">Displays in the hero plate (right side). Portrait 4:5 ratio recommended.</p>
+          <p className="text-xs text-muted-foreground">
+            Displays in the hero plate (right side). Portrait 4:5 ratio
+            recommended.
+          </p>
         </CardContent>
       </Card>
 
@@ -350,15 +537,27 @@ function HeritageTab() {
         <CardContent className="space-y-4">
           <div className="space-y-1.5">
             <Label>Heading</Label>
-            <Textarea rows={2} value={form.workshopHeading} onChange={e => set('workshopHeading', e.target.value)} />
+            <Textarea
+              rows={2}
+              value={form.workshopHeading}
+              onChange={(e) => set("workshopHeading", e.target.value)}
+            />
           </div>
           <div className="space-y-1.5">
             <Label>Paragraph 1</Label>
-            <Textarea rows={4} value={form.workshopBody1} onChange={e => set('workshopBody1', e.target.value)} />
+            <Textarea
+              rows={4}
+              value={form.workshopBody1}
+              onChange={(e) => set("workshopBody1", e.target.value)}
+            />
           </div>
           <div className="space-y-1.5">
             <Label>Paragraph 2</Label>
-            <Textarea rows={4} value={form.workshopBody2} onChange={e => set('workshopBody2', e.target.value)} />
+            <Textarea
+              rows={4}
+              value={form.workshopBody2}
+              onChange={(e) => set("workshopBody2", e.target.value)}
+            />
           </div>
         </CardContent>
       </Card>
@@ -373,22 +572,42 @@ function HeritageTab() {
               <div className="grid grid-cols-[64px_1fr] gap-3">
                 <div className="space-y-1.5">
                   <Label>No.</Label>
-                  <Input value={p.n} onChange={e => updateProof(idx, 'n', e.target.value)} placeholder="01." />
+                  <Input
+                    value={p.n}
+                    onChange={(e) => updateProof(idx, "n", e.target.value)}
+                    placeholder="01."
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <Label>Title</Label>
-                  <Input value={p.title} onChange={e => updateProof(idx, 'title', e.target.value)} placeholder="Proof point title" />
+                  <Input
+                    value={p.title}
+                    onChange={(e) => updateProof(idx, "title", e.target.value)}
+                    placeholder="Proof point title"
+                  />
                 </div>
               </div>
               <div className="space-y-1.5">
                 <Label>Body</Label>
-                <Textarea rows={2} value={p.body} onChange={e => updateProof(idx, 'body', e.target.value)} />
+                <Textarea
+                  rows={2}
+                  value={p.body}
+                  onChange={(e) => updateProof(idx, "body", e.target.value)}
+                />
               </div>
               <Separator />
-              <Button variant="destructive" size="sm" onClick={() => removeProof(idx)}>Remove</Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => removeProof(idx)}
+              >
+                Remove
+              </Button>
             </div>
           ))}
-          <Button variant="outline" onClick={addProof} className="w-full">+ Add proof point</Button>
+          <Button variant="outline" onClick={addProof} className="w-full">
+            + Add proof point
+          </Button>
         </CardContent>
       </Card>
 
@@ -399,13 +618,35 @@ function HeritageTab() {
           </CardHeader>
           <CardContent className="space-y-3">
             {form.pressImageUrl && (
-              <img src={form.pressImageUrl} alt="Press" className="w-40 h-40 object-cover rounded-md border" />
+              <img
+                src={form.pressImageUrl}
+                alt="Press"
+                className="w-40 h-40 object-cover rounded-md border"
+              />
             )}
-            <input ref={pressRef} type="file" accept="image/*" className="hidden" onChange={e => handleImageUpload('pressImageUrl', e)} />
-            <Button type="button" variant="outline" size="sm" disabled={uploading === 'pressImageUrl'} onClick={() => pressRef.current?.click()}>
-              {uploading === 'pressImageUrl' ? 'Uploading…' : form.pressImageUrl ? 'Replace' : 'Upload image'}
+            <input
+              ref={pressRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => handleImageUpload("pressImageUrl", e)}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={uploading === "pressImageUrl"}
+              onClick={() => pressRef.current?.click()}
+            >
+              {uploading === "pressImageUrl"
+                ? "Uploading…"
+                : form.pressImageUrl
+                  ? "Replace"
+                  : "Upload image"}
             </Button>
-            <p className="text-xs text-muted-foreground">Left plate. Portrait 3:5.</p>
+            <p className="text-xs text-muted-foreground">
+              Left plate. Portrait 3:5.
+            </p>
           </CardContent>
         </Card>
 
@@ -415,13 +656,35 @@ function HeritageTab() {
           </CardHeader>
           <CardContent className="space-y-3">
             {form.glasswareImageUrl && (
-              <img src={form.glasswareImageUrl} alt="Glassware" className="w-40 h-40 object-cover rounded-md border" />
+              <img
+                src={form.glasswareImageUrl}
+                alt="Glassware"
+                className="w-40 h-40 object-cover rounded-md border"
+              />
             )}
-            <input ref={glasswareRef} type="file" accept="image/*" className="hidden" onChange={e => handleImageUpload('glasswareImageUrl', e)} />
-            <Button type="button" variant="outline" size="sm" disabled={uploading === 'glasswareImageUrl'} onClick={() => glasswareRef.current?.click()}>
-              {uploading === 'glasswareImageUrl' ? 'Uploading…' : form.glasswareImageUrl ? 'Replace' : 'Upload image'}
+            <input
+              ref={glasswareRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => handleImageUpload("glasswareImageUrl", e)}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={uploading === "glasswareImageUrl"}
+              onClick={() => glasswareRef.current?.click()}
+            >
+              {uploading === "glasswareImageUrl"
+                ? "Uploading…"
+                : form.glasswareImageUrl
+                  ? "Replace"
+                  : "Upload image"}
             </Button>
-            <p className="text-xs text-muted-foreground">Right plate. Portrait 3:5.</p>
+            <p className="text-xs text-muted-foreground">
+              Right plate. Portrait 3:5.
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -429,7 +692,9 @@ function HeritageTab() {
       <Separator />
 
       {/* ── Timeline entries ── */}
-      <p className="text-sm font-semibold text-(--admin-text)">Timeline entries</p>
+      <p className="text-sm font-semibold text-(--admin-text)">
+        Timeline entries
+      </p>
 
       {form.entries.map((e, idx) => (
         <Card key={idx}>
@@ -437,32 +702,50 @@ function HeritageTab() {
             <div className="grid grid-cols-[100px_1fr] gap-3">
               <div className="space-y-1.5">
                 <Label>Year</Label>
-                <Input value={e.year} onChange={ev => updateEntry(idx, 'year', ev.target.value)} placeholder="1898" />
+                <Input
+                  value={e.year}
+                  onChange={(ev) => updateEntry(idx, "year", ev.target.value)}
+                  placeholder="1898"
+                />
               </div>
               <div className="space-y-1.5">
                 <Label>Title</Label>
-                <Input value={e.title} onChange={ev => updateEntry(idx, 'title', ev.target.value)} placeholder="Event title" />
+                <Input
+                  value={e.title}
+                  onChange={(ev) => updateEntry(idx, "title", ev.target.value)}
+                  placeholder="Event title"
+                />
               </div>
             </div>
             <div className="space-y-1.5">
               <Label>Body</Label>
-              <Textarea rows={3} value={e.body} onChange={ev => updateEntry(idx, 'body', ev.target.value)} placeholder="What happened…" />
+              <Textarea
+                rows={3}
+                value={e.body}
+                onChange={(ev) => updateEntry(idx, "body", ev.target.value)}
+                placeholder="What happened…"
+              />
             </div>
             <Separator />
             <AlertDialog>
-              <AlertDialogTrigger render={<Button variant="destructive" size="sm" />}>
+              <AlertDialogTrigger
+                render={<Button variant="destructive" size="sm" />}
+              >
                 Remove
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>Remove timeline entry?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This will remove the {e.year || 'selected'} entry. Save to apply.
+                    This will remove the {e.year || "selected"} entry. Save to
+                    apply.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => removeEntry(idx)}>Remove</AlertDialogAction>
+                  <AlertDialogAction onClick={() => removeEntry(idx)}>
+                    Remove
+                  </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
@@ -470,13 +753,15 @@ function HeritageTab() {
         </Card>
       ))}
 
-      <Button variant="outline" onClick={addEntry} className="w-full">+ Add timeline entry</Button>
+      <Button variant="outline" onClick={addEntry} className="w-full">
+        + Add timeline entry
+      </Button>
 
       <Button onClick={handleSave} disabled={saving}>
-        {saving ? 'Saving…' : 'Save heritage content'}
+        {saving ? "Saving…" : "Save heritage content"}
       </Button>
     </div>
-  )
+  );
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -484,8 +769,12 @@ export default function ContentStoryPage() {
   return (
     <div className="max-w-3xl">
       <div className="mb-6">
-        <h1 className="text-[18px] font-semibold text-(--admin-text)">Story &amp; Heritage Content</h1>
-        <p className="text-[13px] text-(--admin-text-muted) mt-1">Changes go live immediately after saving.</p>
+        <h1 className="text-[18px] font-semibold text-(--admin-text)">
+          Story &amp; Heritage Content
+        </h1>
+        <p className="text-[13px] text-(--admin-text-muted) mt-1">
+          Changes go live immediately after saving.
+        </p>
       </div>
 
       <Tabs defaultValue="story">
@@ -502,5 +791,5 @@ export default function ContentStoryPage() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }
