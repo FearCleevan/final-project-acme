@@ -20,7 +20,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import type { StoryContent, StoryPillar, HeritageContent } from '@/lib/types/content'
+import type { StoryContent, StoryPillar, HeritageContent, HeritageEntry } from '@/lib/types/content'
 
 // ── Defaults ──────────────────────────────────────────────────────────────────
 const STORY_DEFAULTS: StoryContent = {
@@ -34,7 +34,7 @@ const STORY_DEFAULTS: StoryContent = {
   ],
 }
 
-const HERITAGE_DEFAULTS: HeritageContent = [
+const HERITAGE_DEFAULTS: HeritageEntry[] = [
   { year: 'c. 1870s', title: 'Victorian golden age of oil lamps',        body: 'The duplex burner becomes the standard for domestic lighting across Britain and its colonies. Birmingham becomes the centre of lamp manufacturing.' },
   { year: 'c. 1880s', title: 'Birmingham tooling forged',                body: 'The presses, dies, and moulds used to produce Duplex burners are manufactured in Birmingham. These are the same tools still in use today.' },
   { year: 'c. 1920s', title: 'Collecting becomes obsession',             body: 'As electric light displaces oil, antique lamp components become collector items. The original tooling is preserved rather than scrapped.' },
@@ -208,20 +208,41 @@ function StoryTab() {
 }
 
 // ── Heritage Timeline Tab ─────────────────────────────────────────────────────
+const HERITAGE_IMAGE_DEFAULTS = { heroImageUrl: '', pressImageUrl: '', glasswareImageUrl: '' }
+
 function HeritageTab() {
-  const [entries, setEntries] = useState<HeritageContent>(HERITAGE_DEFAULTS)
-  const [loading, setLoading] = useState(true)
-  const [saving,  setSaving]  = useState(false)
+  const [entries,   setEntries]   = useState<HeritageEntry[]>(HERITAGE_DEFAULTS)
+  const [images,    setImages]    = useState(HERITAGE_IMAGE_DEFAULTS)
+  const [loading,   setLoading]   = useState(true)
+  const [saving,    setSaving]    = useState(false)
+  const [uploading, setUploading] = useState<string | null>(null)
+
+  const heroRef      = useRef<HTMLInputElement>(null)
+  const pressRef     = useRef<HTMLInputElement>(null)
+  const glasswareRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     fetch('/api/admin/content/heritage')
       .then(r => r.json())
-      .then(({ data }) => { if (data) setEntries(data) })
+      .then(({ data }) => {
+        if (!data) return
+        if (Array.isArray(data)) {
+          // old format — entries only, no images
+          setEntries(data)
+        } else {
+          setImages({
+            heroImageUrl:      data.heroImageUrl      ?? '',
+            pressImageUrl:     data.pressImageUrl     ?? '',
+            glasswareImageUrl: data.glasswareImageUrl ?? '',
+          })
+          setEntries(data.entries ?? [])
+        }
+      })
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
 
-  function update(idx: number, field: 'year' | 'title' | 'body', value: string) {
+  function update(idx: number, field: keyof HeritageEntry, value: string) {
     setEntries(prev => prev.map((e, i) => i === idx ? { ...e, [field]: value } : e))
   }
 
@@ -233,17 +254,80 @@ function HeritageTab() {
     setEntries(prev => prev.filter((_, i) => i !== idx))
   }
 
+  async function handleImageUpload(field: keyof typeof HERITAGE_IMAGE_DEFAULTS, e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(field)
+    const url = await uploadImage(file)
+    if (url) setImages(prev => ({ ...prev, [field]: url }))
+    else toast.error('Image upload failed')
+    setUploading(null)
+  }
+
   async function handleSave() {
     setSaving(true)
-    const ok = await saveContent('heritage', entries)
+    const ok = await saveContent('heritage', { ...images, entries })
     ok ? toast.success('Heritage timeline saved') : toast.error('Failed to save')
     setSaving(false)
   }
 
   if (loading) return <p className="text-sm text-muted-foreground p-4">Loading…</p>
 
+  const ImageUploadCard = ({
+    label, field, ref: inputRef, hint,
+  }: {
+    label: string
+    field: keyof typeof HERITAGE_IMAGE_DEFAULTS
+    ref:   React.RefObject<HTMLInputElement | null>
+    hint:  string
+  }) => (
+    <Card>
+      <CardHeader className="pb-3">
+        <p className="text-sm font-semibold">{label}</p>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {images[field] && (
+          <img src={images[field]} alt={label} className="w-40 h-40 object-cover rounded-md border" />
+        )}
+        <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={e => handleImageUpload(field, e)} />
+        <Button type="button" variant="outline" size="sm" disabled={uploading === field} onClick={() => inputRef.current?.click()}>
+          {uploading === field ? 'Uploading…' : images[field] ? 'Replace image' : 'Upload image'}
+        </Button>
+        <p className="text-xs text-muted-foreground">{hint}</p>
+      </CardContent>
+    </Card>
+  )
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+
+      <div className="space-y-4">
+        <p className="text-sm font-semibold text-(--admin-text)">Heritage page images</p>
+
+        <ImageUploadCard
+          label="Hero image"
+          field="heroImageUrl"
+          ref={heroRef}
+          hint="Displays in the hero plate (right side). Portrait 4:5 ratio recommended."
+        />
+        <ImageUploadCard
+          label="Birmingham press image"
+          field="pressImageUrl"
+          ref={pressRef}
+          hint="Left plate in the workshop section. Portrait 3:5 ratio recommended."
+        />
+        <ImageUploadCard
+          label="Glassware image"
+          field="glasswareImageUrl"
+          ref={glasswareRef}
+          hint="Right plate in the workshop section. Portrait 3:5 ratio recommended."
+        />
+      </div>
+
+      <Separator />
+
+      <p className="text-sm font-semibold text-(--admin-text)">Timeline entries</p>
+
       {entries.map((e, idx) => (
         <Card key={idx}>
           <CardContent className="pt-4 space-y-3">

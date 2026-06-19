@@ -19,7 +19,13 @@ const proofPoints = [
   },
 ]
 
-export default function WorkshopSection() {
+export default function WorkshopSection({
+  pressImageUrl,
+  glasswareImageUrl,
+}: {
+  pressImageUrl?:     string
+  glasswareImageUrl?: string
+}) {
   return (
     <section className="canvas-dark px-6 pb-24 border-t border-white/10">
       <div className="max-w-[1280px] mx-auto">
@@ -29,6 +35,7 @@ export default function WorkshopSection() {
           {/* Stacked plates */}
           <div className="grid grid-cols-2 gap-4 pt-12">
             <PlateImage
+              src={pressImageUrl || undefined}
               alt="Original Birmingham presses on the workshop floor"
               aspectRatio="3/5"
               dark
@@ -37,6 +44,7 @@ export default function WorkshopSection() {
             />
             <div className="pt-10">
               <PlateImage
+                src={glasswareImageUrl || undefined}
                 alt="Borosilicate glass shades, India production"
                 aspectRatio="3/5"
                 dark

@@ -46,11 +46,18 @@ export interface StoryContent {
   pillars:  StoryPillar[]
 }
 
-export type HeritageContent = Array<{
+export interface HeritageEntry {
   year:  string
   title: string
   body:  string
-}>
+}
+
+export interface HeritageContent {
+  heroImageUrl:      string
+  pressImageUrl:     string
+  glasswareImageUrl: string
+  entries:           HeritageEntry[]
+}
 
 export interface FaqQuestion {
   q: string
