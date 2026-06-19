@@ -30,7 +30,6 @@ export default function WorkshopSection({
               alt="Original Birmingham presses on the workshop floor"
               aspectRatio="3/5"
               dark
-              label="ORIGINAL BIRMINGHAM PRESS · MELBOURNE"
               className="rounded-sm"
             />
             <div className="pt-10">
@@ -39,7 +38,6 @@ export default function WorkshopSection({
                 alt="Borosilicate glass shades, India production"
                 aspectRatio="3/5"
                 dark
-                label="GLASSWARE · INDIA"
                 className="rounded-sm"
               />
             </div>
