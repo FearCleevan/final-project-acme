@@ -69,8 +69,8 @@ export default async function OurStoryPage() {
             className="font-serif font-medium text-ink-charcoal leading-tight mb-10"
             style={{ fontSize: 'clamp(22px, 2.8vw, 36px)' }}
           >
-            "We make lamps the way they were made when lamps mattered — by hand, on the same dies,
-            with no pretense that we've improved on the originals."
+            &quot;We make lamps the way they were made when lamps mattered — by hand, on the same dies,
+            with no pretense that we&apos;ve improved on the originals.&quot;
           </blockquote>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-left max-w-[720px] mx-auto">
             <p className="font-sans text-[16px] text-ink-soft leading-relaxed">
@@ -94,7 +94,7 @@ export default async function OurStoryPage() {
             className="font-serif font-medium text-ink-charcoal leading-tight mb-14"
             style={{ fontSize: 'clamp(24px, 3vw, 42px)' }}
           >
-            What we'll do for you, and what we won't.
+            What we&apos;ll do for you, and what we won&apos;t.
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
             {story.pillars.map(({ n, title, body }) => (
@@ -113,11 +113,11 @@ export default async function OurStoryPage() {
       {/* Dark testimonial */}
       <section className="canvas-dark px-6 py-24">
         <div className="max-w-[760px] mx-auto">
-          <span className="font-serif text-[72px] text-brass leading-none block mb-4" aria-hidden="true">"</span>
+          <span className="font-serif text-[72px] text-brass leading-none block mb-4" aria-hidden="true">&quot;</span>
           <blockquote className="font-serif italic text-[22px] text-canvas-body leading-relaxed mb-8">
             We were offered the original tooling and dies — over a hundred years old — and we said yes.
             We shipped them to Melbourne, set them up, and started making Duplex burners again.
-            That's the whole story, really. The rest is just keeping the presses running.
+            That&apos;s the whole story, really. The rest is just keeping the presses running.
           </blockquote>
           <footer className="font-mono text-[11px] uppercase tracking-eyebrow text-canvas-dim">
             The Oil Lamp Company &nbsp;/&nbsp; Melbourne, Australia
