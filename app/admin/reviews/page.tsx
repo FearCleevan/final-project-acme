@@ -39,7 +39,7 @@ function StatusBadge({ status }: { status: Review['status'] }) {
 }
 
 export default function AdminReviewsPage() {
-  const [filter,     setFilter]     = useState<Filter>('pending')
+  const [filter,     setFilter]     = useState<Filter>('all')
   const [reviews,    setReviews]    = useState<Review[]>([])
   const [loading,    setLoading]    = useState(true)
   const [acting,     setActing]     = useState<string | null>(null)
@@ -95,10 +95,10 @@ export default function AdminReviewsPage() {
   }
 
   const FILTERS: { label: string; value: Filter }[] = [
+    { label: 'All',         value: 'all'         },
     { label: 'Pending',     value: 'pending'     },
     { label: 'Live',        value: 'approved'    },
     { label: 'Deactivated', value: 'deactivated' },
-    { label: 'All',         value: 'all'         },
   ]
 
   return (
