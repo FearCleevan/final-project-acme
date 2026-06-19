@@ -25,7 +25,7 @@ const TABS: { label: string; value: TabFilter }[] = [
   { label: 'Draft',  value: 'draft' },
 ]
 
-const PAGE_SIZE = 20
+const PAGE_SIZES = [20, 30, 50, 100]
 
 const CSV_HEADERS = [
   'Title', 'Short Description', 'SKU', 'Price', 'Compare-at Price',
@@ -81,6 +81,7 @@ export default function ProductsPage() {
   const [toast,        setToast]        = useState<{ message: string; type: ToastType } | null>(null)
   const [copiedId,     setCopiedId]     = useState<string | null>(null)
   const [quickFilter,  setQuickFilter]  = useState<'no-price' | 'no-image' | 'no-stock' | null>(null)
+  const [pageSize,     setPageSize]     = useState(20)
 
   function copyTitle(id: string, title: string, e: React.MouseEvent) {
     e.stopPropagation()
@@ -169,8 +170,8 @@ export default function ProductsPage() {
     return products.filter(p => p.stock === 0).length
   }
 
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
-  const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const totalPages = Math.ceil(filtered.length / pageSize)
+  const paginated  = filtered.slice((page - 1) * pageSize, page * pageSize)
 
   const tabCount = (v: TabFilter) =>
     v === 'all' ? products.length : products.filter(p => p.status === v).length
@@ -639,13 +640,32 @@ export default function ProductsPage() {
           />
         </div>}
 
-        <div className="px-5 pb-4">
+        <div className="flex items-center justify-between px-5 pb-4 gap-4 flex-wrap">
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-(--admin-text-muted)">Rows per page</span>
+            <div className="flex items-center gap-1">
+              {PAGE_SIZES.map(size => (
+                <button
+                  key={size}
+                  onClick={() => { setPageSize(size); setPage(1) }}
+                  className={cn(
+                    'w-8 h-7 text-[11px] font-medium rounded-md transition-colors',
+                    pageSize === size
+                      ? 'bg-(--admin-accent) text-(--admin-accent-text)'
+                      : 'text-(--admin-text-muted) hover:bg-(--admin-surface-2) hover:text-(--admin-text)'
+                  )}
+                >
+                  {size}
+                </button>
+              ))}
+            </div>
+          </div>
           <Pagination
             page={page}
             totalPages={totalPages}
             onPageChange={setPage}
             totalItems={filtered.length}
-            pageSize={PAGE_SIZE}
+            pageSize={pageSize}
           />
         </div>
       </SectionCard>
