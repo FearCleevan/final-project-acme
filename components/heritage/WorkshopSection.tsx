@@ -1,29 +1,20 @@
 import PlateImage from '@/components/shared/PlateImage'
 import Eyebrow from '@/components/shared/Eyebrow'
-
-const proofPoints = [
-  {
-    n: '01.',
-    title: 'Pressed on original dies',
-    body: 'Our Duplex burners run off the original Birmingham tooling — over a century old and still in production.',
-  },
-  {
-    n: '02.',
-    title: 'Owned moulds, not licensed',
-    body: 'Every mould and tool used in India is owned outright. Nothing is contracted out to a third-party die shop.',
-  },
-  {
-    n: '03.',
-    title: 'Borosilicate, not substitute glass',
-    body: 'Shades, chimneys, and fonts are produced in borosilicate glass to the original period specification.',
-  },
-]
+import type { HeritageProofPoint } from '@/lib/types/content'
 
 export default function WorkshopSection({
+  heading,
+  body1,
+  body2,
+  proofPoints,
   pressImageUrl,
   glasswareImageUrl,
 }: {
-  pressImageUrl?:     string
+  heading:           string
+  body1:             string
+  body2:             string
+  proofPoints:       HeritageProofPoint[]
+  pressImageUrl?:    string
   glasswareImageUrl?: string
 }) {
   return (
@@ -61,18 +52,13 @@ export default function WorkshopSection({
               className="font-serif font-medium text-canvas-heading leading-tight mb-7"
               style={{ fontSize: 'clamp(24px, 3vw, 40px)' }}
             >
-              Made in Melbourne &amp; India. Collected for decades. Now in North America.
+              {heading}
             </h2>
             <p className="font-sans text-[17px] text-canvas-body leading-relaxed mb-5">
-              What began as a collector's obsession became a manufacturing operation. When the components
-              that made antique oil lamps worth restoring disappeared from the market, the only answer was
-              to make them again — on the original tooling, with the original materials.
+              {body1}
             </p>
             <p className="font-sans text-[17px] text-canvas-body leading-relaxed mb-12">
-              Original 100-year-old Duplex presses were sourced from Birmingham and put back into production
-              in Melbourne. Shades, fonts, chimneys, and glassware are manufactured in India using moulds
-              owned outright — over two decades of uninterrupted production. For years these pieces supplied
-              collectors in Australia. Now, for the first time, the same catalog is available in North America.
+              {body2}
             </p>
 
             {/* Proof points */}

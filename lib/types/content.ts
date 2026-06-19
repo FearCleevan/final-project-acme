@@ -52,10 +52,22 @@ export interface HeritageEntry {
   body:  string
 }
 
+export interface HeritageProofPoint {
+  n:     string
+  title: string
+  body:  string
+}
+
 export interface HeritageContent {
+  heroHeadline:      string
+  heroBody:          string
   heroImageUrl:      string
+  workshopHeading:   string
+  workshopBody1:     string
+  workshopBody2:     string
   pressImageUrl:     string
   glasswareImageUrl: string
+  proofPoints:       HeritageProofPoint[]
   entries:           HeritageEntry[]
 }
 
