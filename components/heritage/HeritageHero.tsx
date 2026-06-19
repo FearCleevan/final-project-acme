@@ -36,7 +36,6 @@ export default function HeritageHero({
             alt="Original Birmingham tooling on the Melbourne workshop floor"
             aspectRatio="4/5"
             dark
-            label="ORIGINAL BIRMINGHAM TOOLING · MELBOURNE WORKSHOP"
             priority
           />
         </ParallaxLayer>
