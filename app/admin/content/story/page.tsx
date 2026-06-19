@@ -20,7 +20,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import type { StoryContent, StoryPillar, HeritageContent, HeritageEntry } from '@/lib/types/content'
+import type { StoryContent, StoryPillar, HeritageContent, HeritageEntry, HeritageProofPoint } from '@/lib/types/content'
 
 // ── Defaults ──────────────────────────────────────────────────────────────────
 const STORY_DEFAULTS: StoryContent = {
@@ -208,11 +208,25 @@ function StoryTab() {
 }
 
 // ── Heritage Timeline Tab ─────────────────────────────────────────────────────
-const HERITAGE_IMAGE_DEFAULTS = { heroImageUrl: '', pressImageUrl: '', glasswareImageUrl: '' }
+const HERITAGE_FORM_DEFAULTS: HeritageContent = {
+  heroHeadline:    'A craft that has not changed its method in over a century.',
+  heroBody:        'The Duplex presses run on original Birmingham tooling. The borosilicate glass formula has not changed. The brass alloy has not been reformulated. What has changed is only the address on the invoice.',
+  heroImageUrl:    '',
+  workshopHeading: 'Made in Melbourne & India. Collected for decades. Now in North America.',
+  workshopBody1:   "What began as a collector's obsession became a manufacturing operation. When the components that made antique oil lamps worth restoring disappeared from the market, the only answer was to make them again — on the original tooling, with the original materials.",
+  workshopBody2:   'Original 100-year-old Duplex presses were sourced from Birmingham and put back into production in Melbourne. Shades, fonts, chimneys, and glassware are manufactured in India using moulds owned outright — over two decades of uninterrupted production. For years these pieces supplied collectors in Australia. Now, for the first time, the same catalog is available in North America.',
+  pressImageUrl:     '',
+  glasswareImageUrl: '',
+  proofPoints: [
+    { n: '01.', title: 'Pressed on original dies',           body: 'Our Duplex burners run off the original Birmingham tooling — over a century old and still in production.' },
+    { n: '02.', title: 'Owned moulds, not licensed',         body: 'Every mould and tool used in India is owned outright. Nothing is contracted out to a third-party die shop.' },
+    { n: '03.', title: 'Borosilicate, not substitute glass', body: 'Shades, chimneys, and fonts are produced in borosilicate glass to the original period specification.' },
+  ],
+  entries: HERITAGE_DEFAULTS,
+}
 
 function HeritageTab() {
-  const [entries,   setEntries]   = useState<HeritageEntry[]>(HERITAGE_DEFAULTS)
-  const [images,    setImages]    = useState(HERITAGE_IMAGE_DEFAULTS)
+  const [form,      setForm]      = useState<HeritageContent>(HERITAGE_FORM_DEFAULTS)
   const [loading,   setLoading]   = useState(true)
   const [saving,    setSaving]    = useState(false)
   const [uploading, setUploading] = useState<string | null>(null)
@@ -227,123 +241,212 @@ function HeritageTab() {
       .then(({ data }) => {
         if (!data) return
         if (Array.isArray(data)) {
-          // old format — entries only, no images
-          setEntries(data)
+          setForm(prev => ({ ...prev, entries: data }))
         } else {
-          setImages({
-            heroImageUrl:      data.heroImageUrl      ?? '',
-            pressImageUrl:     data.pressImageUrl     ?? '',
-            glasswareImageUrl: data.glasswareImageUrl ?? '',
-          })
-          setEntries(data.entries ?? [])
+          setForm(prev => ({ ...prev, ...data, entries: data.entries ?? prev.entries }))
         }
       })
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
 
-  function update(idx: number, field: keyof HeritageEntry, value: string) {
-    setEntries(prev => prev.map((e, i) => i === idx ? { ...e, [field]: value } : e))
+  function set<K extends keyof HeritageContent>(field: K, value: HeritageContent[K]) {
+    setForm(prev => ({ ...prev, [field]: value }))
   }
 
-  function add() {
-    setEntries(prev => [...prev, { year: '', title: '', body: '' }])
+  function updateEntry(idx: number, field: keyof HeritageEntry, value: string) {
+    setForm(prev => ({
+      ...prev,
+      entries: prev.entries.map((e, i) => i === idx ? { ...e, [field]: value } : e),
+    }))
   }
 
-  function remove(idx: number) {
-    setEntries(prev => prev.filter((_, i) => i !== idx))
+  function addEntry() {
+    setForm(prev => ({ ...prev, entries: [...prev.entries, { year: '', title: '', body: '' }] }))
   }
 
-  async function handleImageUpload(field: keyof typeof HERITAGE_IMAGE_DEFAULTS, e: React.ChangeEvent<HTMLInputElement>) {
+  function removeEntry(idx: number) {
+    setForm(prev => ({ ...prev, entries: prev.entries.filter((_, i) => i !== idx) }))
+  }
+
+  function updateProof(idx: number, field: keyof HeritageProofPoint, value: string) {
+    setForm(prev => ({
+      ...prev,
+      proofPoints: prev.proofPoints.map((p, i) => i === idx ? { ...p, [field]: value } : p),
+    }))
+  }
+
+  function addProof() {
+    const next = (form.proofPoints.length + 1).toString().padStart(2, '0') + '.'
+    setForm(prev => ({ ...prev, proofPoints: [...prev.proofPoints, { n: next, title: '', body: '' }] }))
+  }
+
+  function removeProof(idx: number) {
+    setForm(prev => ({ ...prev, proofPoints: prev.proofPoints.filter((_, i) => i !== idx) }))
+  }
+
+  async function handleImageUpload(field: 'heroImageUrl' | 'pressImageUrl' | 'glasswareImageUrl', e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
     setUploading(field)
     const url = await uploadImage(file)
-    if (url) setImages(prev => ({ ...prev, [field]: url }))
+    if (url) setForm(prev => ({ ...prev, [field]: url }))
     else toast.error('Image upload failed')
     setUploading(null)
   }
 
   async function handleSave() {
     setSaving(true)
-    const ok = await saveContent('heritage', { ...images, entries })
-    ok ? toast.success('Heritage timeline saved') : toast.error('Failed to save')
+    const ok = await saveContent('heritage', form)
+    ok ? toast.success('Heritage content saved') : toast.error('Failed to save')
     setSaving(false)
   }
 
   if (loading) return <p className="text-sm text-muted-foreground p-4">Loading…</p>
 
-  const ImageUploadCard = ({
-    label, field, ref: inputRef, hint,
-  }: {
-    label: string
-    field: keyof typeof HERITAGE_IMAGE_DEFAULTS
-    ref:   React.RefObject<HTMLInputElement | null>
-    hint:  string
-  }) => (
-    <Card>
-      <CardHeader className="pb-3">
-        <p className="text-sm font-semibold">{label}</p>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {images[field] && (
-          <img src={images[field]} alt={label} className="w-40 h-40 object-cover rounded-md border" />
-        )}
-        <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={e => handleImageUpload(field, e)} />
-        <Button type="button" variant="outline" size="sm" disabled={uploading === field} onClick={() => inputRef.current?.click()}>
-          {uploading === field ? 'Uploading…' : images[field] ? 'Replace image' : 'Upload image'}
-        </Button>
-        <p className="text-xs text-muted-foreground">{hint}</p>
-      </CardContent>
-    </Card>
-  )
-
   return (
     <div className="space-y-6">
 
-      <div className="space-y-4">
-        <p className="text-sm font-semibold text-(--admin-text)">Heritage page images</p>
+      {/* ── Hero section ── */}
+      <Card>
+        <CardHeader className="pb-3">
+          <p className="text-sm font-semibold">Hero section</p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-1.5">
+            <Label>Headline</Label>
+            <Textarea rows={2} value={form.heroHeadline} onChange={e => set('heroHeadline', e.target.value)} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Body paragraph</Label>
+            <Textarea rows={3} value={form.heroBody} onChange={e => set('heroBody', e.target.value)} />
+          </div>
+        </CardContent>
+      </Card>
 
-        <ImageUploadCard
-          label="Hero image"
-          field="heroImageUrl"
-          ref={heroRef}
-          hint="Displays in the hero plate (right side). Portrait 4:5 ratio recommended."
-        />
-        <ImageUploadCard
-          label="Birmingham press image"
-          field="pressImageUrl"
-          ref={pressRef}
-          hint="Left plate in the workshop section. Portrait 3:5 ratio recommended."
-        />
-        <ImageUploadCard
-          label="Glassware image"
-          field="glasswareImageUrl"
-          ref={glasswareRef}
-          hint="Right plate in the workshop section. Portrait 3:5 ratio recommended."
-        />
+      <Card>
+        <CardHeader className="pb-3">
+          <p className="text-sm font-semibold">Hero image</p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {form.heroImageUrl && (
+            <img src={form.heroImageUrl} alt="Hero" className="w-40 h-40 object-cover rounded-md border" />
+          )}
+          <input ref={heroRef} type="file" accept="image/*" className="hidden" onChange={e => handleImageUpload('heroImageUrl', e)} />
+          <Button type="button" variant="outline" size="sm" disabled={uploading === 'heroImageUrl'} onClick={() => heroRef.current?.click()}>
+            {uploading === 'heroImageUrl' ? 'Uploading…' : form.heroImageUrl ? 'Replace image' : 'Upload image'}
+          </Button>
+          <p className="text-xs text-muted-foreground">Displays in the hero plate (right side). Portrait 4:5 ratio recommended.</p>
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      {/* ── Workshop section ── */}
+      <Card>
+        <CardHeader className="pb-3">
+          <p className="text-sm font-semibold">Workshop section</p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-1.5">
+            <Label>Heading</Label>
+            <Textarea rows={2} value={form.workshopHeading} onChange={e => set('workshopHeading', e.target.value)} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Paragraph 1</Label>
+            <Textarea rows={4} value={form.workshopBody1} onChange={e => set('workshopBody1', e.target.value)} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Paragraph 2</Label>
+            <Textarea rows={4} value={form.workshopBody2} onChange={e => set('workshopBody2', e.target.value)} />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <p className="text-sm font-semibold">Proof points</p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {form.proofPoints.map((p, idx) => (
+            <div key={idx} className="space-y-3 p-4 border rounded-md">
+              <div className="grid grid-cols-[64px_1fr] gap-3">
+                <div className="space-y-1.5">
+                  <Label>No.</Label>
+                  <Input value={p.n} onChange={e => updateProof(idx, 'n', e.target.value)} placeholder="01." />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Title</Label>
+                  <Input value={p.title} onChange={e => updateProof(idx, 'title', e.target.value)} placeholder="Proof point title" />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Body</Label>
+                <Textarea rows={2} value={p.body} onChange={e => updateProof(idx, 'body', e.target.value)} />
+              </div>
+              <Separator />
+              <Button variant="destructive" size="sm" onClick={() => removeProof(idx)}>Remove</Button>
+            </div>
+          ))}
+          <Button variant="outline" onClick={addProof} className="w-full">+ Add proof point</Button>
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-2 gap-4">
+        <Card>
+          <CardHeader className="pb-3">
+            <p className="text-sm font-semibold">Birmingham press image</p>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {form.pressImageUrl && (
+              <img src={form.pressImageUrl} alt="Press" className="w-40 h-40 object-cover rounded-md border" />
+            )}
+            <input ref={pressRef} type="file" accept="image/*" className="hidden" onChange={e => handleImageUpload('pressImageUrl', e)} />
+            <Button type="button" variant="outline" size="sm" disabled={uploading === 'pressImageUrl'} onClick={() => pressRef.current?.click()}>
+              {uploading === 'pressImageUrl' ? 'Uploading…' : form.pressImageUrl ? 'Replace' : 'Upload image'}
+            </Button>
+            <p className="text-xs text-muted-foreground">Left plate. Portrait 3:5.</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <p className="text-sm font-semibold">Glassware image</p>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {form.glasswareImageUrl && (
+              <img src={form.glasswareImageUrl} alt="Glassware" className="w-40 h-40 object-cover rounded-md border" />
+            )}
+            <input ref={glasswareRef} type="file" accept="image/*" className="hidden" onChange={e => handleImageUpload('glasswareImageUrl', e)} />
+            <Button type="button" variant="outline" size="sm" disabled={uploading === 'glasswareImageUrl'} onClick={() => glasswareRef.current?.click()}>
+              {uploading === 'glasswareImageUrl' ? 'Uploading…' : form.glasswareImageUrl ? 'Replace' : 'Upload image'}
+            </Button>
+            <p className="text-xs text-muted-foreground">Right plate. Portrait 3:5.</p>
+          </CardContent>
+        </Card>
       </div>
 
       <Separator />
 
+      {/* ── Timeline entries ── */}
       <p className="text-sm font-semibold text-(--admin-text)">Timeline entries</p>
 
-      {entries.map((e, idx) => (
+      {form.entries.map((e, idx) => (
         <Card key={idx}>
           <CardContent className="pt-4 space-y-3">
             <div className="grid grid-cols-[100px_1fr] gap-3">
               <div className="space-y-1.5">
                 <Label>Year</Label>
-                <Input value={e.year} onChange={ev => update(idx, 'year', ev.target.value)} placeholder="1898" />
+                <Input value={e.year} onChange={ev => updateEntry(idx, 'year', ev.target.value)} placeholder="1898" />
               </div>
               <div className="space-y-1.5">
                 <Label>Title</Label>
-                <Input value={e.title} onChange={ev => update(idx, 'title', ev.target.value)} placeholder="Event title" />
+                <Input value={e.title} onChange={ev => updateEntry(idx, 'title', ev.target.value)} placeholder="Event title" />
               </div>
             </div>
             <div className="space-y-1.5">
               <Label>Body</Label>
-              <Textarea rows={3} value={e.body} onChange={ev => update(idx, 'body', ev.target.value)} placeholder="What happened…" />
+              <Textarea rows={3} value={e.body} onChange={ev => updateEntry(idx, 'body', ev.target.value)} placeholder="What happened…" />
             </div>
             <Separator />
             <AlertDialog>
@@ -359,7 +462,7 @@ function HeritageTab() {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => remove(idx)}>Remove</AlertDialogAction>
+                  <AlertDialogAction onClick={() => removeEntry(idx)}>Remove</AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
@@ -367,10 +470,10 @@ function HeritageTab() {
         </Card>
       ))}
 
-      <Button variant="outline" onClick={add} className="w-full">+ Add timeline entry</Button>
+      <Button variant="outline" onClick={addEntry} className="w-full">+ Add timeline entry</Button>
 
       <Button onClick={handleSave} disabled={saving}>
-        {saving ? 'Saving…' : 'Save heritage timeline'}
+        {saving ? 'Saving…' : 'Save heritage content'}
       </Button>
     </div>
   )
