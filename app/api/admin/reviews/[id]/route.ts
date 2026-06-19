@@ -3,11 +3,19 @@ import { cookies } from 'next/headers'
 import { getIronSession } from 'iron-session'
 import { sessionOptions } from '@/lib/admin/session'
 import type { AdminSession } from '@/lib/admin/auth'
-import { setReviewApproved } from '@/lib/reviews'
+import { setReviewStatus, deleteReview } from '@/lib/reviews'
+import type { ReviewStatus } from '@/lib/reviews'
 
 async function requireAdmin(): Promise<boolean> {
   const session = await getIronSession<AdminSession>(await cookies(), sessionOptions)
   return !!session.isLoggedIn
+}
+
+const ACTION_MAP: Record<string, ReviewStatus> = {
+  approve:    'approved',
+  deactivate: 'deactivated',
+  activate:   'approved',
+  reject:     'pending',
 }
 
 export async function PATCH(
@@ -20,15 +28,28 @@ export async function PATCH(
 
   const { id } = await params
 
-  let action: 'approve' | 'reject'
+  let action: string
   try {
     const body = await req.json()
     action = body.action
-    if (action !== 'approve' && action !== 'reject') throw new Error()
+    if (!ACTION_MAP[action]) throw new Error()
   } catch {
-    return NextResponse.json({ error: 'action must be approve or reject' }, { status: 400 })
+    return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
   }
 
-  await setReviewApproved(id, action === 'approve')
+  await setReviewStatus(id, ACTION_MAP[action])
+  return NextResponse.json({ ok: true })
+}
+
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  if (!await requireAdmin()) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { id } = await params
+  await deleteReview(id)
   return NextResponse.json({ ok: true })
 }

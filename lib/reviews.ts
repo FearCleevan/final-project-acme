@@ -1,5 +1,7 @@
 import supabaseAdmin from './supabase'
 
+export type ReviewStatus = 'pending' | 'approved' | 'deactivated'
+
 export interface Review {
   id: string
   productHandle: string
@@ -11,6 +13,7 @@ export interface Review {
   body: string
   verifiedPurchase: boolean
   approved: boolean
+  status: ReviewStatus
   helpfulCount: number
   createdAt: string
 }
@@ -44,6 +47,7 @@ function toReview(row: Record<string, unknown>): Review {
     body:             row.body as string,
     verifiedPurchase: row.verified_purchase as boolean,
     approved:         row.approved as boolean,
+    status:           (row.status as ReviewStatus) ?? (row.approved ? 'approved' : 'pending'),
     helpfulCount:     row.helpful_count as number,
     createdAt:        row.created_at as string,
   }
@@ -54,7 +58,7 @@ export async function getApprovedReviews(productHandle: string): Promise<Review[
     .from('reviews')
     .select('*')
     .eq('product_handle', productHandle)
-    .eq('approved', true)
+    .eq('status', 'approved')
     .order('created_at', { ascending: false })
 
   if (error) throw new Error(error.message)
@@ -130,24 +134,34 @@ export async function markHelpful(
   return { alreadyVoted: false }
 }
 
-export async function getAllReviewsAdmin(filter: 'all' | 'pending' | 'approved'): Promise<Review[]> {
+export async function getAllReviewsAdmin(
+  filter: 'all' | 'pending' | 'approved' | 'deactivated'
+): Promise<Review[]> {
   let query = supabaseAdmin
     .from('reviews')
     .select('*')
     .order('created_at', { ascending: false })
 
-  if (filter === 'pending')  query = query.eq('approved', false)
-  if (filter === 'approved') query = query.eq('approved', true)
+  if (filter !== 'all') query = query.eq('status', filter)
 
   const { data, error } = await query
   if (error) throw new Error(error.message)
   return (data ?? []).map(toReview)
 }
 
-export async function setReviewApproved(id: string, approved: boolean): Promise<void> {
+export async function setReviewStatus(id: string, status: ReviewStatus): Promise<void> {
   const { error } = await supabaseAdmin
     .from('reviews')
-    .update({ approved })
+    .update({ status, approved: status === 'approved' })
+    .eq('id', id)
+
+  if (error) throw new Error(error.message)
+}
+
+export async function deleteReview(id: string): Promise<void> {
+  const { error } = await supabaseAdmin
+    .from('reviews')
+    .delete()
     .eq('id', id)
 
   if (error) throw new Error(error.message)

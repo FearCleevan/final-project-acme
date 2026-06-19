@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const filter = (req.nextUrl.searchParams.get('filter') ?? 'all') as 'all' | 'pending' | 'approved'
+  const filter = (req.nextUrl.searchParams.get('filter') ?? 'all') as 'all' | 'pending' | 'approved' | 'deactivated'
   const reviews = await getAllReviewsAdmin(filter)
   return NextResponse.json(reviews)
 }
