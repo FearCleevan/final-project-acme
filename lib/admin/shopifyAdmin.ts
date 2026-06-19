@@ -1615,3 +1615,47 @@ export async function incrementSoldCount(
     )
   }
 }
+
+export async function hasCustomerPurchasedProduct(
+  email: string,
+  productHandle: string
+): Promise<boolean> {
+  type OrdersResponse = {
+    orders: {
+      edges: Array<{
+        node: {
+          lineItems: {
+            edges: Array<{
+              node: { product: { handle: string } | null }
+            }>
+          }
+        }
+      }>
+    }
+  }
+
+  const data = await adminFetch<OrdersResponse>(
+    `query CheckPurchase($email: String!) {
+      orders(first: 250, query: $email) {
+        edges {
+          node {
+            lineItems(first: 50) {
+              edges {
+                node {
+                  product { handle }
+                }
+              }
+            }
+          }
+        }
+      }
+    }`,
+    { email: `email:${email}` }
+  )
+
+  return data.orders.edges.some(({ node: order }) =>
+    order.lineItems.edges.some(({ node: item }) =>
+      item.product?.handle === productHandle
+    )
+  )
+}

@@ -6,17 +6,18 @@ import { Product } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
 import { useCrateStore } from "@/store/crateStore";
 import FitmentBox from "./FitmentBox";
-import { getReviewsForProduct, getAggregateRating } from "@/lib/mockReviews";
 import { getColourHex } from '@/lib/cartGrouping'
+import type { ReviewSummary } from '@/lib/reviews'
 
 interface ProductInfoProps {
   product: Product;
+  reviewSummary?: ReviewSummary;
 }
 
 const selectClass =
   "w-full h-[44px] pl-3 pr-8 bg-parchment-2 border border-ink-rule rounded-sm text-[14px] font-sans text-ink-iron appearance-none focus:outline-none focus:border-brass-deep focus:ring-1 focus:ring-brass/20 transition-colors cursor-pointer";
 
-export default function ProductInfo({ product }: ProductInfoProps) {
+export default function ProductInfo({ product, reviewSummary }: ProductInfoProps) {
   const addItem        = useCrateStore((s) => s.addItem);
   const updateQuantity = useCrateStore((s) => s.updateQuantity);
   const items          = useCrateStore((s) => s.items);
@@ -70,8 +71,8 @@ export default function ProductInfo({ product }: ProductInfoProps) {
     setQty(existingQty > 0 ? existingQty : 1);
   }
 
-  const reviews = getReviewsForProduct(product.id, product.category);
-  const { average, count } = getAggregateRating(reviews);
+  const average = reviewSummary?.average ?? 0
+  const count   = reviewSummary?.count ?? 0
 
   const lineTotal = activePrice * qty;
 

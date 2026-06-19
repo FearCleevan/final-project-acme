@@ -16,6 +16,7 @@ import {
   BiSun,
   BiMoon,
   BiEditAlt,
+  BiStar,
 } from 'react-icons/bi'
 import { useTheme } from 'next-themes'
 import { cn } from '@/lib/utils'
@@ -70,7 +71,8 @@ export default function AdminSidebar() {
   const [loggingOut,   setLoggingOut]   = useState(false)
   const [ownerName,    setOwnerName]    = useState('')
   const [ownerEmail,   setOwnerEmail]   = useState('')
-  const [unfulfilledCount, setUnfulfilledCount] = useState(0)
+  const [unfulfilledCount,   setUnfulfilledCount]   = useState(0)
+  const [pendingReviewCount, setPendingReviewCount] = useState(0)
 
   useEffect(() => {
     fetch('/api/admin/shop')
@@ -87,6 +89,13 @@ export default function AdminSidebar() {
       .catch(() => {})
   }, [])
 
+  useEffect(() => {
+    fetch('/api/admin/reviews?filter=pending')
+      .then(r => r.ok ? r.json() : [])
+      .then((reviews: unknown[]) => setPendingReviewCount(reviews.length))
+      .catch(() => {})
+  }, [])
+
   const NAV_MAIN: Array<{ label: string; href: string; icon: React.ElementType; badge?: number; activePrefix?: string }> = [
     { label: 'Overview',    href: '/admin/overview',    icon: BiHomeAlt                                          },
     { label: 'Orders',      href: '/admin/orders',      icon: BiCart,        badge: unfulfilledCount || undefined },
@@ -96,6 +105,7 @@ export default function AdminSidebar() {
     { label: 'Content',     href: '/admin/content/home', icon: BiEditAlt,    activePrefix: '/admin/content'      },
     { label: 'Customers',   href: '/admin/customers',   icon: BiUser                                             },
     { label: 'Analytics',   href: '/admin/analytics',   icon: BiBarChartAlt2                                     },
+    { label: 'Reviews',     href: '/admin/reviews',     icon: BiStar, badge: pendingReviewCount || undefined      },
   ]
 
   async function handleLogout() {

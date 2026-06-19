@@ -1,4 +1,5 @@
 import { getAllProducts, getProductByHandle } from '@/lib/shopify'
+import { getReviewSummary } from '@/lib/reviews'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import Breadcrumb from '@/components/shared/Breadcrumb'
@@ -61,6 +62,7 @@ export default async function ProductPage({ params }: Props) {
   if (!product) notFound()
 
   const isDark = (product.category as string) === 'signs'
+  const reviewSummary = await getReviewSummary(slug)
 
   const productJsonLd = {
     '@context': 'https://schema.org',
@@ -80,6 +82,15 @@ export default async function ProductPage({ params }: Props) {
         : 'https://schema.org/OutOfStock',
       seller: { '@type': 'Organization', name: 'Acme Vintage Supply' },
     },
+    ...(reviewSummary.count > 0 && {
+      aggregateRating: {
+        '@type':      'AggregateRating',
+        ratingValue:  reviewSummary.average.toFixed(1),
+        reviewCount:  reviewSummary.count,
+        bestRating:   5,
+        worstRating:  1,
+      },
+    }),
   }
 
   const breadcrumbJsonLd = {
@@ -121,7 +132,7 @@ export default async function ProductPage({ params }: Props) {
             dark={isDark}
           />
           <div className="lg:sticky lg:top-24">
-            <ProductInfo product={product} />
+            <ProductInfo product={product} reviewSummary={reviewSummary} />
           </div>
         </div>
 

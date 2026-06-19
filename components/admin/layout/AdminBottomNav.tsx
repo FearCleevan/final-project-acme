@@ -16,6 +16,7 @@ import {
   BiCog,
   BiX,
   BiEditAlt,
+  BiStar,
 } from 'react-icons/bi'
 import { cn } from '@/lib/utils'
 
@@ -31,6 +32,7 @@ const MORE_ITEMS = [
   { label: 'Collections', href: '/admin/collections', icon: BiCollection    },
   { label: 'Content',     href: '/admin/content/home', icon: BiEditAlt      },
   { label: 'Analytics',   href: '/admin/analytics',   icon: BiBarChartAlt2  },
+  { label: 'Reviews',     href: '/admin/reviews',     icon: BiStar          },
   { label: 'Settings',    href: '/admin/settings',    icon: BiCog           },
 ]
 
