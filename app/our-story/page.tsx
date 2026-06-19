@@ -63,7 +63,7 @@ export default async function OurStoryPage() {
 
       {/* Mission statement */}
       <section className="border-t border-ink-rule px-6 py-24 bg-parchment-2">
-        <div className="max-w-[900px] mx-auto text-center">
+        <div className="max-w-225 mx-auto text-center">
           <Eyebrow className="mb-5">Our mission, in plain words</Eyebrow>
           <blockquote
             className="font-serif font-medium text-ink-charcoal leading-tight mb-10"
@@ -72,7 +72,7 @@ export default async function OurStoryPage() {
             &quot;We make lamps the way they were made when lamps mattered — by hand, on the same dies,
             with no pretense that we&apos;ve improved on the originals.&quot;
           </blockquote>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-left max-w-[720px] mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-left max-w-180 mx-auto">
             <p className="font-sans text-[16px] text-ink-soft leading-relaxed">
               The original Birmingham tooling used to press our Duplex burners is over a century old. The
               dies have not been recut. The borosilicate glass formula for our shades and chimneys has not
@@ -112,7 +112,7 @@ export default async function OurStoryPage() {
 
       {/* Dark testimonial */}
       <section className="canvas-dark px-6 py-24">
-        <div className="max-w-[760px] mx-auto">
+        <div className="max-w-190 mx-auto">
           <span className="font-serif text-[72px] text-brass leading-none block mb-4" aria-hidden="true">&quot;</span>
           <blockquote className="font-serif italic text-[22px] text-canvas-body leading-relaxed mb-8">
             We were offered the original tooling and dies — over a hundred years old — and we said yes.
