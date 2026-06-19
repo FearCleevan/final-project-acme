@@ -80,6 +80,7 @@ export default function ProductsPage() {
   const [syncing,      setSyncing]      = useState(false)
   const [toast,        setToast]        = useState<{ message: string; type: ToastType } | null>(null)
   const [copiedId,     setCopiedId]     = useState<string | null>(null)
+  const [quickFilter,  setQuickFilter]  = useState<'no-price' | 'no-image' | 'no-stock' | null>(null)
 
   function copyTitle(id: string, title: string, e: React.MouseEvent) {
     e.stopPropagation()
@@ -156,8 +157,17 @@ export default function ProductsPage() {
         p.title.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q)
       )
     }
+    if (quickFilter === 'no-price') list = list.filter(p => !p.price || p.price === 0)
+    if (quickFilter === 'no-image') list = list.filter(p => !p.images?.length || !p.images[0])
+    if (quickFilter === 'no-stock') list = list.filter(p => p.stock === 0)
     return list
-  }, [tab, collection, search, products])
+  }, [tab, collection, search, quickFilter, products])
+
+  const quickCount = (f: 'no-price' | 'no-image' | 'no-stock') => {
+    if (f === 'no-price') return products.filter(p => !p.price || p.price === 0).length
+    if (f === 'no-image') return products.filter(p => !p.images?.length || !p.images[0]).length
+    return products.filter(p => p.stock === 0).length
+  }
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
   const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
@@ -436,6 +446,51 @@ export default function ProductsPage() {
                 </span>
               </button>
             ))}
+          </div>
+
+          {/* Quick filters */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[10px] uppercase tracking-widest text-(--admin-text-muted) font-medium shrink-0">Needs attention:</span>
+            {(
+              [
+                { value: 'no-price', label: 'No Price'  },
+                { value: 'no-image', label: 'No Image'  },
+                { value: 'no-stock', label: 'No Stock'  },
+              ] as const
+            ).map(({ value, label }) => {
+              const count   = quickCount(value)
+              const active  = quickFilter === value
+              return (
+                <button
+                  key={value}
+                  onClick={() => { setQuickFilter(active ? null : value); setPage(1) }}
+                  className={cn(
+                    'flex items-center gap-1.5 h-6 px-2.5 rounded-full text-[11px] font-medium border transition-colors',
+                    active
+                      ? 'bg-amber-500 border-amber-500 text-white'
+                      : count > 0
+                        ? 'border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100'
+                        : 'border-(--admin-border) text-(--admin-text-muted) bg-(--admin-surface-2) opacity-50 pointer-events-none'
+                  )}
+                >
+                  {label}
+                  <span className={cn(
+                    'text-[10px] px-1 py-px rounded-full',
+                    active ? 'bg-white/30 text-white' : 'bg-amber-200 text-amber-800'
+                  )}>
+                    {count}
+                  </span>
+                </button>
+              )
+            })}
+            {quickFilter && (
+              <button
+                onClick={() => { setQuickFilter(null); setPage(1) }}
+                className="text-[11px] text-(--admin-text-muted) hover:text-(--admin-text) transition-colors ml-1"
+              >
+                ✕ Clear
+              </button>
+            )}
           </div>
 
           <div className="flex items-center gap-2">
