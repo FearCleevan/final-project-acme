@@ -6,6 +6,7 @@ import type { AdminSession } from '@/lib/admin/auth'
 import { getOrderFulfillmentOrderId, createFulfillment, createFulfillmentEvent, incrementSoldCount } from '@/lib/admin/shopifyAdmin'
 import type { FulfillmentEvent, FulfillmentEventStatus } from '@/lib/admin/types'
 import { addCustomFulfillmentEvent } from '@/lib/fulfillmentEvents'
+import { logAction } from '@/lib/admin/activityLog'
 
 async function requireAuth() {
   const session = await getIronSession<AdminSession>(await cookies(), sessionOptions)
@@ -71,6 +72,23 @@ export async function POST(req: NextRequest, { params }: Params) {
     if (body.stage !== 'in_transit' && !shopifyFulfillmentId) {
       await addCustomFulfillmentEvent(id, event)
     }
+
+    const stageLabels: Record<string, string> = {
+      confirmed:          'Order confirmed',
+      label_printed:      'Packed at workshop',
+      in_transit:         'Shipped',
+      out_for_delivery:   'Out for delivery',
+      delivered:          'Delivered',
+      attempted_delivery: 'Delivery attempted',
+      failure:            'Delivery issue',
+    }
+    await logAction(
+      'order.fulfill',
+      'order',
+      id,
+      `${id} — ${stageLabels[body.stage] ?? body.stage}`,
+      body.trackingNumber ? { tracking: body.trackingNumber, carrier: body.carrier } : undefined
+    ).catch(() => {})
 
     return NextResponse.json({ event, fulfillmentId: shopifyFulfillmentId })
   } catch (err) {

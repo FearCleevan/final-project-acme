@@ -22,6 +22,7 @@ const ACTION_LABELS: Record<string, string> = {
   'content.save':        'Saved content',
   'product.import':      'Bulk imported products',
   'product.bulk-status': 'Changed product status',
+  'order.fulfill':       'Updated order fulfillment',
 }
 
 function timeAgo(iso: string): string {
