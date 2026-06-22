@@ -143,7 +143,7 @@ function TrackOrderContent() {
         )}
 
         {/* Helper text when no search yet */}
-        {!result && !apiError && (
+        {!result && !apiError && !loading && (
           <div className="border-t border-ink-rule pt-8 max-w-140">
             <p className="font-sans text-[14px] text-ink-soft leading-relaxed">
               Your order number is in your confirmation email.
