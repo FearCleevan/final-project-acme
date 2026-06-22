@@ -5,6 +5,7 @@ import { sessionOptions } from '@/lib/admin/session'
 import type { AdminSession } from '@/lib/admin/auth'
 import { getContent, setContent } from '@/lib/content'
 import type { ContentKey } from '@/lib/types/content'
+import { logAction } from '@/lib/admin/activityLog'
 
 const VALID_KEYS: ContentKey[] = [
   'hero', 'bench', 'testimonials', 'story', 'heritage', 'faq', 'shipping', 'returns',
@@ -42,5 +43,6 @@ export async function PUT(
   if (!body) return NextResponse.json({ error: 'Invalid body' }, { status: 400 })
 
   await setContent(key as ContentKey, body)
+  await logAction('content.save', 'content', undefined, key).catch(() => {})
   return NextResponse.json({ ok: true })
 }

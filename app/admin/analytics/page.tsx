@@ -12,6 +12,7 @@ import HorizontalBarChart from '@/components/admin/charts/HorizontalBarChart'
 import MiniLineChart      from '@/components/admin/charts/MiniLineChart'
 import ConversionFunnel   from '@/components/admin/charts/ConversionFunnel'
 import TrendChip          from '@/components/admin/shared/TrendChip'
+import TrafficSection     from '@/components/admin/analytics/TrafficSection'
 
 // Sessions / device / conversion are not available from Shopify Admin API
 // without the Analytics API (Shopify Plus plan). These remain estimated.
@@ -184,6 +185,9 @@ export default function AnalyticsPage() {
 
       {/* ── Row 5: Conversion funnel (full width) ── */}
       <ConversionFunnel stages={funnelStages} />
+
+      {/* ── Storefront traffic (custom page_views tracking) ── */}
+      <TrafficSection />
     </div>
   )
 }

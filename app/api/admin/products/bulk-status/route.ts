@@ -4,6 +4,7 @@ import { getIronSession } from 'iron-session'
 import { sessionOptions } from '@/lib/admin/session'
 import type { AdminSession } from '@/lib/admin/auth'
 import { updateProductStatus } from '@/lib/admin/shopifyAdmin'
+import { logAction } from '@/lib/admin/activityLog'
 
 async function requireAuth(): Promise<boolean> {
   const session = await getIronSession<AdminSession>(await cookies(), sessionOptions)
@@ -50,6 +51,12 @@ export async function POST(req: NextRequest) {
     }
     await sleep(300)
   }
+
+  const successCount = results.filter(r => r.ok).length
+  await logAction('product.bulk-status', 'product', undefined, `${successCount} products → ${status.toLowerCase()}`, {
+    count:  ids.length,
+    status: status.toLowerCase(),
+  }).catch(() => {})
 
   return NextResponse.json(results, { status: 200 })
 }
