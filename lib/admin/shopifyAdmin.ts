@@ -78,6 +78,7 @@ interface ShopifyVariantNode {
 
 interface ShopifyProductNode {
   id: string
+  handle: string
   title: string
   description: string
   vendor: string
@@ -112,6 +113,7 @@ function toAdminProduct(p: ShopifyProductNode): AdminProduct {
 
   return {
     id:                 p.id.replace('gid://shopify/Product/', ''),
+    handle:             p.handle ?? '',
     title:              p.title ?? '',
     shortDescription:   p.description ?? '',
     fullDescription:    metaValue(mf, 'full_description'),
@@ -152,7 +154,7 @@ function toAdminProduct(p: ShopifyProductNode): AdminProduct {
 // ─── Queries ──────────────────────────────────────────────────────────────────
 
 const PRODUCT_FIELDS = `
-  id title description vendor productType status tags
+  id handle title description vendor productType status tags
   images(first: 10) { edges { node { url } } }
   collections(first: 10) { edges { node { handle } } }
   category { id name fullName }

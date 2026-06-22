@@ -6,6 +6,7 @@ import { Product } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
 import { useCrateStore } from "@/store/crateStore";
 import FitmentBox from "./FitmentBox";
+import NotifyMeForm from "./NotifyMeForm";
 import { getColourHex } from '@/lib/cartGrouping'
 import type { ReviewSummary } from '@/lib/reviews'
 
@@ -372,8 +373,8 @@ export default function ProductInfo({ product, reviewSummary }: ProductInfoProps
         </div>
       )}
 
-      {/* Quantity stepper — hidden in multi-colour mode */}
-      {(!hasColourVariants || !multiMode) && (
+      {/* Quantity stepper — hidden in multi-colour mode and when out of stock */}
+      {(!hasColourVariants || !multiMode) && activeInStock && (
         <div>
           <div className="flex items-center justify-between mb-2">
             <p className="text-[11px] font-mono uppercase tracking-eyebrow text-ink-soft">
@@ -412,20 +413,27 @@ export default function ProductInfo({ product, reviewSummary }: ProductInfoProps
         </p>
       )}
 
-      {/* Add to crate CTA */}
-      <button
-        onClick={handleAdd}
-        disabled={hasColourVariants && multiMode ? multiCount === 0 : !activeInStock}
-        className="w-full min-h-15 flex items-center justify-center gap-2 bg-green-brand text-[#F5F1E6] rounded-btn font-sans text-[17px] font-semibold hover:bg-green-deep hover:shadow-cta-hover hover:-translate-y-px active:translate-y-0 transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none"
-      >
-        {added
-          ? '✓ Added to your crate'
-          : hasColourVariants && multiMode
-            ? multiCount > 0
-              ? `Add ${multiCount} item${multiCount !== 1 ? 's' : ''} to crate — ${formatPrice(multiTotal)}`
-              : 'Select quantities above'
-            : `Add to crate — ${formatPrice(lineTotal)}`}
-      </button>
+      {/* Add to crate CTA — or notify-me form when out of stock */}
+      {!activeInStock && !multiMode ? (
+        <NotifyMeForm
+          productHandle={product.slug}
+          productTitle={product.name}
+        />
+      ) : (
+        <button
+          onClick={handleAdd}
+          disabled={hasColourVariants && multiMode ? multiCount === 0 : false}
+          className="w-full min-h-15 flex items-center justify-center gap-2 bg-green-brand text-[#F5F1E6] rounded-btn font-sans text-[17px] font-semibold hover:bg-green-deep hover:shadow-cta-hover hover:-translate-y-px active:translate-y-0 transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none"
+        >
+          {added
+            ? '✓ Added to your crate'
+            : hasColourVariants && multiMode
+              ? multiCount > 0
+                ? `Add ${multiCount} item${multiCount !== 1 ? 's' : ''} to crate — ${formatPrice(multiTotal)}`
+                : 'Select quantities above'
+              : `Add to crate — ${formatPrice(lineTotal)}`}
+        </button>
+      )}
 
       {/* Trust signals */}
       <div className="space-y-2.5 pt-1">

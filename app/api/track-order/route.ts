@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminFetch } from '@/lib/admin/shopifyAdmin'
+import { getCustomFulfillmentEvents } from '@/lib/fulfillmentEvents'
 
 export interface TrackOrderResult {
   name: string
@@ -120,6 +121,39 @@ export async function POST(req: NextRequest) {
         trackingInfo: f.trackingInfo,
         events:       f.events.edges.map(e => e.node),
       })),
+    }
+
+    // Merge pre-transit custom events from Redis (e.g. "Packed at Workshop")
+    // These are stored with lowercase statuses — uppercase them to match the customer timeline format
+    const customEvents = await getCustomFulfillmentEvents(name)
+    if (customEvents.length > 0) {
+      const shopifyStatuses = new Set(
+        result.fulfillments.flatMap(f => f.events.map(e => e.status))
+      )
+      const extraEvents = customEvents
+        .filter(e => !shopifyStatuses.has(e.status.toUpperCase()))
+        .map(e => ({
+          status:     e.status.toUpperCase(),
+          happenedAt: e.happenedAt,
+        }))
+
+      if (extraEvents.length > 0) {
+        if (result.fulfillments.length > 0) {
+          // Add to the latest fulfillment's event list
+          result.fulfillments[result.fulfillments.length - 1].events = [
+            ...extraEvents,
+            ...result.fulfillments[result.fulfillments.length - 1].events,
+          ].sort((a, b) => new Date(a.happenedAt).getTime() - new Date(b.happenedAt).getTime())
+        } else {
+          // No Shopify fulfillment yet — synthesize a virtual one so the timeline renders
+          result.fulfillments = [{
+            status:       'PENDING',
+            updatedAt:    extraEvents[extraEvents.length - 1].happenedAt,
+            trackingInfo: [],
+            events:       extraEvents,
+          }]
+        }
+      }
     }
 
     return NextResponse.json(result)
