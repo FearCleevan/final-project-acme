@@ -5,6 +5,7 @@ import { sessionOptions } from '@/lib/admin/session'
 import type { AdminSession } from '@/lib/admin/auth'
 import { setReviewStatus, deleteReview } from '@/lib/reviews'
 import type { ReviewStatus } from '@/lib/reviews'
+import { logAction } from '@/lib/admin/activityLog'
 
 async function requireAdmin(): Promise<boolean> {
   const session = await getIronSession<AdminSession>(await cookies(), sessionOptions)
@@ -38,6 +39,7 @@ export async function PATCH(
   }
 
   await setReviewStatus(id, ACTION_MAP[action])
+  await logAction(`review.${action}`, 'review', id).catch(() => {})
   return NextResponse.json({ ok: true })
 }
 
@@ -51,5 +53,6 @@ export async function DELETE(
 
   const { id } = await params
   await deleteReview(id)
+  await logAction('review.delete', 'review', id).catch(() => {})
   return NextResponse.json({ ok: true })
 }

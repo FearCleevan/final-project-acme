@@ -17,6 +17,7 @@ import {
   BiMoon,
   BiEditAlt,
   BiStar,
+  BiHistory,
 } from 'react-icons/bi'
 import { useTheme } from 'next-themes'
 import { cn } from '@/lib/utils'
@@ -106,6 +107,7 @@ export default function AdminSidebar() {
     { label: 'Customers',   href: '/admin/customers',   icon: BiUser                                             },
     { label: 'Analytics',   href: '/admin/analytics',   icon: BiBarChartAlt2                                     },
     { label: 'Reviews',     href: '/admin/reviews',     icon: BiStar, badge: pendingReviewCount || undefined      },
+    { label: 'Activity',    href: '/admin/activity',    icon: BiHistory                                          },
   ]
 
   async function handleLogout() {

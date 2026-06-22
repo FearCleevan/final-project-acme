@@ -9,6 +9,7 @@ import {
   collectionHandlesToGids,
   getProductByTitle,
 } from '@/lib/admin/shopifyAdmin'
+import { logAction } from '@/lib/admin/activityLog'
 
 export interface ImportRow {
   title:            string
@@ -143,6 +144,12 @@ export async function POST(req: NextRequest) {
     // 300 ms gap between Shopify calls — avoids rate limit 429s
     await sleep(300)
   }
+
+  const createdCount = results.filter(r => r.status === 'created').length
+  await logAction('product.import', 'product', undefined, `${createdCount} products imported`, {
+    total:   rows.length,
+    created: createdCount,
+  }).catch(() => {})
 
   return NextResponse.json(results, { status: 200 })
 }

@@ -3,6 +3,8 @@ import { Playfair_Display, Inter, JetBrains_Mono, Geist } from 'next/font/google
 import './globals.css'
 import ShellClient from '@/components/shared/ShellClient'
 import { cn } from "@/lib/utils";
+import { Analytics } from '@vercel/analytics/react'
+import PageViewTracker from '@/components/analytics/PageViewTracker'
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -209,6 +211,8 @@ export default function RootLayout({
           Skip to content
         </a>
         <ShellClient>{children}</ShellClient>
+        <Analytics />
+        <PageViewTracker />
       </body>
     </html>
   )
