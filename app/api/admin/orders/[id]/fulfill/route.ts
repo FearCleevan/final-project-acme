@@ -5,6 +5,7 @@ import { sessionOptions } from '@/lib/admin/session'
 import type { AdminSession } from '@/lib/admin/auth'
 import { getOrderFulfillmentOrderId, createFulfillment, createFulfillmentEvent, incrementSoldCount } from '@/lib/admin/shopifyAdmin'
 import type { FulfillmentEvent, FulfillmentEventStatus } from '@/lib/admin/types'
+import { addCustomFulfillmentEvent } from '@/lib/fulfillmentEvents'
 
 async function requireAuth() {
   const session = await getIronSession<AdminSession>(await cookies(), sessionOptions)
@@ -64,6 +65,11 @@ export async function POST(req: NextRequest, { params }: Params) {
       ...(body.stage === 'in_transit' && body.trackingNumber
         ? { trackingNumber: body.trackingNumber, carrier: body.carrier }
         : {}),
+    }
+
+    // Pre-transit stages (no Shopify fulfillment yet) — persist in Redis so they survive page reload
+    if (body.stage !== 'in_transit' && !shopifyFulfillmentId) {
+      await addCustomFulfillmentEvent(id, event)
     }
 
     return NextResponse.json({ event, fulfillmentId: shopifyFulfillmentId })
