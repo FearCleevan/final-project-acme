@@ -223,84 +223,91 @@ function TrackOrderContent() {
               </div>
             </div>
 
-            {/* Fulfillment timeline */}
-            {result.fulfillments.length > 0 && (() => {
-              const EVENT_LABEL: Record<string, string> = {
-                CONFIRMED:        'Order confirmed',
-                LABEL_PRINTED:    'Packed at workshop',
-                IN_TRANSIT:       'Shipped',
-                OUT_FOR_DELIVERY: 'Out for delivery',
-                DELIVERED:        'Delivered',
-                FAILURE:          'Delivery failed',
-                ATTEMPTED_DELIVERY: 'Delivery attempted',
-              }
-              const f = result.fulfillments[result.fulfillments.length - 1]
-              const events = f.events ?? []
-              const tracking = f.trackingInfo[0]
+            {/* Shipment progress stepper */}
+            {(() => {
+              const STAGES = [
+                { status: 'CONFIRMED',        label: 'Order\nconfirmed'    },
+                { status: 'LABEL_PRINTED',    label: 'Packed at\nworkshop' },
+                { status: 'IN_TRANSIT',       label: 'Shipped'             },
+                { status: 'OUT_FOR_DELIVERY', label: 'Out for\ndelivery'   },
+                { status: 'DELIVERED',        label: 'Delivered'           },
+              ]
+
+              const allEvents = result.fulfillments.flatMap(f => f.events)
+              const eventByStatus: Record<string, { status: string; happenedAt: string }> = {}
+              allEvents.forEach(e => { eventByStatus[e.status] = e })
+
+              const lastCompletedIndex = STAGES.reduce(
+                (acc, s, i) => (eventByStatus[s.status] ? i : acc), -1
+              )
 
               return (
                 <div>
-                  <Eyebrow className="mb-6">Shipment timeline</Eyebrow>
-                  <ol className="relative border-l border-ink-rule ml-3 space-y-0">
-                    {events.length > 0 ? events.map((ev, i) => {
-                      const isLast = i === events.length - 1
+                  <Eyebrow className="mb-6">Shipment progress</Eyebrow>
+
+                  {/* Stepper row */}
+                  <div className="flex items-start">
+                    {STAGES.map((stage, i) => {
+                      const isDone  = !!eventByStatus[stage.status]
+                      const isNext  = i === lastCompletedIndex + 1
+                      const ev      = eventByStatus[stage.status]
+
                       return (
-                        <li key={i} className="mb-8 ml-6 last:mb-0">
-                          <span className={`absolute -left-2.25 w-4.5 h-4.5 rounded-full border-2 flex items-center justify-center ${isLast ? 'bg-green-brand border-green-brand' : 'bg-parchment border-ink-rule'}`}>
-                            {isLast && (
-                              <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
-                                <path d="M1.5 4l2 2 3-3" stroke="#F5F1E6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <div key={stage.status} className="relative flex-1 flex flex-col items-center">
+
+                          {/* Left connector */}
+                          {i > 0 && (
+                            <div className={`absolute left-0 right-1/2 top-4 h-px -translate-y-1/2 ${i <= lastCompletedIndex ? 'bg-green-brand' : 'bg-ink-rule'}`} />
+                          )}
+                          {/* Right connector */}
+                          {i < STAGES.length - 1 && (
+                            <div className={`absolute left-1/2 right-0 top-4 h-px -translate-y-1/2 ${i < lastCompletedIndex ? 'bg-green-brand' : 'bg-ink-rule'}`} />
+                          )}
+
+                          {/* Circle */}
+                          <div className={`relative z-10 w-8 h-8 rounded-full border-2 flex items-center justify-center mb-3 transition-colors duration-300 ${
+                            isDone
+                              ? 'bg-green-brand border-green-brand'
+                              : isNext
+                                ? 'bg-parchment border-brass-deep'
+                                : 'bg-parchment border-ink-rule'
+                          }`}>
+                            {isDone ? (
+                              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                                <path d="M2.5 6l2.5 2.5 4.5-4.5" stroke="#F5F1E6" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
                               </svg>
-                            )}
-                          </span>
-                          <div className="pt-0.5">
-                            <p className="font-serif text-[16px] font-medium text-ink-charcoal leading-snug mb-0.5">
-                              {EVENT_LABEL[ev.status] ?? ev.status}
-                            </p>
-                            <time className="font-mono text-[10px] uppercase tracking-eyebrow text-ink-soft/70">
+                            ) : isNext ? (
+                              <span className="w-2 h-2 rounded-full bg-brass-deep" />
+                            ) : null}
+                          </div>
+
+                          {/* Label */}
+                          <p className={`font-sans text-center text-[11px] sm:text-[12px] leading-tight whitespace-pre-line px-1 ${
+                            isDone ? 'text-ink-charcoal font-semibold' : 'text-ink-soft'
+                          }`}>
+                            {stage.label}
+                          </p>
+
+                          {/* Date */}
+                          {ev && (
+                            <time className="font-mono text-[9px] sm:text-[10px] uppercase tracking-eyebrow text-ink-soft/60 text-center mt-1 leading-tight block px-1">
                               {formatDate(ev.happenedAt)}
                             </time>
-                            {ev.status === 'IN_TRANSIT' && tracking?.number && (
-                              <p className="font-mono text-[11px] text-ink-soft/70 mt-1">
-                                {tracking.company ? `${tracking.company} · ` : ''}{tracking.number}
-                              </p>
-                            )}
-                          </div>
-                        </li>
-                      )
-                    }) : (
-                      <li className="mb-8 ml-6">
-                        <span className="absolute -left-2.25 w-4.5 h-4.5 rounded-full border-2 bg-green-brand border-green-brand flex items-center justify-center">
-                          <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
-                            <path d="M1.5 4l2 2 3-3" stroke="#F5F1E6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        </span>
-                        <div className="pt-0.5">
-                          <p className="font-serif text-[16px] font-medium text-ink-charcoal leading-snug mb-0.5">Shipped</p>
-                          <time className="font-mono text-[10px] uppercase tracking-eyebrow text-ink-soft/70">
-                            {formatDate(f.updatedAt)}
-                          </time>
-                          {tracking?.number && (
-                            <p className="font-mono text-[11px] text-ink-soft/70 mt-1">
-                              {tracking.company ? `${tracking.company} · ` : ''}{tracking.number}
-                            </p>
                           )}
                         </div>
-                      </li>
-                    )}
-                  </ol>
+                      )
+                    })}
+                  </div>
+
+                  {/* Status note when nothing done yet */}
+                  {lastCompletedIndex === -1 && (
+                    <p className="font-serif italic text-[14px] text-ink-soft mt-6">
+                      Your order is being prepared. Progress will update here as it moves through each stage.
+                    </p>
+                  )}
                 </div>
               )
             })()}
-
-            {/* No fulfillment yet */}
-            {result.fulfillments.length === 0 && (
-              <div className="border border-ink-rule rounded-sm p-6">
-                <p className="font-serif italic text-[16px] text-ink-soft">
-                  Your order is confirmed and being prepared. Tracking information will appear here once your order ships.
-                </p>
-              </div>
-            )}
 
           </div>
         )}
