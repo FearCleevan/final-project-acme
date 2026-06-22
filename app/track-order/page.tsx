@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import Breadcrumb from '@/components/shared/Breadcrumb'
@@ -19,9 +19,8 @@ function TrackOrderContent() {
   const [result,    setResult]    = useState<TrackOrderResult | 'not-found' | null>(null)
   const [apiError,  setApiError]  = useState<string | null>(null)
 
-  async function handleSearch(e: React.FormEvent) {
-    e.preventDefault()
-    if (!orderName.trim() || !email.trim()) return
+  async function doSearch(name: string, em: string): Promise<void> {
+    if (!name.trim() || !em.trim()) return
     setLoading(true)
     setResult(null)
     setApiError(null)
@@ -30,15 +29,15 @@ function TrackOrderContent() {
       const res = await fetch('/api/track-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderName: orderName.trim(), email: email.trim() }),
+        body: JSON.stringify({ orderName: name.trim(), email: em.trim() }),
       })
       if (res.status === 404) {
         setResult('not-found')
       } else if (!res.ok) {
-        const data = await res.json()
+        const data = await res.json() as { error?: string }
         setApiError(data.error ?? 'Something went wrong. Please try again.')
       } else {
-        const data: TrackOrderResult = await res.json()
+        const data = await res.json() as TrackOrderResult
         setResult(data)
       }
     } catch {
@@ -47,6 +46,19 @@ function TrackOrderContent() {
       setLoading(false)
     }
   }
+
+  function handleSearch(e: React.FormEvent): void {
+    e.preventDefault()
+    void doSearch(orderName, email)
+  }
+
+  // Auto-submit when both order and email arrive via URL params (e.g. from a Shopify email link fallback)
+  useEffect(() => {
+    if (initialOrder && initialEmail) {
+      void doSearch(initialOrder, initialEmail)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <div className="bg-parchment min-h-screen">
