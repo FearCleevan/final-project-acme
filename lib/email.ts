@@ -2,7 +2,7 @@ import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY!)
 
-const FROM = 'Acme Vintage Supply <hello@acmevintagesupply.ca>'
+const FROM = 'Acme Vintage Supply <hello@acmevintagesupply.com>'
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://acmevintagesupply.com'
 
 export async function sendBackInStockEmail(
