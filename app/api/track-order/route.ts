@@ -125,7 +125,7 @@ export async function POST(req: NextRequest) {
 
     // Merge pre-transit custom events from Redis (e.g. "Packed at Workshop")
     // These are stored with lowercase statuses — uppercase them to match the customer timeline format
-    const customEvents = await getCustomFulfillmentEvents(name)
+    const customEvents = await getCustomFulfillmentEvents(node.name.replace('#', ''))
     if (customEvents.length > 0) {
       const shopifyStatuses = new Set(
         result.fulfillments.flatMap(f => f.events.map(e => e.status))
