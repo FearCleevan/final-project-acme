@@ -266,6 +266,7 @@ export const mockOrders: AdminOrder[] = [
 export const mockAdminProducts: AdminProduct[] = [
   {
     id: 'sp-001',
+    handle: 'embossed-satin-glass-shade-powder-blue',
     title: 'Embossed Satin Glass Shade — Powder Blue 5 1/4"',
     category: { id: 'col-2', name: 'Oil Lamp Shades' },   // oil-lamp-shades
     shortDescription: 'A superb reproduction made in the tradition of the original antique shade of Victorian period.',
@@ -303,6 +304,7 @@ export const mockAdminProducts: AdminProduct[] = [
   },
   {
     id: 'sp-002',
+    handle: 'open-tulip-etched-shade-magenta',
     title: 'Open Tulip Etched Shade — Magenta 4"',
     category: { id: 'col-2', name: 'Oil Lamp Shades' },
     shortDescription: 'Victorian and Edwardian oil lamp shade, beautifully etched in a deep magenta cranberry glass.',
@@ -340,6 +342,7 @@ export const mockAdminProducts: AdminProduct[] = [
   },
   {
     id: 'sp-003',
+    handle: 'no-2-duplex-burner-wick',
     title: 'No. 2 Duplex Burner Wick',
     category: { id: 'col-6', name: 'Oil Lamp Wicks' },   // oil-lamp-wicks
     shortDescription: 'Cotton wick for No. 2 duplex oil lamp burners. Cut to fit, ready to install.',
@@ -377,6 +380,7 @@ export const mockAdminProducts: AdminProduct[] = [
   },
   {
     id: 'sp-004',
+    handle: 'brass-gallery-ring-4-inch',
     title: 'Brass Gallery Ring — 4 inch',
     category: { id: 'col-5', name: 'Oil Lamp Spreaders' },   // oil-lamp-spreaders
     shortDescription: 'Antique-style brass gallery ring for 4" shade fit oil lamps.',
@@ -414,6 +418,7 @@ export const mockAdminProducts: AdminProduct[] = [
   },
   {
     id: 'sp-005',
+    handle: 'oil-lamp-collector-volume-2',
     title: 'Oil Lamp Collector — Volume 2',
     category: { id: 'col-4', name: 'Oil Lamp Books' },   // oil-lamp-books
     shortDescription: 'Reference guide on antique oil lamps, burners, and Victorian lighting history.',

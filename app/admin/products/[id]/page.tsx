@@ -2,7 +2,7 @@
 
 import { Suspense, useState, useEffect } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
-import { BiChevronRight, BiTrash, BiCheck } from 'react-icons/bi'
+import { BiChevronRight, BiTrash, BiCheck, BiEnvelope } from 'react-icons/bi'
 import Link from 'next/link'
 import ProductForm from '@/components/admin/forms/ProductForm'
 import ConfirmModal from '@/components/admin/shared/ConfirmModal'
@@ -17,18 +17,52 @@ function EditProductInner() {
   const from         = searchParams.get('from') ?? ''
   const backHref     = `/admin/products${from}`
 
-  const [product,    setProduct]    = useState<AdminProduct | null | undefined>(undefined)
-  const [saving,     setSaving]     = useState(false)
-  const [success,    setSuccess]    = useState(false)
-  const [showDelete, setShowDelete] = useState(false)
-  const [deleting,   setDeleting]   = useState(false)
-  const [toast,      setToast]      = useState<{ message: string; type: ToastType } | null>(null)
+  const [product,       setProduct]       = useState<AdminProduct | null | undefined>(undefined)
+  const [saving,        setSaving]        = useState(false)
+  const [success,       setSuccess]       = useState(false)
+  const [showDelete,    setShowDelete]    = useState(false)
+  const [deleting,      setDeleting]      = useState(false)
+  const [toast,         setToast]         = useState<{ message: string; type: ToastType } | null>(null)
+  const [waitlistCount, setWaitlistCount] = useState(0)
+  const [notifying,     setNotifying]     = useState(false)
 
   useEffect(() => {
     fetch(`/api/admin/products/${id}`)
       .then(r => r.ok ? r.json() : null)
       .then(setProduct)
   }, [id])
+
+  useEffect(() => {
+    if (!product?.handle) return
+    fetch(`/api/admin/products/notify-restock?handle=${encodeURIComponent(product.handle)}`)
+      .then(r => r.ok ? r.json() : null)
+      .then((data: { count: number } | null) => {
+        if (data) setWaitlistCount(data.count)
+      })
+  }, [product?.handle])
+
+  async function handleNotifyWaitlist(): Promise<void> {
+    if (!product?.handle || waitlistCount === 0 || notifying) return
+    setNotifying(true)
+    try {
+      const res = await fetch('/api/admin/products/notify-restock', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ productHandle: product.handle }),
+      })
+      const data = (await res.json()) as { ok: boolean; sent: number }
+      if (res.ok && data.ok) {
+        setWaitlistCount(0)
+        setToast({ message: `Notified ${data.sent} customer${data.sent === 1 ? '' : 's'}.`, type: 'success' })
+      } else {
+        setToast({ message: 'Failed to send notifications. Please try again.', type: 'error' })
+      }
+    } catch {
+      setToast({ message: 'Failed to send notifications. Please try again.', type: 'error' })
+    } finally {
+      setNotifying(false)
+    }
+  }
 
   async function handleSave(data: AdminProduct) {
     setSaving(true)
@@ -104,6 +138,15 @@ function EditProductInner() {
               <BiCheck size={15} /> Saved
             </span>
           )}
+          <button
+            type="button"
+            onClick={handleNotifyWaitlist}
+            disabled={waitlistCount === 0 || notifying}
+            className="flex items-center gap-1.5 h-8 px-3 text-[12px] text-(--admin-text-soft) bg-(--admin-surface-2) border border-(--admin-border) rounded-md hover:bg-(--admin-border) transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <BiEnvelope size={13} />
+            {notifying ? 'Sending…' : `Notify ${waitlistCount} waiting`}
+          </button>
           <button
             type="button"
             onClick={() => setShowDelete(true)}

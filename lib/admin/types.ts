@@ -81,6 +81,7 @@ export interface AdminProductVariant {
 
 export interface AdminProduct {
   id: string
+  handle: string
   title: string
   shortDescription: string
   fullDescription: string

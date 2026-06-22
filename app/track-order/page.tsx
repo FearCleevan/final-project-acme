@@ -227,7 +227,7 @@ function TrackOrderContent() {
             {result.fulfillments.length > 0 && (() => {
               const EVENT_LABEL: Record<string, string> = {
                 CONFIRMED:        'Order confirmed',
-                LABEL_PRINTED:    'Label printed',
+                LABEL_PRINTED:    'Packed at workshop',
                 IN_TRANSIT:       'Shipped',
                 OUT_FOR_DELIVERY: 'Out for delivery',
                 DELIVERED:        'Delivered',
