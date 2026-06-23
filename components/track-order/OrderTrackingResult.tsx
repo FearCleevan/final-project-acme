@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Eyebrow from '@/components/shared/Eyebrow'
 import type { TrackOrderResult } from '@/app/api/track-order/route'
 
@@ -105,8 +106,23 @@ export default function OrderTrackingResult({ result }: { result: TrackOrderResu
         <Eyebrow className="mb-4">Items in this order</Eyebrow>
         <div className="border border-ink-rule rounded-sm divide-y divide-ink-rule">
           {result.lineItems.map((item, i) => (
-            <div key={i} className="flex items-center justify-between gap-4 px-5 py-3.5">
-              <p className="font-sans text-[14px] text-ink-iron">{item.title}</p>
+            <div key={i} className="flex items-center gap-4 px-5 py-3.5">
+              {item.imageUrl ? (
+                <div className="relative w-14 h-14 shrink-0 rounded-sm overflow-hidden bg-parchment-2 border border-ink-rule">
+                  <Image
+                    src={item.imageUrl}
+                    alt={item.title}
+                    fill
+                    className="object-cover"
+                    sizes="56px"
+                  />
+                </div>
+              ) : (
+                <div className="w-14 h-14 shrink-0 rounded-sm bg-parchment-2 border border-ink-rule flex items-center justify-center">
+                  <span className="text-ink-soft/40 text-[20px]">◻</span>
+                </div>
+              )}
+              <p className="font-sans text-[14px] text-ink-iron flex-1">{item.title}</p>
               <p className="font-mono text-[12px] text-ink-soft shrink-0">× {item.quantity}</p>
             </div>
           ))}

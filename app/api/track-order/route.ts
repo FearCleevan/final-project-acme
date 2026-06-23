@@ -17,6 +17,7 @@ export interface TrackOrderResult {
   lineItems: {
     title: string
     quantity: number
+    imageUrl: string | null
   }[]
   fulfillments: {
     status: string
@@ -57,7 +58,7 @@ export async function POST(req: NextRequest) {
               country: string
             } | null
             lineItems: {
-              edges: { node: { title: string; quantity: number } }[]
+              edges: { node: { title: string; quantity: number; image: { url: string } | null } }[]
             }
             fulfillments: {
               status: string
@@ -83,7 +84,7 @@ export async function POST(req: NextRequest) {
                 firstName lastName city province country
               }
               lineItems(first: 10) {
-                edges { node { title quantity } }
+                edges { node { title quantity image { url } } }
               }
               fulfillments {
                 status
@@ -114,6 +115,7 @@ export async function POST(req: NextRequest) {
       lineItems:         node.lineItems.edges.map(e => ({
         title:    e.node.title,
         quantity: e.node.quantity,
+        imageUrl: e.node.image?.url ?? null,
       })),
       fulfillments: node.fulfillments.map(f => ({
         status:       f.status,
