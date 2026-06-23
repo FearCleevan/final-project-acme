@@ -53,7 +53,12 @@ export const useCustomerStore = create<CustomerStore>()((set, get) => ({
   },
 
   logout: async () => {
-    await fetch('/api/auth/logout', { method: 'POST' })
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' })
+    } catch {
+      // Server-side session destroy failed — still clear client state
+      console.warn('[customerStore] logout request failed; clearing local session anyway')
+    }
     useCrateStore.getState().clearCrate()
     set({
       accessToken: null,

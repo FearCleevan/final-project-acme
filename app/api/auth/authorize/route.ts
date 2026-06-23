@@ -27,7 +27,8 @@ export async function GET(req: NextRequest) {
     const clientId   = process.env.SHOPIFY_CUSTOMER_ACCOUNT_CLIENT_ID!
     const redirectUri = `${SITE_URL}/api/auth/callback`
 
-    const authEndpoint = 'https://shopify.com/authentication/99152462129/oauth/authorize'
+    const shopId       = process.env.NEXT_PUBLIC_SHOPIFY_CUSTOMER_ACCOUNT_ID ?? '99152462129'
+    const authEndpoint = `https://shopify.com/authentication/${shopId}/oauth/authorize`
 
     const params = new URLSearchParams({
       client_id:             clientId,
@@ -46,6 +47,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(`${authEndpoint}?${params}`)
   } catch (err) {
     console.error('[authorize] error:', err)
-    return NextResponse.redirect(`${SITE_URL}/login?error=${encodeURIComponent(String(err))}`)
+    return NextResponse.redirect(`${SITE_URL}/login?error=auth_init_failed`)
   }
 }

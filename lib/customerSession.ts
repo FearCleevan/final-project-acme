@@ -12,9 +12,13 @@ export interface CustomerSessionData {
   expiresAt?:   number
 }
 
+if (!process.env.SESSION_SECRET && process.env.NODE_ENV === 'production') {
+  throw new Error('SESSION_SECRET environment variable is not set. Sessions cannot be secured.')
+}
+
 export const customerSessionOptions: SessionOptions = {
   cookieName: 'acme_customer_session',
-  password: process.env.SESSION_SECRET ?? 'fallback-dev-secret-replace-in-production',
+  password: process.env.SESSION_SECRET ?? 'dev-only-fallback-not-for-production',
   cookieOptions: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
