@@ -7,6 +7,8 @@ export async function GET() {
   const session = await getIronSession<CustomerSessionData>(await cookies(), customerSessionOptions)
 
   if (!session.accessToken || !session.expiresAt || Date.now() > session.expiresAt) {
+    // Destroy stale session so the client starts fresh — prevents redirect loops
+    session.destroy()
     return NextResponse.json({ authenticated: false }, { status: 401 })
   }
 

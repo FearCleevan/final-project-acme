@@ -5,6 +5,6 @@ import { customerSessionOptions, type CustomerSessionData } from '@/lib/customer
 
 export async function POST() {
   const session = await getIronSession<CustomerSessionData>(await cookies(), customerSessionOptions)
-  session.destroy()
+  await session.destroy()
   return NextResponse.json({ ok: true })
 }
