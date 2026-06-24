@@ -730,6 +730,36 @@ export async function getInventoryItemIdForProduct(shopifyId: string): Promise<s
   return data.product?.variants.edges[0]?.node?.inventoryItem?.id ?? null
 }
 
+export async function updateProductPrice(shopifyId: string, price: number): Promise<void> {
+  const gid = shopifyId.startsWith('gid://') ? shopifyId : `gid://shopify/Product/${shopifyId}`
+  const data = await adminFetch<{
+    product: { variants: { edges: { node: { id: string } }[] } } | null
+  }>(
+    `query GetFirstVariant($id: ID!) {
+      product(id: $id) {
+        variants(first: 1) { edges { node { id } } }
+      }
+    }`,
+    { id: gid }
+  )
+  const variantId = data.product?.variants.edges[0]?.node?.id
+  if (!variantId) throw new Error('No variant found for product')
+
+  const result = await adminFetch<{
+    productVariantsBulkUpdate: { userErrors: { field: string; message: string }[] }
+  }>(
+    `mutation UpdatePrice($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
+      productVariantsBulkUpdate(productId: $productId, variants: $variants) {
+        userErrors { field message }
+      }
+    }`,
+    { productId: gid, variants: [{ id: variantId, price: String(price) }] }
+  )
+  if (result.productVariantsBulkUpdate.userErrors.length) {
+    throw new Error(result.productVariantsBulkUpdate.userErrors[0].message)
+  }
+}
+
 export async function deleteAdminProduct(shopifyId: string): Promise<void> {
   const gid = shopifyId.startsWith('gid://') ? shopifyId : `gid://shopify/Product/${shopifyId}`
   const data = await adminFetch<{ productDelete: { userErrors: { message: string }[] } }>(

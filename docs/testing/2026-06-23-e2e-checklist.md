@@ -5,36 +5,36 @@
 
 ## Pre-Flight
 
-- [ ] Dev server is running (`npm run dev`)
-- [ ] `RESEND_API_KEY` is set in `.env.local`
-- [ ] Supabase migration 004 was applied (`back_in_stock_requests` table exists)
+- [x] Dev server is running (`npm run dev`)
+- [x] `RESEND_API_KEY` is set in `.env.local`
+- [x] Supabase migration 004 was applied (`back_in_stock_requests` table exists)
 - [ ] At least one product is marked **out of stock** (`stockQuantity = 0`) in Shopify
 - [ ] At least one order exists with a **pre-transit stage** (Packed at Workshop) set in admin
 
 ---
 
-## 1. Order Tracking — Pre-Transit Stages Visible to Customer
+## 1. Order Tracking — Pre-Transit Stages Visible to Customer ✅ PASSED (June 23)
 
 > Goal: Customer tracking page shows "Packed at workshop" when admin has set that stage.
 
 **Setup**
-- [ ] Open an order in admin → Fulfillment section
-- [ ] Add stage: **Packed at Workshop** (if not already set)
-- [ ] Note the order number (e.g. `#1001`) and the customer email on the order
+- [x] Open an order in admin → Fulfillment section
+- [x] Add stage: **Packed at Workshop** (if not already set)
+- [x] Note the order number (e.g. `#1001`) and the customer email on the order
 
 **Test**
-- [ ] Go to `/track-order`
-- [ ] Enter the order number and customer email → click Track
-- [ ] **PASS:** "Packed at workshop" appears in the fulfillment timeline
-- [ ] **PASS:** Timeline is in chronological order (oldest at top or bottom, consistent with existing events)
-- [ ] Reload the page → re-enter the same order
-- [ ] **PASS:** "Packed at workshop" still appears (not lost on reload)
+- [x] Go to `/track-order`
+- [x] Enter the order number and customer email → click Track
+- [x] **PASS:** "Packed at workshop" appears in the fulfillment timeline
+- [x] **PASS:** Timeline is in chronological order (oldest at top or bottom, consistent with existing events)
+- [x] Reload the page → re-enter the same order
+- [x] **PASS:** "Packed at workshop" still appears (not lost on reload)
 
 **Edge cases**
-- [ ] Enter an order that has progressed to **In Transit** (has a Shopify fulfillment)
-- [ ] **PASS:** "Packed at workshop" still shows (not duplicated, not missing)
-- [ ] Enter an order that only has **Order Confirmed** (no packed stage yet)
-- [ ] **PASS:** No "Packed at workshop" — only shows what was actually set
+- [x] Enter an order that has progressed to **In Transit** (has a Shopify fulfillment)
+- [x] **PASS:** "Packed at workshop" still shows (not duplicated, not missing)
+- [x] Enter an order that only has **Order Confirmed** (no packed stage yet)
+- [x] **PASS:** No "Packed at workshop" — only shows what was actually set
 
 ---
 
@@ -187,13 +187,13 @@ curl http://localhost:3000/api/admin/products/notify-restock?handle=duplex-chimn
 
 | Section | Result | Notes |
 |---------|--------|-------|
-| 1. Order tracking pre-transit | ⬜ Pass / ⬜ Fail | |
+| 1. Order tracking pre-transit | ✅ Pass | Tested June 23 |
 | 2. Notify me form (storefront) | ⬜ Pass / ⬜ Fail | |
 | 3. Admin notify button | ⬜ Pass / ⬜ Fail | |
 | 4. Email content | ⬜ Pass / ⬜ Fail | |
 | 5. Public API validation | ⬜ Pass / ⬜ Fail | |
 | 6. Auth guard | ⬜ Pass / ⬜ Fail | |
 
-**Tested by:** _______________  
-**Date:** _______________  
-**Build / commit:** _______________
+**Tested by:** Peter Paul Abillar Lazan  
+**Date:** June 23–25, 2026  
+**Build / commit:** Post-PR #13 (analytics + activity log)

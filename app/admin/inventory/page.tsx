@@ -36,16 +36,21 @@ function stockLabel(stock: number): string {
 export default function InventoryPage() {
   const router = useRouter()
 
-  const [baseProducts, setBaseProducts] = useState<AdminProduct[]>([])
-  const [loading,      setLoading]      = useState(true)
-  const [stocks,       setStocks]       = useState<Record<string, number>>({})
-  const [editing,      setEditing]      = useState<string | null>(null)
-  const [editVal,      setEditVal]      = useState('')
-  const [tab,          setTab]          = useState<TabFilter>('all')
-  const [search,       setSearch]       = useState('')
-  const [savingId,     setSavingId]     = useState<string | null>(null)
-  const [toast,        setToast]        = useState<{ message: string; type: ToastType } | null>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const [baseProducts,    setBaseProducts]    = useState<AdminProduct[]>([])
+  const [loading,         setLoading]         = useState(true)
+  const [stocks,          setStocks]          = useState<Record<string, number>>({})
+  const [prices,          setPrices]          = useState<Record<string, number>>({})
+  const [editing,         setEditing]         = useState<string | null>(null)
+  const [editVal,         setEditVal]         = useState('')
+  const [editingPrice,    setEditingPrice]    = useState<string | null>(null)
+  const [editPriceVal,    setEditPriceVal]    = useState('')
+  const [tab,             setTab]             = useState<TabFilter>('all')
+  const [search,          setSearch]          = useState('')
+  const [savingId,        setSavingId]        = useState<string | null>(null)
+  const [savingPriceId,   setSavingPriceId]   = useState<string | null>(null)
+  const [toast,           setToast]           = useState<{ message: string; type: ToastType } | null>(null)
+  const inputRef      = useRef<HTMLInputElement>(null)
+  const priceInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     fetch('/api/admin/products')
@@ -53,6 +58,7 @@ export default function InventoryPage() {
       .then((data: AdminProduct[]) => {
         setBaseProducts(data)
         setStocks(Object.fromEntries(data.map(p => [p.id, p.stock])))
+        setPrices(Object.fromEntries(data.map(p => [p.id, p.price])))
       })
       .finally(() => setLoading(false))
   }, [])
@@ -108,6 +114,38 @@ export default function InventoryPage() {
   }
 
   function cancelEdit() { setEditing(null) }
+
+  function startPriceEdit(id: string, current: number) {
+    setEditingPrice(id)
+    setEditPriceVal(current.toFixed(2))
+    setTimeout(() => priceInputRef.current?.select(), 0)
+  }
+
+  async function commitPriceEdit(id: string) {
+    const n = parseFloat(editPriceVal)
+    if (isNaN(n) || n < 0) { setEditingPrice(null); return }
+    const prev = prices[id] ?? 0
+    setEditingPrice(null)
+    setSavingPriceId(id)
+    try {
+      const res = await fetch(`/api/admin/inventory/${id}`, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ price: n }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Failed to update price')
+      setPrices(p => ({ ...p, [id]: n }))
+      setToast({ message: 'Price updated in Shopify.', type: 'success' })
+    } catch (err) {
+      setPrices(p => ({ ...p, [id]: prev }))
+      setToast({ message: err instanceof Error ? err.message : 'Failed to update price', type: 'error' })
+    } finally {
+      setSavingPriceId(null)
+    }
+  }
+
+  function cancelPriceEdit() { setEditingPrice(null) }
 
   const lowCount = tabCount('low')
   const outCount = tabCount('out')
@@ -222,8 +260,17 @@ export default function InventoryPage() {
                 </button>
                 <Badge label={stockLabel(p.stock)} variant={stockVariant(p.stock)} />
               </div>
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center justify-between gap-2 mb-1">
                 <span className="text-[11px] text-(--admin-text-muted)">{p.sku}</span>
+                <button
+                  onClick={() => startPriceEdit(p.id, prices[p.id] ?? p.price)}
+                  className="text-[12px] font-semibold text-(--admin-text) hover:text-(--admin-accent) transition-colors"
+                >
+                  ${(prices[p.id] ?? p.price).toFixed(2)}
+                </button>
+              </div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[11px] text-(--admin-text-muted)" />
                 <div className="flex items-center gap-2">
                   {savingId === p.id ? (
                     <div className="flex items-center gap-2">
@@ -276,7 +323,7 @@ export default function InventoryPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-(--admin-border)">
-                {['Product', 'SKU', 'Status', 'Stock', ''].map(h => (
+                {['Product', 'SKU', 'Status', 'Stock', 'Price', ''].map(h => (
                   <th key={h} className="px-5 py-3 text-[11px] font-medium uppercase tracking-wider text-(--admin-text-muted) whitespace-nowrap">
                     {h}
                   </th>
@@ -286,7 +333,7 @@ export default function InventoryPage() {
             <tbody>
               {products.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-5 py-16 text-center">
+                  <td colSpan={6} className="px-5 py-16 text-center">
                     <p className="text-[13px] text-(--admin-text-soft)">No products found</p>
                     <p className="text-[11px] text-(--admin-text-muted) mt-1">Try adjusting your filters or search.</p>
                   </td>
@@ -353,10 +400,44 @@ export default function InventoryPage() {
                       </span>
                     )}
                   </td>
+                  {/* Price cell */}
+                  <td className="px-5 py-3">
+                    {savingPriceId === p.id ? (
+                      <span className="text-[13px] font-semibold text-(--admin-text-muted)">
+                        ${(prices[p.id] ?? p.price).toFixed(2)}
+                      </span>
+                    ) : editingPrice === p.id ? (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[13px] text-(--admin-text-muted)">$</span>
+                        <input
+                          ref={priceInputRef}
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={editPriceVal}
+                          onChange={e => setEditPriceVal(e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') commitPriceEdit(p.id)
+                            if (e.key === 'Escape') cancelPriceEdit()
+                          }}
+                          className="w-24 h-7 px-2 text-[13px] text-(--admin-text) bg-(--admin-surface-2) border border-(--admin-accent) rounded focus:outline-none"
+                        />
+                        <button onClick={() => commitPriceEdit(p.id)} className="text-(--admin-accent) hover:opacity-70 transition-opacity"><BiCheck size={16} /></button>
+                        <button onClick={cancelPriceEdit} className="text-(--admin-text-muted) hover:text-(--admin-text) transition-colors"><BiX size={16} /></button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => startPriceEdit(p.id, prices[p.id] ?? p.price)}
+                        className="text-[13px] font-semibold text-(--admin-text) hover:text-(--admin-accent) transition-colors"
+                      >
+                        ${(prices[p.id] ?? p.price).toFixed(2)}
+                      </button>
+                    )}
+                  </td>
                   <td className="px-5 py-3 text-right">
-                    {savingId === p.id ? (
+                    {savingId === p.id || savingPriceId === p.id ? (
                       <BiLoader size={14} className="animate-spin text-(--admin-text-muted) ml-auto" />
-                    ) : editing !== p.id && (
+                    ) : editing !== p.id && editingPrice !== p.id && (
                       <button
                         onClick={() => startEdit(p.id, p.stock)}
                         className="flex items-center gap-1 h-7 px-2.5 text-[11px] text-(--admin-text-muted) bg-(--admin-surface-2) border border-(--admin-border) rounded hover:bg-(--admin-border) hover:text-(--admin-text) transition-colors"
