@@ -29,7 +29,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     }
     try {
       await updateProductPrice(id, body.price)
-      revalidateTag('products')
+      revalidateTag('products', 'layout')
       return NextResponse.json({ ok: true, price: body.price })
     } catch (err) {
       return NextResponse.json({ error: String(err) }, { status: 500 })
