@@ -66,3 +66,75 @@ export async function sendPackedAtWorkshopEmail(
     `,
   })
 }
+
+export async function sendNewOrderAdminAlert(order: {
+  name:            string
+  total:           string
+  customer:        string
+  email:           string
+  items:           { title: string; quantity: number; price: string }[]
+  shippingAddress: string
+}): Promise<void> {
+  const recipients = (process.env.ADMIN_EMAIL ?? '')
+    .split(',')
+    .map(e => e.trim())
+    .filter(Boolean)
+  if (!recipients.length) return
+
+  const itemRows = order.items.map(i =>
+    `<tr>
+      <td style="padding:6px 0; font-size:13px; color:#2C2C2A; border-bottom:1px solid #E8E0D4;">${i.title}</td>
+      <td style="padding:6px 0; font-size:13px; color:#6B6257; text-align:center; border-bottom:1px solid #E8E0D4;">×${i.quantity}</td>
+      <td style="padding:6px 0; font-size:13px; color:#2C2C2A; text-align:right; border-bottom:1px solid #E8E0D4;">$${i.price}</td>
+    </tr>`
+  ).join('')
+
+  await resend.emails.send({
+    from:    FROM,
+    to:      recipients,
+    subject: `New order ${order.name} — $${order.total} CAD`,
+    html: `
+      <div style="font-family: Georgia, serif; max-width: 560px; margin: 0 auto; color: #2C2C2A;">
+        <div style="background:#2C5F2E; padding:20px 28px; border-radius:8px 8px 0 0;">
+          <p style="color:#F5F1E6; font-size:11px; font-family:sans-serif; letter-spacing:2px; text-transform:uppercase; margin:0 0 4px;">New Order Received</p>
+          <h1 style="color:#F5F1E6; font-size:24px; font-weight:700; margin:0;">${order.name}</h1>
+        </div>
+        <div style="background:#FDFAF6; border:1px solid #E8E0D4; border-top:none; padding:24px 28px; border-radius:0 0 8px 8px;">
+          <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
+            <tr>
+              <td style="font-size:12px; color:#A89F94; font-family:sans-serif; text-transform:uppercase; letter-spacing:1px; padding-bottom:4px;">Customer</td>
+              <td style="font-size:12px; color:#A89F94; font-family:sans-serif; text-transform:uppercase; letter-spacing:1px; padding-bottom:4px; text-align:right;">Order Total</td>
+            </tr>
+            <tr>
+              <td style="font-size:15px; color:#2C2C2A; font-weight:600;">${order.customer}</td>
+              <td style="font-size:22px; color:#2C5F2E; font-weight:700; text-align:right;">$${order.total} CAD</td>
+            </tr>
+            <tr>
+              <td style="font-size:12px; color:#6B6257;">${order.email}</td>
+              <td></td>
+            </tr>
+          </table>
+          <p style="font-size:12px; color:#A89F94; font-family:sans-serif; margin:0 0 4px;">Ship to</p>
+          <p style="font-size:13px; color:#2C2C2A; margin:0 0 20px;">${order.shippingAddress}</p>
+          <table style="width:100%; border-collapse:collapse; margin-bottom:24px;">
+            <thead>
+              <tr>
+                <th style="font-size:11px; color:#A89F94; font-family:sans-serif; text-align:left; padding-bottom:6px; border-bottom:2px solid #E8E0D4;">Item</th>
+                <th style="font-size:11px; color:#A89F94; font-family:sans-serif; text-align:center; padding-bottom:6px; border-bottom:2px solid #E8E0D4;">Qty</th>
+                <th style="font-size:11px; color:#A89F94; font-family:sans-serif; text-align:right; padding-bottom:6px; border-bottom:2px solid #E8E0D4;">Price</th>
+              </tr>
+            </thead>
+            <tbody>${itemRows}</tbody>
+          </table>
+          <a
+            href="https://acmevintagesupply.com/admin/orders/${order.name.replace('#', '')}"
+            style="display:inline-block; background:#B8964E; color:#fff; text-decoration:none; padding:12px 28px; border-radius:6px; font-family:sans-serif; font-size:14px; font-weight:600;"
+          >
+            View order in admin →
+          </a>
+          <p style="font-size:11px; color:#A89F94; margin-top:20px;">Acme Vintage Supply · Dartmouth, Nova Scotia</p>
+        </div>
+      </div>
+    `,
+  })
+}

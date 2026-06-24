@@ -1340,6 +1340,7 @@ export async function getAdminNotifications(): Promise<AdminNotification[]> {
         subtitle:  `${p.sku} · ${p.stock === 0 ? 'Out of stock' : `${p.stock} left`}`,
         href:      '/admin/inventory',
         timestamp: new Date().toISOString(),
+        severity:  p.stock === 0 ? 'error' : 'warning',
       })
     }
   } catch { /* Shopify not configured */ }
