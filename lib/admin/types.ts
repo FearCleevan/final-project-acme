@@ -170,4 +170,5 @@ export interface AdminNotification {
   href:      string
   amount?:   number
   timestamp: string
+  severity?: 'info' | 'warning' | 'error'
 }

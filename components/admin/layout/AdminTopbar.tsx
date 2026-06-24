@@ -125,6 +125,13 @@ export default function AdminTopbar() {
   const [ownerName,     setOwnerName]     = useState('')
   const [ownerEmail,    setOwnerEmail]    = useState('')
   const [notifications, setNotifications] = useState<(AdminNotification & { age: string })[]>([])
+  const [dismissed, setDismissed] = useState<Set<string>>(() => {
+    if (typeof window === 'undefined') return new Set()
+    try {
+      const stored = localStorage.getItem('acme-notif-dismissed')
+      return new Set(stored ? (JSON.parse(stored) as string[]) : [])
+    } catch { return new Set() }
+  })
 
   useEffect(() => {
     fetch('/api/admin/shop')
@@ -161,7 +168,8 @@ export default function AdminTopbar() {
   useClickOutside(profileRef, () => setProfileOpen(false))
   useClickOutside(searchRef,  () => setSearch(''))
 
-  const notifCount = notifications.length
+  const visibleNotifs = notifications.filter(n => !dismissed.has(n.id))
+  const notifCount    = visibleNotifs.length
 
   const searchResults = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -184,6 +192,14 @@ export default function AdminTopbar() {
     setSearch('')
     setSearchOpen(false)
     router.push(href)
+  }
+
+  function dismissAll() {
+    const ids  = notifications.map(n => n.id)
+    const next = new Set([...dismissed, ...ids])
+    setDismissed(next)
+    localStorage.setItem('acme-notif-dismissed', JSON.stringify([...next]))
+    setNotifOpen(false)
   }
 
   async function handleLogout() {
@@ -267,7 +283,9 @@ export default function AdminTopbar() {
           >
             <BiBell size={18} />
             {notifCount > 0 && (
-              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-(--admin-green)" />
+              <span className="absolute -top-1 -right-1 min-w-4 h-4 px-0.5 rounded-full bg-(--admin-green) text-[9px] font-bold text-white flex items-center justify-center leading-none">
+                {notifCount > 9 ? '9+' : notifCount}
+              </span>
             )}
           </button>
 
@@ -296,10 +314,19 @@ export default function AdminTopbar() {
                 </div>
               ) : (
                 <div className="divide-y divide-(--admin-border) max-h-80 overflow-y-auto">
-                  {notifications.map(n => {
+                  {visibleNotifs.map(n => {
+                    const severity  = n.severity ?? 'info'
                     const Icon      = n.type === 'new_order' ? BiReceipt : n.type === 'new_customer' ? BiUser : BiPackage
-                    const iconBg    = n.type === 'new_order' ? 'bg-(--admin-green-bg)' : n.type === 'new_customer' ? 'bg-(--admin-accent)/10' : 'bg-(--admin-amber-bg)'
-                    const iconColor = n.type === 'new_order' ? 'text-(--admin-green)' : n.type === 'new_customer' ? 'text-(--admin-accent)' : 'text-(--admin-amber)'
+                    const iconBg    = severity === 'error'   ? 'bg-(--admin-red-bg)'
+                                    : severity === 'warning' ? 'bg-(--admin-amber-bg)'
+                                    : n.type === 'new_order' ? 'bg-(--admin-green-bg)'
+                                    : n.type === 'new_customer' ? 'bg-(--admin-accent)/10'
+                                    : 'bg-(--admin-amber-bg)'
+                    const iconColor = severity === 'error'   ? 'text-(--admin-red)'
+                                    : severity === 'warning' ? 'text-(--admin-amber)'
+                                    : n.type === 'new_order' ? 'text-(--admin-green)'
+                                    : n.type === 'new_customer' ? 'text-(--admin-accent)'
+                                    : 'text-(--admin-amber)'
                     return (
                       <button
                         key={n.id}
@@ -334,6 +361,12 @@ export default function AdminTopbar() {
                   <button onClick={() => { setNotifOpen(false); router.push('/admin/customers') }}
                     className="text-[12px] text-(--admin-accent) hover:opacity-70 transition-opacity">
                     Customers →
+                  </button>
+                  <button
+                    onClick={dismissAll}
+                    className="ml-auto text-[12px] text-(--admin-text-muted) hover:text-(--admin-text) transition-colors"
+                  >
+                    Mark all read
                   </button>
                 </div>
               )}
