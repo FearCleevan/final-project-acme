@@ -18,6 +18,7 @@ import {
   BiEditAlt,
   BiStar,
   BiHistory,
+  BiMessageSquareDetail,
 } from 'react-icons/bi'
 import { useTheme } from 'next-themes'
 import { cn } from '@/lib/utils'
@@ -74,6 +75,7 @@ export default function AdminSidebar() {
   const [ownerEmail,   setOwnerEmail]   = useState('')
   const [unfulfilledCount,   setUnfulfilledCount]   = useState(0)
   const [pendingReviewCount, setPendingReviewCount] = useState(0)
+  const [unreadContactCount, setUnreadContactCount] = useState(0)
 
   useEffect(() => {
     fetch('/api/admin/shop')
@@ -97,6 +99,15 @@ export default function AdminSidebar() {
       .catch(() => {})
   }, [])
 
+  useEffect(() => {
+    fetch('/api/admin/communications/contacts')
+      .then(r => r.ok ? r.json() : [])
+      .then((msgs: { read_at: string | null }[]) => {
+        setUnreadContactCount(msgs.filter(m => !m.read_at).length)
+      })
+      .catch(() => {})
+  }, [])
+
   const NAV_MAIN: Array<{ label: string; href: string; icon: React.ElementType; badge?: number; activePrefix?: string }> = [
     { label: 'Overview',    href: '/admin/overview',    icon: BiHomeAlt                                          },
     { label: 'Orders',      href: '/admin/orders',      icon: BiCart,        badge: unfulfilledCount || undefined },
@@ -105,8 +116,9 @@ export default function AdminSidebar() {
     { label: 'Collections', href: '/admin/collections', icon: BiCollection                                       },
     { label: 'Content',     href: '/admin/content/home', icon: BiEditAlt,    activePrefix: '/admin/content'      },
     { label: 'Customers',   href: '/admin/customers',   icon: BiUser                                             },
-    { label: 'Analytics',   href: '/admin/analytics',   icon: BiBarChartAlt2                                     },
-    { label: 'Reviews',     href: '/admin/reviews',     icon: BiStar, badge: pendingReviewCount || undefined      },
+    { label: 'Analytics',      href: '/admin/analytics',      icon: BiBarChartAlt2                                              },
+    { label: 'Communications', href: '/admin/communications', icon: BiMessageSquareDetail, badge: unreadContactCount || undefined },
+    { label: 'Reviews',        href: '/admin/reviews',        icon: BiStar, badge: pendingReviewCount || undefined                },
     { label: 'Activity',    href: '/admin/activity',    icon: BiHistory                                          },
   ]
 

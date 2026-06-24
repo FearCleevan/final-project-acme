@@ -138,3 +138,50 @@ export async function sendNewOrderAdminAlert(order: {
     `,
   })
 }
+
+export async function sendContactAdminAlert(msg: {
+  name:    string
+  email:   string
+  subject: string
+  message: string
+}): Promise<void> {
+  const raw        = process.env.ADMIN_EMAIL ?? ''
+  const recipients = raw.split(',').map(e => e.trim()).filter(Boolean)
+  if (!recipients.length) return
+
+  await resend.emails.send({
+    from:    FROM,
+    to:      recipients,
+    subject: `New contact: ${msg.subject} — ${msg.name}`,
+    html: `
+      <div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#1C2B1E;border-radius:6px;overflow:hidden">
+        <div style="background:#2C5F2E;padding:24px 32px">
+          <h1 style="color:#F5F1E6;font-size:18px;margin:0;font-weight:700">New Contact Message</h1>
+          <p style="color:#b8d4b9;font-size:13px;margin:4px 0 0">Acme Vintage Supply</p>
+        </div>
+        <div style="padding:28px 32px;background:#fff">
+          <table style="width:100%;border-collapse:collapse;margin-bottom:20px">
+            <tr>
+              <td style="padding:6px 0;color:#666;font-size:13px;width:80px;vertical-align:top">From</td>
+              <td style="padding:6px 0;font-size:13px;color:#1C1C1C">${msg.name} &lt;${msg.email}&gt;</td>
+            </tr>
+            <tr>
+              <td style="padding:6px 0;color:#666;font-size:13px;vertical-align:top">Subject</td>
+              <td style="padding:6px 0;font-size:13px;color:#1C1C1C">${msg.subject}</td>
+            </tr>
+          </table>
+          <div style="background:#f5f5f5;border-left:3px solid #2C5F2E;padding:16px;border-radius:0 4px 4px 0">
+            <p style="margin:0;font-size:14px;color:#3A3A3A;line-height:1.6;white-space:pre-wrap">${msg.message}</p>
+          </div>
+          <div style="margin-top:24px">
+            <a href="${SITE}/admin/communications"
+               style="display:inline-block;background:#2C5F2E;color:#F5F1E6;text-decoration:none;
+                      padding:12px 24px;border-radius:3px;font-size:13px;font-weight:600">
+              View in admin →
+            </a>
+          </div>
+        </div>
+      </div>
+    `,
+  })
+}

@@ -18,6 +18,7 @@ import {
   BiEditAlt,
   BiStar,
   BiHistory,
+  BiMessageSquareDetail,
 } from 'react-icons/bi'
 import { cn } from '@/lib/utils'
 
@@ -32,8 +33,9 @@ const MORE_ITEMS = [
   { label: 'Inventory',   href: '/admin/inventory',   icon: BiArchive       },
   { label: 'Collections', href: '/admin/collections', icon: BiCollection    },
   { label: 'Content',     href: '/admin/content/home', icon: BiEditAlt      },
-  { label: 'Analytics',   href: '/admin/analytics',   icon: BiBarChartAlt2  },
-  { label: 'Reviews',     href: '/admin/reviews',     icon: BiStar          },
+  { label: 'Analytics',      href: '/admin/analytics',      icon: BiBarChartAlt2        },
+  { label: 'Communications', href: '/admin/communications', icon: BiMessageSquareDetail },
+  { label: 'Reviews',        href: '/admin/reviews',        icon: BiStar                },
   { label: 'Activity',    href: '/admin/activity',    icon: BiHistory       },
   { label: 'Settings',    href: '/admin/settings',    icon: BiCog           },
 ]
