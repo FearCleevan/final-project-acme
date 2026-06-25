@@ -240,11 +240,11 @@ curl http://localhost:3000/api/admin/products/notify-restock?handle=duplex-chimn
 - [x] **PASS:** Footer: "Acme Vintage Supply · Dartmouth, Nova Scotia" + Unsubscribe link
 
 **Test: Unsubscribe**
-- [ ] Click the Unsubscribe link in the email footer
-- [ ] **PASS:** Browser shows "You've been unsubscribed" HTML page
-- [ ] Check Supabase: `SELECT unsubscribed_at FROM newsletter_subscribers WHERE email = 'your@email.com';`
-- [ ] **PASS:** `unsubscribed_at` is now set
+- [x] Click the Unsubscribe link in the email footer
+- [x] **PASS:** Browser shows "You've been unsubscribed" HTML page
+- [x] Check Supabase: `SELECT unsubscribed_at FROM newsletter_subscribers WHERE email = 'your@email.com';`
+- [x] **PASS:** `unsubscribed_at` is now set
 
 **Test: Double-send protection**
-- [ ] Attempt to send the same campaign again (click Send on a "Sent" campaign)
-- [ ] **PASS:** API returns 400 — campaign already sent, no duplicate emails
+- [x] Attempt to send the same campaign again (click Send on a "Sent" campaign)
+- [x] **PASS:** API returns 400 — campaign already sent, no duplicate emails
