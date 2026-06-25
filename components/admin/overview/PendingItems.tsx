@@ -10,21 +10,26 @@ function getSupabase() {
 }
 
 export default async function PendingItems() {
-  const supabase = getSupabase()
+  let unreadCount = 0
+  let reviewCount = 0
 
-  const [{ count: unread }, { count: pendingReviews }] = await Promise.all([
-    supabase
-      .from('contact_messages')
-      .select('id', { count: 'exact', head: true })
-      .is('read_at', null),
-    supabase
-      .from('reviews')
-      .select('id', { count: 'exact', head: true })
-      .eq('status', 'pending'),
-  ])
-
-  const unreadCount  = unread ?? 0
-  const reviewCount  = pendingReviews ?? 0
+  try {
+    const supabase = getSupabase()
+    const [{ count: unread }, { count: pending }] = await Promise.all([
+      supabase
+        .from('contact_messages')
+        .select('id', { count: 'exact', head: true })
+        .is('read_at', null),
+      supabase
+        .from('reviews')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'pending'),
+    ])
+    unreadCount = unread ?? 0
+    reviewCount = pending ?? 0
+  } catch {
+    return null
+  }
 
   if (unreadCount === 0 && reviewCount === 0) return null
 
