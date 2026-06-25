@@ -1488,6 +1488,7 @@ export interface AnalyticsData {
   orderCount:      { today: number; week: number; month: number }
   fulfilledOrders: number
   totalOrders:     number
+  totalRevenue:    number
   totalShipping:   number
   totalTaxes:      number
   avgOrderValue:   number
@@ -1588,7 +1589,7 @@ export async function getAdminAnalytics(): Promise<AnalyticsData> {
   return {
     revenue:         { today: todayRev, week: weekRev, month: monthRev, todayChange: pctChange(todayRev, yesterdayRev), weekChange: pctChange(weekRev, lastWeekRev), monthChange: pctChange(monthRev, lastMonthRev) },
     orderCount:      { today: todayOrders.length, week: weekOrders.length, month: monthOrders.length },
-    fulfilledOrders, totalOrders, totalShipping, totalTaxes, avgOrderValue,
+    fulfilledOrders, totalOrders, totalRevenue, totalShipping, totalTaxes, avgOrderValue,
     customers:       { total: customers.length, repeat: repeatCustomers, returningRate },
     topProducts, chartData,
   }
