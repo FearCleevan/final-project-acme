@@ -19,7 +19,7 @@ export function getOrderByTrackingRef(ref: string): AdminOrder | undefined {
 
 export const mockOrders: AdminOrder[] = [
   {
-    id: 'ORD-1001',
+    id: 'ACMEORDER-1001',
     customer: {
       name: 'Margaret Holloway',
       email: 'margaret@example.com',
@@ -48,7 +48,7 @@ export const mockOrders: AdminOrder[] = [
     ],
   },
   {
-    id: 'ORD-1002',
+    id: 'ACMEORDER-1002',
     customer: {
       name: 'James Whitfield',
       email: 'james.whitfield@example.com',
@@ -79,7 +79,7 @@ export const mockOrders: AdminOrder[] = [
     ],
   },
   {
-    id: 'ORD-1003',
+    id: 'ACMEORDER-1003',
     customer: {
       name: 'Eleanor Vance',
       email: 'eleanor.v@example.com',
@@ -110,7 +110,7 @@ export const mockOrders: AdminOrder[] = [
     ],
   },
   {
-    id: 'ORD-1004',
+    id: 'ACMEORDER-1004',
     customer: {
       name: 'Robert Dunning',
       email: 'rdunning@example.com',
@@ -140,7 +140,7 @@ export const mockOrders: AdminOrder[] = [
     ],
   },
   {
-    id: 'ORD-1005',
+    id: 'ACMEORDER-1005',
     customer: {
       name: 'Patricia Lowry',
       email: 'patricia.lowry@example.com',
@@ -171,7 +171,7 @@ export const mockOrders: AdminOrder[] = [
     ],
   },
   {
-    id: 'ORD-1006',
+    id: 'ACMEORDER-1006',
     customer: {
       name: 'William Hartley',
       email: 'w.hartley@example.com',
@@ -198,7 +198,7 @@ export const mockOrders: AdminOrder[] = [
     ],
   },
   {
-    id: 'ORD-1007',
+    id: 'ACMEORDER-1007',
     customer: {
       name: 'Sylvia Brennan',
       email: 'sylvia.b@example.com',
@@ -229,7 +229,7 @@ export const mockOrders: AdminOrder[] = [
     ],
   },
   {
-    id: 'ORD-1008',
+    id: 'ACMEORDER-1008',
     customer: {
       name: 'Thomas Ashby',
       email: 'tashby@example.com',
