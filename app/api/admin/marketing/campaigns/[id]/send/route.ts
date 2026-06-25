@@ -50,11 +50,13 @@ export async function POST(
     ctaUrl:   campaign.cta_url    ?? undefined,
   })
 
-  await supabase.from('email_campaigns').update({
+  const { error: updateErr } = await supabase.from('email_campaigns').update({
     status:          'sent',
     sent_at:         new Date().toISOString(),
     recipient_count: sent,
   }).eq('id', id)
+
+  if (updateErr) return NextResponse.json({ error: 'Failed to update campaign status' }, { status: 500 })
 
   return NextResponse.json({ ok: true, sent })
 }

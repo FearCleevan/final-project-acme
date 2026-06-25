@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
     const csv = [
       'email,subscribed_at,status',
       ...rows.map(r =>
-        `${r.email},${r.subscribed_at},${r.unsubscribed_at ? 'unsubscribed' : 'active'}`
+        `"${r.email}","${r.subscribed_at}","${r.unsubscribed_at ? 'unsubscribed' : 'active'}"`
       ),
     ].join('\n')
     return new NextResponse(csv, {
