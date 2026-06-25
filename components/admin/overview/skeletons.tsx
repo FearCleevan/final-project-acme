@@ -8,17 +8,17 @@ function PulseRow({ className = 'h-9' }: { className?: string }) {
 
 export function StatCardsSkeleton() {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      {[0, 1, 2, 3].map(i => <PulseBox key={i} className="h-24" />)}
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      {[0, 1, 2, 3].map(i => <PulseBox key={i} className="h-22" />)}
     </div>
   )
 }
 
 export function ChartsSkeleton() {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      <PulseBox className="lg:col-span-2 h-56" />
-      <PulseBox className="h-56" />
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+      <PulseBox className="lg:col-span-2 h-85" />
+      <PulseBox className="h-85" />
     </div>
   )
 }
