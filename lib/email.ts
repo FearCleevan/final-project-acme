@@ -239,8 +239,14 @@ export async function sendNewsletter(
 </div>`,
       }
     })
-    await resend.batch.send(messages)
-    sent += slice.length
+    try {
+      const result = await resend.batch.send(messages)
+      if (result.data) {
+        sent += result.data.data.length
+      }
+    } catch {
+      // batch failed — continue to next batch, total count will reflect actual sends
+    }
     if (i + BATCH < subscribers.length) {
       await new Promise(r => setTimeout(r, 1000))
     }

@@ -19,23 +19,18 @@ export async function POST(req: NextRequest) {
     const normalised = String(email).trim().toLowerCase()
     const supabase = getSupabase()
 
-    const { data: existing } = await supabase
+    const { error } = await supabase
       .from('newsletter_subscribers')
-      .select('id, unsubscribed_at')
-      .eq('email', normalised)
-      .maybeSingle()
+      .upsert(
+        { email: normalised, subscribed_at: new Date().toISOString(), unsubscribed_at: null },
+        { onConflict: 'email' }
+      )
 
-    if (existing) {
-      if (existing.unsubscribed_at) {
-        await supabase
-          .from('newsletter_subscribers')
-          .update({ unsubscribed_at: null, subscribed_at: new Date().toISOString() })
-          .eq('id', existing.id)
-      }
-      return NextResponse.json({ success: true })
+    if (error) {
+      console.error('Newsletter upsert error:', error)
+      return NextResponse.json({ success: false }, { status: 500 })
     }
 
-    await supabase.from('newsletter_subscribers').insert({ email: normalised })
     return NextResponse.json({ success: true })
   } catch {
     return NextResponse.json({ success: false }, { status: 500 })

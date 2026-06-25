@@ -33,7 +33,18 @@ export async function POST(
     .single()
 
   if (campErr || !campaign) return NextResponse.json({ error: 'Campaign not found' }, { status: 404 })
-  if (campaign.status === 'sent') return NextResponse.json({ error: 'Already sent' }, { status: 400 })
+  if (campaign.status === 'sent' || campaign.status === 'sending') return NextResponse.json({ error: 'Already sent' }, { status: 400 })
+
+  // Atomic lock: flip status to 'sending' only if still 'draft'
+  const { error: lockErr, count } = await supabase
+    .from('email_campaigns')
+    .update({ status: 'sending' }, { count: 'exact' })
+    .eq('id', id)
+    .eq('status', 'draft')
+
+  if (lockErr || !count) {
+    return NextResponse.json({ error: 'Campaign already being sent or not found' }, { status: 409 })
+  }
 
   const { data: subs } = await supabase
     .from('newsletter_subscribers')
