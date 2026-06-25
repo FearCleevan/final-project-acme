@@ -40,9 +40,11 @@ export default function OverviewPage() {
       </Suspense>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <Suspense fallback={<RecentOrdersSkeleton />}>
-          <RecentOrders />
-        </Suspense>
+        <div className="lg:col-span-2">
+          <Suspense fallback={<RecentOrdersSkeleton />}>
+            <RecentOrders />
+          </Suspense>
+        </div>
 
         <div className="space-y-4">
           <Suspense fallback={<PendingItemsSkeleton />}>
