@@ -137,7 +137,7 @@ curl -X POST http://localhost:3000/api/notify-me \
   -H "Content-Type: application/json" \
   -d '{"productHandle":"test","productTitle":"Test"}'
 ```
-- [ ] **PASS:** `400` with `{ "error": "Valid email required" }`
+- [x] **PASS:** `400` with `{ "error": "Valid email required" }`
 
 **Invalid email**
 ```bash
@@ -145,7 +145,7 @@ curl -X POST http://localhost:3000/api/notify-me \
   -H "Content-Type: application/json" \
   -d '{"email":"notanemail","productHandle":"test","productTitle":"Test"}'
 ```
-- [ ] **PASS:** `400` with `{ "error": "Valid email required" }`
+- [x] **PASS:** `400` with `{ "error": "Valid email required" }`
 
 **Missing handle**
 ```bash
@@ -153,7 +153,7 @@ curl -X POST http://localhost:3000/api/notify-me \
   -H "Content-Type: application/json" \
   -d '{"email":"a@b.com","productTitle":"Test"}'
 ```
-- [ ] **PASS:** `400` with `{ "error": "Product handle required" }`
+- [x] **PASS:** `400` with `{ "error": "Product handle required" }`
 
 **Valid request**
 ```bash
@@ -161,7 +161,7 @@ curl -X POST http://localhost:3000/api/notify-me \
   -H "Content-Type: application/json" \
   -d '{"email":"test2@example.com","productHandle":"duplex-chimney","productTitle":"Duplex Chimney"}'
 ```
-- [ ] **PASS:** `200` with `{ "ok": true, "result": "added" }`
+- [x] **PASS:** `200` with `{ "ok": true, "result": "added" }`
 
 ---
 
@@ -174,12 +174,12 @@ curl -X POST http://localhost:3000/api/admin/products/notify-restock \
   -H "Content-Type: application/json" \
   -d '{"productHandle":"duplex-chimney"}'
 ```
-- [ ] **PASS:** `401` with `{ "error": "Unauthorized" }`
+- [x] **PASS:** `401` with `{ "error": "Unauthorized" }`
 
 ```bash
 curl http://localhost:3000/api/admin/products/notify-restock?handle=duplex-chimney
 ```
-- [ ] **PASS:** `401` with `{ "error": "Unauthorized" }`
+- [x] **PASS:** `401` with `{ "error": "Unauthorized" }`
 
 ---
 
@@ -191,8 +191,8 @@ curl http://localhost:3000/api/admin/products/notify-restock?handle=duplex-chimn
 | 2. Notify me form (storefront) | ⬜ Pass / ⬜ Fail | |
 | 3. Admin notify button | ⬜ Pass / ⬜ Fail | |
 | 4. Email content | ⬜ Pass / ⬜ Fail | |
-| 5. Public API validation | ⬜ Pass / ⬜ Fail | |
-| 6. Auth guard | ⬜ Pass / ⬜ Fail | |
+| 5. Public API validation | ✅ Pass | Tested June 25 — all 4 cases correct |
+| 6. Auth guard | ✅ Pass | Tested June 25 — POST + GET both 401 |
 
 **Tested by:** Peter Paul Abillar Lazan  
 **Date:** June 23–25, 2026  

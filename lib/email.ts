@@ -185,3 +185,71 @@ export async function sendContactAdminAlert(msg: {
     `,
   })
 }
+
+export async function sendNewsletter(
+  subscribers: { email: string }[],
+  campaign: {
+    subject:   string
+    body:      string
+    ctaLabel?: string
+    ctaUrl?:   string
+  }
+): Promise<number> {
+  if (!subscribers.length) return 0
+
+  const bodyHtml = campaign.body
+    .split('\n')
+    .filter(line => line.trim())
+    .map(line => `<p style="font-size:15px;line-height:1.7;color:#6B6257;margin:0 0 16px;">${line}</p>`)
+    .join('')
+
+  const ctaHtml = campaign.ctaLabel && campaign.ctaUrl
+    ? `<a href="${campaign.ctaUrl}"
+         style="display:inline-block;background:#2C5F2E;color:#F5F1E6;text-decoration:none;
+                padding:12px 28px;border-radius:3px;font-family:sans-serif;
+                font-size:14px;font-weight:600;margin-bottom:32px;">
+         ${campaign.ctaLabel}
+       </a>`
+    : ''
+
+  const BATCH = 50
+  let sent = 0
+
+  for (let i = 0; i < subscribers.length; i += BATCH) {
+    const slice = subscribers.slice(i, i + BATCH)
+    const messages = slice.map(sub => {
+      const token = Buffer.from(sub.email).toString('base64url')
+      return {
+        from:    FROM,
+        to:      sub.email,
+        subject: campaign.subject,
+        html: `
+<div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;color:#2C2C2A;">
+  <h2 style="font-size:22px;font-weight:600;margin-bottom:20px;">${campaign.subject}</h2>
+  ${bodyHtml}
+  ${ctaHtml}
+  <div style="border-top:1px solid #E8E0D4;padding-top:16px;margin-top:32px;">
+    <p style="font-size:12px;color:#A89F94;line-height:1.6;margin:0;">
+      Acme Vintage Supply · Dartmouth, Nova Scotia<br>
+      You're receiving this because you subscribed at acmevintagesupply.com.<br>
+      <a href="${SITE}/api/newsletter/unsubscribe?email=${token}"
+         style="color:#A89F94;">Unsubscribe</a>
+    </p>
+  </div>
+</div>`,
+      }
+    })
+    try {
+      const result = await resend.batch.send(messages)
+      if (result.data) {
+        sent += result.data.data.length
+      }
+    } catch {
+      // batch failed — continue to next batch, total count will reflect actual sends
+    }
+    if (i + BATCH < subscribers.length) {
+      await new Promise(r => setTimeout(r, 1000))
+    }
+  }
+  return sent
+}

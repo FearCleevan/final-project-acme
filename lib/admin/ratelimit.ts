@@ -34,3 +34,13 @@ export const otpResendRatelimit = hasUpstash
       prefix:    'acme_admin_otp_resend',
     })
   : null
+
+// 10 unsubscribe requests per IP per minute
+export const unsubscribeRatelimit = hasUpstash
+  ? new Ratelimit({
+      redis:     Redis.fromEnv(),
+      limiter:   Ratelimit.slidingWindow(10, '1 m'),
+      analytics: false,
+      prefix:    'acme_newsletter_unsubscribe',
+    })
+  : null
