@@ -19,6 +19,7 @@ import {
   BiStar,
   BiHistory,
   BiMessageSquareDetail,
+  BiEnvelopeOpen,
 } from 'react-icons/bi'
 import { useTheme } from 'next-themes'
 import { cn } from '@/lib/utils'
@@ -118,6 +119,7 @@ export default function AdminSidebar() {
     { label: 'Customers',   href: '/admin/customers',   icon: BiUser                                             },
     { label: 'Analytics',      href: '/admin/analytics',      icon: BiBarChartAlt2                                              },
     { label: 'Communications', href: '/admin/communications', icon: BiMessageSquareDetail, badge: unreadContactCount || undefined },
+    { label: 'Marketing',      href: '/admin/marketing',      icon: BiEnvelopeOpen                                               },
     { label: 'Reviews',        href: '/admin/reviews',        icon: BiStar, badge: pendingReviewCount || undefined                },
     { label: 'Activity',    href: '/admin/activity',    icon: BiHistory                                          },
   ]
