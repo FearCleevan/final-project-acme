@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils'
 import type { TemplateType, NewsletterProduct } from '@/lib/email'
 import {
   BiGroup, BiEnvelopeOpen, BiDownload, BiPlus, BiSend,
-  BiLoader, BiX, BiCalendar, BiImage, BiSearch,
+  BiLoader, BiX, BiCalendar, BiImage, BiSearch, BiLayout,
 } from 'react-icons/bi'
 
 // ── Preview HTML (pure — used by compose preview and template thumbnails) ──────
@@ -66,6 +66,69 @@ function buildEmailPreviewHtml(p: PreviewParams): string {
   const greetingLine = `<p style="font-size:13px;color:#A89F94;font-family:sans-serif;letter-spacing:1px;text-transform:uppercase;margin:0 0 20px;">${p.greeting}</p>`
   return wrap(`<h2 style="font-size:22px;font-weight:600;margin:0 0 20px;color:#2C2C2A;">${sub}</h2>${greetingLine}${bodyText}${cta}${footer}`)
 }
+
+// ── Template Presets ──────────────────────────────────────────────────────────
+
+interface PresetTemplate {
+  id:            string
+  name:          string
+  description:   string
+  template:      TemplateType
+  subject:       string
+  body:          string
+  ctaLabel?:     string
+  ctaUrl?:       string
+  greeting?:     string
+  saleHeadline?: string
+  discountCode?: string
+}
+
+const PRESET_TEMPLATES: PresetTemplate[] = [
+  {
+    id:          'monthly-bench-notes',
+    name:        'Monthly Bench Notes',
+    description: 'Perfect for monthly updates from the workshop.',
+    template:    'bench_notes',
+    subject:     'A note from the bench — [Month]',
+    greeting:    'A note from the bench.',
+    body:        "This month from the workshop, we've been busy unpacking some remarkable pieces from Melbourne.\n\nEach one has been cleaned, tested, and hand-numbered by our bench team — ready for a new home in North America.",
+    ctaLabel:    'Browse the collection →',
+    ctaUrl:      'https://acmevintagesupply.com/catalog',
+  },
+  {
+    id:          'new-arrivals-spotlight',
+    name:        'New Arrivals Spotlight',
+    description: 'Showcase up to 3 fresh products just in.',
+    template:    'new_arrivals',
+    subject:     'Fresh pieces just landed at the workshop',
+    body:        'Fresh pieces just landed at the workshop — each one hand-selected and ready to ship.',
+    ctaLabel:    'Shop all new arrivals →',
+    ctaUrl:      'https://acmevintagesupply.com/catalog',
+  },
+  {
+    id:          'seasonal-sale',
+    name:        'Seasonal Sale',
+    description: 'Announce a sale with a discount code and urgency.',
+    template:    'seasonal_sale',
+    subject:     'Limited time — selected pieces at reduced prices',
+    saleHeadline:'Limited time — selected pieces at reduced prices.',
+    body:        "We're making room on the bench for new arrivals, and that means selected pieces are available at reduced prices for a limited time.\n\nUse the code below at checkout — no minimum order required.",
+    discountCode:'SALE20',
+    ctaLabel:    'Shop the sale →',
+    ctaUrl:      'https://acmevintagesupply.com/catalog',
+  },
+  {
+    id:          'restock-alert',
+    name:        'Restock Alert',
+    description: 'Let subscribers know popular items are back.',
+    template:    'bench_notes',
+    subject:     'Back on the bench — popular pieces restocked',
+    greeting:    'Good news from the bench.',
+    body:        "A few of our most-requested pieces are back in stock after a long wait.\n\nThese items went quickly last time — if you've had your eye on something, now is the time.",
+    ctaLabel:    "See what's back →",
+    ctaUrl:      'https://acmevintagesupply.com/catalog',
+  },
+]
 
 // ── Preview Modal ─────────────────────────────────────────────────────────────
 
@@ -197,7 +260,7 @@ interface Campaign {
   template_data:    Record<string, unknown> | null
 }
 
-type Tab = 'subscribers' | 'campaigns'
+type Tab = 'subscribers' | 'campaigns' | 'templates'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -362,6 +425,25 @@ export default function MarketingPage() {
     setSelectedProducts(prev => prev.filter(p => p.handle !== handle))
   }
 
+  function handleUseTemplate(preset: PresetTemplate) {
+    setPreviewOpen(false)
+    setSubject(preset.subject)
+    setBody(preset.body)
+    setCtaLabel(preset.ctaLabel ?? '')
+    setCtaUrl(preset.ctaUrl ?? '')
+    setScheduleFor('')
+    setTemplate(preset.template)
+    setGreeting(preset.greeting ?? 'A note from the bench.')
+    setSaleHeadline(preset.saleHeadline ?? '')
+    setDiscountCode(preset.discountCode ?? '')
+    setSaleEndDate('')
+    setSelectedProducts([])
+    setProductSearch('')
+    setProductResults([])
+    setTab('campaigns')
+    setComposing(true)
+  }
+
   async function handleSaveDraft() {
     if (!subject.trim() || !body.trim()) {
       showToast('Subject and body are required.', 'error'); return
@@ -478,6 +560,7 @@ export default function MarketingPage() {
         {([
           { id: 'subscribers', label: 'Subscribers', icon: BiGroup },
           { id: 'campaigns',   label: 'Campaigns',   icon: BiEnvelopeOpen },
+          { id: 'templates',   label: 'Templates',   icon: BiLayout },
         ] as const).map(t => (
           <button
             key={t.id}
@@ -871,6 +954,64 @@ export default function MarketingPage() {
               </div>
             )}
           </SectionCard>
+        </div>
+      )}
+
+      {/* ── Templates Tab ── */}
+      {tab === 'templates' && (
+        <div className="space-y-4">
+          <p className="text-[13px] text-(--admin-text-soft)">
+            Pick a template to pre-fill the compose form. Edit the details, then send.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {PRESET_TEMPLATES.map(preset => (
+              <div
+                key={preset.id}
+                className="rounded-xl border border-(--admin-border) bg-(--admin-surface) overflow-hidden flex flex-col"
+              >
+                {/* Thumbnail */}
+                <div
+                  className="relative bg-(--admin-surface-2) overflow-hidden shrink-0"
+                  style={{ height: '180px' }}
+                >
+                  <div style={{ width: '560px', height: '514px', transform: 'scale(0.32)', transformOrigin: 'top left', pointerEvents: 'none' }}>
+                    <iframe
+                      srcDoc={buildEmailPreviewHtml({
+                        subject:          preset.subject,
+                        body:             preset.body,
+                        ctaLabel:         preset.ctaLabel ?? '',
+                        ctaUrl:           preset.ctaUrl ?? '',
+                        template:         preset.template,
+                        greeting:         preset.greeting ?? 'A note from the bench.',
+                        saleHeadline:     preset.saleHeadline ?? '',
+                        discountCode:     preset.discountCode ?? '',
+                        saleEndDate:      '',
+                        selectedProducts: [],
+                      })}
+                      sandbox=""
+                      style={{ width: '560px', height: '514px', border: 'none', display: 'block' }}
+                      title={preset.name}
+                    />
+                  </div>
+                </div>
+
+                {/* Card body */}
+                <div className="p-4 flex flex-col flex-1 gap-3">
+                  <div>
+                    <p className="text-[13px] font-semibold text-(--admin-text)">{preset.name}</p>
+                    <p className="text-[12px] text-(--admin-text-soft) mt-0.5">{preset.description}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleUseTemplate(preset)}
+                    className="w-full px-3 py-2 rounded-md bg-(--admin-accent) text-(--admin-accent-text) text-[12px] font-medium hover:opacity-90 transition-opacity mt-auto"
+                  >
+                    Use Template
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
