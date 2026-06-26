@@ -21,7 +21,7 @@ export async function GET() {
   if (!await requireAuth()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { data, error } = await getSupabase()
     .from('email_campaigns')
-    .select('id, subject, status, scheduled_for, sent_at, recipient_count, created_at')
+    .select('id, subject, status, scheduled_for, sent_at, recipient_count, created_at, template, template_data')
     .order('created_at', { ascending: false })
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json(data ?? [])
@@ -29,7 +29,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   if (!await requireAuth()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const { subject, body, cta_label, cta_url, scheduled_for } = await req.json()
+  const { subject, body, cta_label, cta_url, scheduled_for, template, template_data } = await req.json()
   if (!subject?.trim() || !body?.trim()) {
     return NextResponse.json({ error: 'subject and body are required' }, { status: 400 })
   }
@@ -41,9 +41,11 @@ export async function POST(req: NextRequest) {
       cta_label:     cta_label?.trim()  || null,
       cta_url:       cta_url?.trim()    || null,
       scheduled_for: scheduled_for      || null,
+      template:      template           || 'bench_notes',
+      template_data: template_data      || null,
       status:        'draft',
     })
-    .select('id, subject, status, created_at')
+    .select('id, subject, status, created_at, template, template_data')
     .single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json(data)
