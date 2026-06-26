@@ -5,6 +5,32 @@ const resend = new Resend(process.env.RESEND_API_KEY!)
 const FROM = 'Acme Vintage Supply <hello@acmevintagesupply.com>'
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://acmevintagesupply.com'
 
+export type TemplateType = 'bench_notes' | 'new_arrivals' | 'seasonal_sale'
+
+export interface NewsletterProduct {
+  title:    string
+  price:    string
+  imageUrl: string
+  handle:   string
+}
+
+export interface TemplateData {
+  greeting?:     string
+  products?:     NewsletterProduct[]
+  headline?:     string
+  discountCode?: string
+  saleEndDate?:  string
+}
+
+interface NewsletterCampaign {
+  subject:       string
+  body:          string
+  ctaLabel?:     string
+  ctaUrl?:       string
+  template?:     TemplateType
+  templateData?: TemplateData
+}
+
 export async function sendBackInStockEmail(
   to:            string,
   productTitle:  string,
@@ -186,31 +212,104 @@ export async function sendContactAdminAlert(msg: {
   })
 }
 
+function emailFooter(unsubscribeUrl: string): string {
+  return `
+  <div style="border-top:1px solid #E8E0D4;padding-top:16px;margin-top:32px;">
+    <p style="font-size:12px;color:#A89F94;line-height:1.6;margin:0;">
+      Acme Vintage Supply · Dartmouth, Nova Scotia<br>
+      You're receiving this because you subscribed at acmevintagesupply.com.<br>
+      <a href="${unsubscribeUrl}" style="color:#A89F94;">Unsubscribe</a>
+    </p>
+  </div>`
+}
+
+function emailWrapper(content: string): string {
+  return `<div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;background:#FDFAF6;border:1px solid #E8E0D4;border-radius:8px;padding:40px 40px 32px;">${content}</div>`
+}
+
+function bodyParagraphs(text: string): string {
+  return text.split('\n').filter(l => l.trim())
+    .map(l => `<p style="font-size:15px;line-height:1.7;color:#6B6257;margin:0 0 16px;">${l}</p>`)
+    .join('')
+}
+
+function ctaButton(label: string, url: string): string {
+  return `<a href="${url}" style="display:inline-block;background:#2C5F2E;color:#F5F1E6;text-decoration:none;padding:12px 28px;border-radius:3px;font-family:sans-serif;font-size:14px;font-weight:600;margin-bottom:32px;">${label}</a>`
+}
+
+function buildBenchNotesHtml(c: NewsletterCampaign, unsubscribeUrl: string): string {
+  const greeting = c.templateData?.greeting ?? 'A note from the bench.'
+  const cta = c.ctaLabel && c.ctaUrl ? ctaButton(c.ctaLabel, c.ctaUrl) : ''
+  return emailWrapper(`
+    <p style="font-size:13px;color:#A89F94;font-family:sans-serif;letter-spacing:1px;text-transform:uppercase;margin:0 0 20px;">${greeting}</p>
+    ${bodyParagraphs(c.body)}
+    ${cta}
+    ${emailFooter(unsubscribeUrl)}
+  `)
+}
+
+function buildNewArrivalsHtml(c: NewsletterCampaign, unsubscribeUrl: string): string {
+  const products = c.templateData?.products ?? []
+  const productCards = products.map(p => `
+    <table style="width:100%;border-collapse:collapse;margin-bottom:16px;border:1px solid #E8E0D4;border-radius:6px;">
+      <tr>
+        <td style="width:88px;padding:12px;vertical-align:top;">
+          ${p.imageUrl
+            ? `<img src="${p.imageUrl}" width="64" height="64" style="object-fit:cover;border-radius:4px;display:block;" alt="${p.title}" />`
+            : `<div style="width:64px;height:64px;background:#E8E0D4;border-radius:4px;"></div>`
+          }
+        </td>
+        <td style="padding:12px;vertical-align:top;">
+          <p style="font-size:14px;font-weight:600;color:#2C2C2A;margin:0 0 4px;">${p.title}</p>
+          <p style="font-size:13px;color:#6B6257;margin:0 0 10px;">${p.price}</p>
+          <a href="${SITE}/catalog/${p.handle}" style="font-size:12px;color:#2C5F2E;text-decoration:none;font-family:sans-serif;font-weight:600;">View product →</a>
+        </td>
+      </tr>
+    </table>
+  `).join('')
+  const cta = c.ctaLabel && c.ctaUrl ? ctaButton(c.ctaLabel, c.ctaUrl) : ''
+  return emailWrapper(`
+    ${bodyParagraphs(c.body)}
+    ${productCards}
+    ${cta}
+    ${emailFooter(unsubscribeUrl)}
+  `)
+}
+
+function buildSeasonalSaleHtml(c: NewsletterCampaign, unsubscribeUrl: string): string {
+  const { headline = '', discountCode = '', saleEndDate } = c.templateData ?? {}
+  const codeBlock = discountCode ? `
+    <div style="background:#F5F1E6;border:2px dashed #B8964E;border-radius:6px;padding:16px;text-align:center;margin:20px 0;">
+      <p style="font-size:11px;color:#A89F94;font-family:sans-serif;text-transform:uppercase;letter-spacing:2px;margin:0 0 6px;">Use code</p>
+      <p style="font-size:26px;font-weight:700;color:#B8964E;letter-spacing:4px;margin:0;">${discountCode}</p>
+    </div>` : ''
+  const urgency = saleEndDate
+    ? `<p style="font-size:13px;color:#B8964E;text-align:center;margin:0 0 20px;font-family:sans-serif;">Offer ends ${new Date(saleEndDate).toLocaleDateString('en-CA', { month: 'long', day: 'numeric', year: 'numeric' })}</p>`
+    : ''
+  const cta = c.ctaLabel && c.ctaUrl ? ctaButton(c.ctaLabel, c.ctaUrl) : ''
+  return emailWrapper(`
+    ${headline ? `<h2 style="font-size:22px;font-weight:700;color:#2C2C2A;margin:0 0 20px;">${headline}</h2>` : ''}
+    ${bodyParagraphs(c.body)}
+    ${codeBlock}
+    ${urgency}
+    ${cta}
+    ${emailFooter(unsubscribeUrl)}
+  `)
+}
+
+function buildEmailHtml(c: NewsletterCampaign, unsubscribeUrl: string): string {
+  switch (c.template ?? 'bench_notes') {
+    case 'new_arrivals':  return buildNewArrivalsHtml(c, unsubscribeUrl)
+    case 'seasonal_sale': return buildSeasonalSaleHtml(c, unsubscribeUrl)
+    default:              return buildBenchNotesHtml(c, unsubscribeUrl)
+  }
+}
+
 export async function sendNewsletter(
   subscribers: { email: string }[],
-  campaign: {
-    subject:   string
-    body:      string
-    ctaLabel?: string
-    ctaUrl?:   string
-  }
+  campaign: NewsletterCampaign
 ): Promise<number> {
   if (!subscribers.length) return 0
-
-  const bodyHtml = campaign.body
-    .split('\n')
-    .filter(line => line.trim())
-    .map(line => `<p style="font-size:15px;line-height:1.7;color:#6B6257;margin:0 0 16px;">${line}</p>`)
-    .join('')
-
-  const ctaHtml = campaign.ctaLabel && campaign.ctaUrl
-    ? `<a href="${campaign.ctaUrl}"
-         style="display:inline-block;background:#2C5F2E;color:#F5F1E6;text-decoration:none;
-                padding:12px 28px;border-radius:3px;font-family:sans-serif;
-                font-size:14px;font-weight:600;margin-bottom:32px;">
-         ${campaign.ctaLabel}
-       </a>`
-    : ''
 
   const BATCH = 50
   let sent = 0
@@ -223,20 +322,7 @@ export async function sendNewsletter(
         from:    FROM,
         to:      sub.email,
         subject: campaign.subject,
-        html: `
-<div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;color:#2C2C2A;">
-  <h2 style="font-size:22px;font-weight:600;margin-bottom:20px;">${campaign.subject}</h2>
-  ${bodyHtml}
-  ${ctaHtml}
-  <div style="border-top:1px solid #E8E0D4;padding-top:16px;margin-top:32px;">
-    <p style="font-size:12px;color:#A89F94;line-height:1.6;margin:0;">
-      Acme Vintage Supply · Dartmouth, Nova Scotia<br>
-      You're receiving this because you subscribed at acmevintagesupply.com.<br>
-      <a href="${SITE}/api/newsletter/unsubscribe?email=${token}"
-         style="color:#A89F94;">Unsubscribe</a>
-    </p>
-  </div>
-</div>`,
+        html: buildEmailHtml(campaign, `${SITE}/api/newsletter/unsubscribe?email=${token}`),
       }
     })
     try {
