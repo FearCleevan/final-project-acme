@@ -6,9 +6,10 @@ import SectionCard from '@/components/admin/shared/SectionCard'
 import Badge from '@/components/admin/shared/Badge'
 import Toast, { ToastType } from '@/components/admin/shared/Toast'
 import { cn } from '@/lib/utils'
+import type { TemplateType, NewsletterProduct } from '@/lib/email'
 import {
   BiGroup, BiEnvelopeOpen, BiDownload, BiPlus, BiSend,
-  BiLoader, BiX, BiCalendar,
+  BiLoader, BiX, BiCalendar, BiImage, BiSearch,
 } from 'react-icons/bi'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -19,6 +20,14 @@ interface Subscriber {
   unsubscribed_at:  string | null
 }
 
+interface SearchProduct {
+  id:     string
+  slug:   string
+  name:   string
+  price:  string
+  images: string[]
+}
+
 interface Campaign {
   id:               string
   subject:          string
@@ -27,6 +36,8 @@ interface Campaign {
   sent_at:          string | null
   recipient_count:  number | null
   created_at:       string
+  template:         TemplateType
+  template_data:    Record<string, unknown> | null
 }
 
 type Tab = 'subscribers' | 'campaigns'
@@ -63,6 +74,18 @@ export default function MarketingPage() {
   const [saving,       setSaving]       = useState(false)
   const [sending,      setSending]      = useState<string | null>(null)  // campaign id being sent
 
+  // Template state
+  const [template,          setTemplate]          = useState<TemplateType>('bench_notes')
+  const [greeting,          setGreeting]          = useState('A note from the bench.')
+  const [saleHeadline,      setSaleHeadline]      = useState('')
+  const [discountCode,      setDiscountCode]      = useState('')
+  const [saleEndDate,       setSaleEndDate]       = useState('')
+  const [selectedProducts,  setSelectedProducts]  = useState<NewsletterProduct[]>([])
+  const [productSearch,     setProductSearch]     = useState('')
+  const [productResults,    setProductResults]    = useState<SearchProduct[]>([])
+  const [searchLoading,     setSearchLoading]     = useState(false)
+  const [allProducts,       setAllProducts]       = useState<SearchProduct[]>([])
+
   // Toast
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null)
   function showToast(message: string, type: ToastType = 'success') {
@@ -94,6 +117,36 @@ export default function MarketingPage() {
   useEffect(() => { loadSubscribers() }, [loadSubscribers])
   useEffect(() => { loadCampaigns() }, [loadCampaigns])
 
+  // Fetch all products once when New Arrivals template is first used
+  useEffect(() => {
+    if (template !== 'new_arrivals' || allProducts.length > 0) return
+    fetch('/api/search')
+      .then(r => r.ok ? r.json() : [])
+      .then(setAllProducts)
+      .catch(() => {})
+  }, [template, allProducts.length])
+
+  // Filter products client-side on search input
+  useEffect(() => {
+    if (!productSearch.trim() || selectedProducts.length >= 3) {
+      setProductResults([])
+      setSearchLoading(false)
+      return
+    }
+    setSearchLoading(true)
+    const timer = setTimeout(() => {
+      const q = productSearch.toLowerCase()
+      const selectedHandles = new Set(selectedProducts.map(p => p.handle))
+      setProductResults(
+        allProducts
+          .filter(p => p.name.toLowerCase().includes(q) && !selectedHandles.has(p.slug))
+          .slice(0, 5)
+      )
+      setSearchLoading(false)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [productSearch, selectedProducts, allProducts])
+
   // ── Actions ────────────────────────────────────────────────────────────────
 
   function handleExportCsv() {
@@ -103,11 +156,64 @@ export default function MarketingPage() {
   function resetCompose() {
     setSubject(''); setBody(''); setCtaLabel(''); setCtaUrl('')
     setScheduleFor(''); setPreviewing(false); setComposing(false)
+    setTemplate('bench_notes'); setGreeting('A note from the bench.')
+    setSaleHeadline(''); setDiscountCode(''); setSaleEndDate('')
+    setSelectedProducts([]); setProductSearch(''); setProductResults([])
+  }
+
+  function handleTemplateChange(t: TemplateType) {
+    setTemplate(t)
+    setGreeting('A note from the bench.')
+    setSaleHeadline(''); setDiscountCode(''); setSaleEndDate('')
+    setSelectedProducts([]); setProductSearch(''); setProductResults([])
+    setBody('')
+  }
+
+  function getBodyForTemplate(): string {
+    // New Arrivals uses body field as intro line; others use body as letter/sale body
+    return body
+  }
+
+  function buildTemplateData(): Record<string, unknown> | null {
+    if (template === 'bench_notes') return { greeting }
+    if (template === 'new_arrivals') return {
+      products: selectedProducts.map(p => ({
+        title: p.title, price: p.price, imageUrl: p.imageUrl, handle: p.handle,
+      }))
+    }
+    if (template === 'seasonal_sale') return {
+      headline:     saleHeadline     || undefined,
+      discountCode: discountCode     || undefined,
+      saleEndDate:  saleEndDate      || undefined,
+    }
+    return null
+  }
+
+  function addProduct(p: SearchProduct) {
+    if (selectedProducts.length >= 3) return
+    setSelectedProducts(prev => [...prev, {
+      title:    p.name,
+      price:    p.price,
+      imageUrl: p.images[0] ?? '',
+      handle:   p.slug,
+    }])
+    setProductSearch('')
+    setProductResults([])
+  }
+
+  function removeProduct(handle: string) {
+    setSelectedProducts(prev => prev.filter(p => p.handle !== handle))
   }
 
   async function handleSaveDraft() {
     if (!subject.trim() || !body.trim()) {
       showToast('Subject and body are required.', 'error'); return
+    }
+    if (template === 'new_arrivals' && selectedProducts.length === 0) {
+      showToast('Add at least one product for New Arrivals.', 'error'); return
+    }
+    if (template === 'seasonal_sale' && (!ctaLabel.trim() || !ctaUrl.trim())) {
+      showToast('Seasonal Sale requires a CTA button label and URL.', 'error'); return
     }
     setSaving(true)
     try {
@@ -115,10 +221,12 @@ export default function MarketingPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          subject, body,
+          subject, body: getBodyForTemplate(),
           cta_label:     ctaLabel || null,
           cta_url:       ctaUrl   || null,
           scheduled_for: scheduleFor || null,
+          template,
+          template_data: buildTemplateData(),
         }),
       })
       if (!r.ok) throw new Error()
@@ -136,6 +244,12 @@ export default function MarketingPage() {
     if (!subject.trim() || !body.trim()) {
       showToast('Subject and body are required.', 'error'); return
     }
+    if (template === 'new_arrivals' && selectedProducts.length === 0) {
+      showToast('Add at least one product for New Arrivals.', 'error'); return
+    }
+    if (template === 'seasonal_sale' && (!ctaLabel.trim() || !ctaUrl.trim())) {
+      showToast('Seasonal Sale requires a CTA button label and URL.', 'error'); return
+    }
     setSaving(true)
     try {
       // Save draft first to get an id
@@ -143,9 +257,11 @@ export default function MarketingPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          subject, body,
+          subject, body: getBodyForTemplate(),
           cta_label: ctaLabel || null,
           cta_url:   ctaUrl   || null,
+          template,
+          template_data: buildTemplateData(),
         }),
       })
       if (!saveRes.ok) throw new Error('Failed to create campaign')
@@ -185,26 +301,45 @@ export default function MarketingPage() {
 
   // ── Preview HTML ───────────────────────────────────────────────────────────
 
-  function buildPreviewHtml() {
-    const bodyHtml = body
-      .split('\n')
-      .filter(l => l.trim())
+  function buildPreviewHtml(): string {
+    const sub = subject || '(No subject)'
+    const bodyText = body.split('\n').filter(l => l.trim())
       .map(l => `<p style="font-size:15px;line-height:1.7;color:#6B6257;margin:0 0 16px;">${l}</p>`)
       .join('')
-    const ctaHtml = ctaLabel && ctaUrl
+    const cta = ctaLabel && ctaUrl
       ? `<a href="${ctaUrl}" style="display:inline-block;background:#2C5F2E;color:#F5F1E6;text-decoration:none;padding:12px 28px;border-radius:3px;font-family:sans-serif;font-size:14px;font-weight:600;margin-bottom:32px;">${ctaLabel}</a>`
       : ''
-    return `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
-<body style="margin:0;background:#F5F1E6;padding:40px 16px;">
-<div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;background:#FDFAF6;border:1px solid #E8E0D4;border-radius:8px;padding:40px 40px 32px;">
-<h2 style="font-size:22px;font-weight:600;margin:0 0 20px;color:#2C2C2A;">${subject || '(No subject)'}</h2>
-${bodyHtml}${ctaHtml}
-<div style="border-top:1px solid #E8E0D4;padding-top:16px;margin-top:32px;">
-<p style="font-size:12px;color:#A89F94;line-height:1.6;margin:0;">
-Acme Vintage Supply · Dartmouth, Nova Scotia<br>
-You're receiving this because you subscribed at acmevintagesupply.com.<br>
-<a href="#" style="color:#A89F94;">Unsubscribe</a></p></div></div>
-</body></html>`
+    const footer = `<div style="border-top:1px solid #E8E0D4;padding-top:16px;margin-top:32px;"><p style="font-size:12px;color:#A89F94;line-height:1.6;margin:0;">Acme Vintage Supply · Dartmouth, Nova Scotia<br>You're receiving this because you subscribed at acmevintagesupply.com.<br><a href="#" style="color:#A89F94;">Unsubscribe</a></p></div>`
+    const wrap = (inner: string) => `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;background:#F5F1E6;padding:40px 16px;"><div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;background:#FDFAF6;border:1px solid #E8E0D4;border-radius:8px;padding:40px 40px 32px;">${inner}</div></body></html>`
+
+    if (template === 'new_arrivals') {
+      const intro = bodyText
+      const cards = selectedProducts.map(p => `
+        <table style="width:100%;border-collapse:collapse;margin-bottom:16px;border:1px solid #E8E0D4;border-radius:6px;">
+          <tr>
+            <td style="width:88px;padding:12px;vertical-align:top;">
+              ${p.imageUrl ? `<img src="${p.imageUrl}" width="64" height="64" style="object-fit:cover;border-radius:4px;display:block;" alt="${p.title}" />` : `<div style="width:64px;height:64px;background:#E8E0D4;border-radius:4px;"></div>`}
+            </td>
+            <td style="padding:12px;vertical-align:top;">
+              <p style="font-size:14px;font-weight:600;color:#2C2C2A;margin:0 0 4px;">${p.title}</p>
+              <p style="font-size:13px;color:#6B6257;margin:0 0 10px;">${p.price}</p>
+              <span style="font-size:12px;color:#2C5F2E;font-family:sans-serif;font-weight:600;">View product →</span>
+            </td>
+          </tr>
+        </table>`).join('')
+      return wrap(`<h2 style="font-size:22px;font-weight:600;margin:0 0 20px;color:#2C2C2A;">${sub}</h2>${intro}${cards}${cta}${footer}`)
+    }
+
+    if (template === 'seasonal_sale') {
+      const headline = saleHeadline ? `<h2 style="font-size:22px;font-weight:700;color:#2C2C2A;margin:0 0 20px;">${saleHeadline}</h2>` : ''
+      const code = discountCode ? `<div style="background:#F5F1E6;border:2px dashed #B8964E;border-radius:6px;padding:16px;text-align:center;margin:20px 0;"><p style="font-size:11px;color:#A89F94;font-family:sans-serif;text-transform:uppercase;letter-spacing:2px;margin:0 0 6px;">Use code</p><p style="font-size:26px;font-weight:700;color:#B8964E;letter-spacing:4px;margin:0;">${discountCode}</p></div>` : ''
+      const urgency = saleEndDate ? `<p style="font-size:13px;color:#B8964E;text-align:center;margin:0 0 20px;font-family:sans-serif;">Offer ends ${new Date(saleEndDate).toLocaleDateString('en-CA', { month: 'long', day: 'numeric', year: 'numeric' })}</p>` : ''
+      return wrap(`<h2 style="font-size:22px;font-weight:600;margin:0 0 20px;color:#2C2C2A;">${sub}</h2>${headline}${bodyText}${code}${urgency}${cta}${footer}`)
+    }
+
+    // bench_notes (default)
+    const greetingLine = `<p style="font-size:13px;color:#A89F94;font-family:sans-serif;letter-spacing:1px;text-transform:uppercase;margin:0 0 20px;">${greeting}</p>`
+    return wrap(`<h2 style="font-size:22px;font-weight:600;margin:0 0 20px;color:#2C2C2A;">${sub}</h2>${greetingLine}${bodyText}${cta}${footer}`)
   }
 
   const activeCount = subscribers.filter(s => !s.unsubscribed_at).length
@@ -320,6 +455,33 @@ You're receiving this because you subscribed at acmevintagesupply.com.<br>
                 </button>
               </div>
 
+              {/* Template selector */}
+              <div className="mb-5">
+                <label className="block text-[12px] font-medium text-(--admin-text-soft) mb-2">Template</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {([
+                    { id: 'bench_notes',   label: 'Bench Notes',   desc: 'Personal letter' },
+                    { id: 'new_arrivals',  label: 'New Arrivals',  desc: 'Product showcase' },
+                    { id: 'seasonal_sale', label: 'Seasonal Sale', desc: 'Promo + code' },
+                  ] as { id: TemplateType; label: string; desc: string }[]).map(t => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => handleTemplateChange(t.id)}
+                      className={cn(
+                        'text-left px-3 py-2.5 rounded-md border text-[12px] transition-colors',
+                        template === t.id
+                          ? 'border-(--admin-accent) bg-(--admin-accent)/10 text-(--admin-accent)'
+                          : 'border-(--admin-border) text-(--admin-text-soft) hover:text-(--admin-text) hover:bg-(--admin-surface-2)'
+                      )}
+                    >
+                      <p className="font-semibold">{t.label}</p>
+                      <p className="text-[11px] opacity-70 mt-0.5">{t.desc}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="space-y-4">
                 <div>
                   <label className="block text-[12px] font-medium text-(--admin-text-soft) mb-1">Subject *</label>
@@ -332,16 +494,149 @@ You're receiving this because you subscribed at acmevintagesupply.com.<br>
                   />
                 </div>
 
+                {/* Bench Notes: greeting line */}
+                {template === 'bench_notes' && (
+                  <div>
+                    <label className="block text-[12px] font-medium text-(--admin-text-soft) mb-1">Greeting line</label>
+                    <input
+                      type="text"
+                      value={greeting}
+                      onChange={e => setGreeting(e.target.value)}
+                      className="w-full px-3 py-2 rounded-md border border-(--admin-border) bg-(--admin-surface) text-[13px] text-(--admin-text) placeholder:text-(--admin-text-muted) focus:outline-none focus:border-(--admin-accent) transition-colors"
+                    />
+                  </div>
+                )}
+
+                {/* Seasonal Sale: headline */}
+                {template === 'seasonal_sale' && (
+                  <div>
+                    <label className="block text-[12px] font-medium text-(--admin-text-soft) mb-1">Headline *</label>
+                    <input
+                      type="text"
+                      value={saleHeadline}
+                      onChange={e => setSaleHeadline(e.target.value)}
+                      placeholder="Summer clearance — 20% off selected lamps"
+                      className="w-full px-3 py-2 rounded-md border border-(--admin-border) bg-(--admin-surface) text-[13px] text-(--admin-text) placeholder:text-(--admin-text-muted) focus:outline-none focus:border-(--admin-accent) transition-colors"
+                    />
+                  </div>
+                )}
+
                 <div>
-                  <label className="block text-[12px] font-medium text-(--admin-text-soft) mb-1">Body * <span className="font-normal">(each line becomes a paragraph)</span></label>
+                  <label className="block text-[12px] font-medium text-(--admin-text-soft) mb-1">
+                    {template === 'new_arrivals' ? 'Intro line *' : 'Body *'}
+                    {template !== 'new_arrivals' && <span className="font-normal"> (each line becomes a paragraph)</span>}
+                  </label>
                   <textarea
                     value={body}
                     onChange={e => setBody(e.target.value)}
                     rows={8}
-                    placeholder={"This month from the workshop...\n\nWe've had some interesting pieces come through the bench."}
+                    placeholder={template === 'new_arrivals'
+                      ? 'Fresh pieces just landed at the workshop.'
+                      : template === 'seasonal_sale'
+                        ? 'Describe the sale items and why they\'re worth grabbing...'
+                        : 'This month from the workshop...\n\nWe\'ve had some interesting pieces come through the bench.'}
                     className="w-full px-3 py-2 rounded-md border border-(--admin-border) bg-(--admin-surface) text-[13px] text-(--admin-text) placeholder:text-(--admin-text-muted) focus:outline-none focus:border-(--admin-accent) transition-colors resize-y"
                   />
                 </div>
+
+                {/* New Arrivals: product picker */}
+                {template === 'new_arrivals' && (
+                  <div>
+                    <label className="block text-[12px] font-medium text-(--admin-text-soft) mb-1">
+                      Products <span className="font-normal">({selectedProducts.length}/3 selected)</span>
+                    </label>
+
+                    {/* Selected products */}
+                    {selectedProducts.length > 0 && (
+                      <div className="space-y-2 mb-3">
+                        {selectedProducts.map(p => (
+                          <div key={p.handle} className="flex items-center gap-3 px-3 py-2 rounded-md border border-(--admin-border) bg-(--admin-surface-2)">
+                            {p.imageUrl
+                              ? <img src={p.imageUrl} alt={p.title} className="w-8 h-8 rounded object-cover shrink-0" />
+                              : <div className="w-8 h-8 rounded bg-(--admin-border) shrink-0 flex items-center justify-center"><BiImage size={14} className="text-(--admin-text-muted)" /></div>
+                            }
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[12px] font-medium text-(--admin-text) truncate">{p.title}</p>
+                              <p className="text-[11px] text-(--admin-text-muted)">{p.price}</p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeProduct(p.handle)}
+                              className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-(--admin-border) text-(--admin-text-muted) transition-colors shrink-0"
+                            >
+                              <BiX size={14} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Search input — hide when 3 selected */}
+                    {selectedProducts.length < 3 && (
+                      <div className="relative">
+                        <div className="relative">
+                          <BiSearch size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-(--admin-text-muted)" />
+                          <input
+                            type="text"
+                            value={productSearch}
+                            onChange={e => setProductSearch(e.target.value)}
+                            placeholder="Search products…"
+                            className="w-full pl-8 pr-3 py-2 rounded-md border border-(--admin-border) bg-(--admin-surface) text-[13px] text-(--admin-text) placeholder:text-(--admin-text-muted) focus:outline-none focus:border-(--admin-accent) transition-colors"
+                          />
+                          {searchLoading && <BiLoader size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-(--admin-text-muted) animate-spin" />}
+                        </div>
+
+                        {/* Dropdown results */}
+                        {productResults.length > 0 && (
+                          <div className="absolute z-10 top-full left-0 right-0 mt-1 rounded-md border border-(--admin-border) bg-(--admin-surface) shadow-lg divide-y divide-(--admin-border)">
+                            {productResults.map(p => (
+                              <button
+                                key={p.id}
+                                type="button"
+                                onClick={() => addProduct(p)}
+                                className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-(--admin-surface-2) transition-colors"
+                              >
+                                {p.images[0]
+                                  ? <img src={p.images[0]} alt={p.name} className="w-8 h-8 rounded object-cover shrink-0" />
+                                  : <div className="w-8 h-8 rounded bg-(--admin-border) shrink-0" />
+                                }
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-[12px] font-medium text-(--admin-text) truncate">{p.name}</p>
+                                  <p className="text-[11px] text-(--admin-text-muted)">{p.price}</p>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Seasonal Sale: discount code + end date */}
+                {template === 'seasonal_sale' && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[12px] font-medium text-(--admin-text-soft) mb-1">Discount Code <span className="font-normal">(optional)</span></label>
+                      <input
+                        type="text"
+                        value={discountCode}
+                        onChange={e => setDiscountCode(e.target.value.toUpperCase())}
+                        placeholder="SUMMER20"
+                        className="w-full px-3 py-2 rounded-md border border-(--admin-border) bg-(--admin-surface) text-[13px] text-(--admin-text) font-mono placeholder:text-(--admin-text-muted) focus:outline-none focus:border-(--admin-accent) transition-colors"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[12px] font-medium text-(--admin-text-soft) mb-1">Sale End Date <span className="font-normal">(optional)</span></label>
+                      <input
+                        type="date"
+                        value={saleEndDate}
+                        onChange={e => setSaleEndDate(e.target.value)}
+                        className="w-full px-3 py-2 rounded-md border border-(--admin-border) bg-(--admin-surface) text-[13px] text-(--admin-text) focus:outline-none focus:border-(--admin-accent) transition-colors"
+                      />
+                    </div>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
