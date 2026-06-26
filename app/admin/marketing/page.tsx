@@ -97,7 +97,7 @@ const PRESET_TEMPLATES: PresetTemplate[] = [
     name:        'Monthly Bench Notes',
     description: 'Perfect for monthly updates from the workshop.',
     template:    'bench_notes',
-    subject:     'A note from the bench — [Month]',
+    subject:     'A note from the bench',
     greeting:    'A note from the bench.',
     body:        "This month from the workshop, we've been busy unpacking some remarkable pieces from Melbourne.\n\nEach one has been cleaned, tested, and hand-numbered by our bench team — ready for a new home in North America.",
     ctaLabel:    'Browse the collection →',
