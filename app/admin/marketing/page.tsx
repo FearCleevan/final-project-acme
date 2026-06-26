@@ -133,7 +133,7 @@ function PreviewModal({
         <div className="flex-1 overflow-y-auto bg-(--admin-surface-2) p-6 flex justify-center">
           <iframe
             srcDoc={html}
-            sandbox="allow-same-origin"
+            sandbox=""
             className="bg-white rounded-lg shadow-lg"
             style={{
               width: device === 'desktop' ? '600px' : '375px',
