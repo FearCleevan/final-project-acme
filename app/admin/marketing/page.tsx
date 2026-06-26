@@ -12,6 +12,163 @@ import {
   BiLoader, BiX, BiCalendar, BiImage, BiSearch,
 } from 'react-icons/bi'
 
+// ── Preview HTML (pure — used by compose preview and template thumbnails) ──────
+
+interface PreviewParams {
+  subject:          string
+  body:             string
+  ctaLabel:         string
+  ctaUrl:           string
+  template:         TemplateType
+  greeting:         string
+  saleHeadline:     string
+  discountCode:     string
+  saleEndDate:      string
+  selectedProducts: NewsletterProduct[]
+}
+
+function buildEmailPreviewHtml(p: PreviewParams): string {
+  const sub      = p.subject || '(No subject)'
+  const bodyText = p.body.split('\n').filter(l => l.trim())
+    .map(l => `<p style="font-size:15px;line-height:1.7;color:#6B6257;margin:0 0 16px;">${l}</p>`)
+    .join('')
+  const cta = p.ctaLabel && p.ctaUrl
+    ? `<a href="${p.ctaUrl}" style="display:inline-block;background:#2C5F2E;color:#F5F1E6;text-decoration:none;padding:12px 28px;border-radius:3px;font-family:sans-serif;font-size:14px;font-weight:600;margin-bottom:32px;">${p.ctaLabel}</a>`
+    : ''
+  const footer = `<div style="border-top:1px solid #E8E0D4;padding-top:16px;margin-top:32px;"><p style="font-size:12px;color:#A89F94;line-height:1.6;margin:0;">Acme Vintage Supply · Dartmouth, Nova Scotia<br>You're receiving this because you subscribed at acmevintagesupply.com.<br><a href="#" style="color:#A89F94;">Unsubscribe</a></p></div>`
+  const wrap = (inner: string) => `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;background:#F5F1E6;padding:40px 16px;"><div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;background:#FDFAF6;border:1px solid #E8E0D4;border-radius:8px;padding:40px 40px 32px;">${inner}</div></body></html>`
+
+  if (p.template === 'new_arrivals') {
+    const cards = p.selectedProducts.map(prod => `
+      <table style="width:100%;border-collapse:collapse;margin-bottom:16px;border:1px solid #E8E0D4;border-radius:6px;">
+        <tr>
+          <td style="width:88px;padding:12px;vertical-align:top;">
+            ${prod.imageUrl ? `<img src="${prod.imageUrl}" width="64" height="64" style="object-fit:cover;border-radius:4px;display:block;" alt="${prod.title}" />` : `<div style="width:64px;height:64px;background:#E8E0D4;border-radius:4px;"></div>`}
+          </td>
+          <td style="padding:12px;vertical-align:top;">
+            <p style="font-size:14px;font-weight:600;color:#2C2C2A;margin:0 0 4px;">${prod.title}</p>
+            <p style="font-size:13px;color:#6B6257;margin:0 0 10px;">${prod.price}</p>
+            <span style="font-size:12px;color:#2C5F2E;font-family:sans-serif;font-weight:600;">View product →</span>
+          </td>
+        </tr>
+      </table>`).join('')
+    return wrap(`<h2 style="font-size:22px;font-weight:600;margin:0 0 20px;color:#2C2C2A;">${sub}</h2>${bodyText}${cards}${cta}${footer}`)
+  }
+
+  if (p.template === 'seasonal_sale') {
+    const headline = p.saleHeadline ? `<h2 style="font-size:22px;font-weight:700;color:#2C2C2A;margin:0 0 20px;">${p.saleHeadline}</h2>` : ''
+    const code = p.discountCode ? `<div style="background:#F5F1E6;border:2px dashed #B8964E;border-radius:6px;padding:16px;text-align:center;margin:20px 0;"><p style="font-size:11px;color:#A89F94;font-family:sans-serif;text-transform:uppercase;letter-spacing:2px;margin:0 0 6px;">Use code</p><p style="font-size:26px;font-weight:700;color:#B8964E;letter-spacing:4px;margin:0;">${p.discountCode}</p></div>` : ''
+    const urgency = p.saleEndDate ? `<p style="font-size:13px;color:#B8964E;text-align:center;margin:0 0 20px;font-family:sans-serif;">Offer ends ${new Date(p.saleEndDate).toLocaleDateString('en-CA', { month: 'long', day: 'numeric', year: 'numeric' })}</p>` : ''
+    return wrap(`<h2 style="font-size:22px;font-weight:600;margin:0 0 20px;color:#2C2C2A;">${sub}</h2>${headline}${bodyText}${code}${urgency}${cta}${footer}`)
+  }
+
+  // bench_notes (default)
+  const greetingLine = `<p style="font-size:13px;color:#A89F94;font-family:sans-serif;letter-spacing:1px;text-transform:uppercase;margin:0 0 20px;">${p.greeting}</p>`
+  return wrap(`<h2 style="font-size:22px;font-weight:600;margin:0 0 20px;color:#2C2C2A;">${sub}</h2>${greetingLine}${bodyText}${cta}${footer}`)
+}
+
+// ── Preview Modal ─────────────────────────────────────────────────────────────
+
+function PreviewModal({
+  html,
+  onClose,
+  onSendNow,
+  saving,
+}: {
+  html:       string
+  onClose:    () => void
+  onSendNow:  () => void
+  saving:     boolean
+}) {
+  const [device, setDevice] = useState<'desktop' | 'mobile'>('desktop')
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.6)' }}
+      onClick={onClose}
+    >
+      <div
+        className="bg-(--admin-surface) rounded-xl w-full max-w-[720px] max-h-[90vh] flex flex-col overflow-hidden"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-(--admin-border) shrink-0">
+          <div className="flex items-center gap-3">
+            <p className="text-[14px] font-semibold text-(--admin-text)">Email Preview</p>
+            <div className="flex rounded-md border border-(--admin-border) overflow-hidden">
+              {(['desktop', 'mobile'] as const).map(d => (
+                <button
+                  key={d}
+                  type="button"
+                  onClick={() => setDevice(d)}
+                  className={cn(
+                    'px-3 py-1 text-[12px] transition-colors',
+                    device === d
+                      ? 'bg-(--admin-accent) text-(--admin-accent-text)'
+                      : 'text-(--admin-text-soft) hover:bg-(--admin-surface-2)'
+                  )}
+                >
+                  {d === 'desktop' ? 'Desktop' : 'Mobile'}
+                </button>
+              ))}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-(--admin-surface-2) text-(--admin-text-muted) transition-colors"
+          >
+            <BiX size={16} />
+          </button>
+        </div>
+
+        {/* Preview body */}
+        <div className="flex-1 overflow-y-auto bg-(--admin-surface-2) p-6 flex justify-center">
+          <iframe
+            srcDoc={html}
+            sandbox="allow-same-origin"
+            className="bg-white rounded-lg shadow-lg"
+            style={{
+              width: device === 'desktop' ? '600px' : '375px',
+              height: '600px',
+              border: 'none',
+              transition: 'width 0.2s ease',
+            }}
+            title="Email preview"
+          />
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-between px-5 py-4 border-t border-(--admin-border) shrink-0">
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-[13px] text-(--admin-text-soft) hover:text-(--admin-text) transition-colors"
+          >
+            Keep editing
+          </button>
+          <button
+            type="button"
+            onClick={() => { onClose(); onSendNow() }}
+            disabled={saving}
+            className="flex items-center gap-2 px-4 py-2 rounded-md bg-(--admin-accent) text-(--admin-accent-text) text-[13px] font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
+          >
+            {saving ? <BiLoader size={14} className="animate-spin" /> : <BiSend size={14} />}
+            Looks good — Send Now
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface Subscriber {
@@ -70,7 +227,7 @@ export default function MarketingPage() {
   const [ctaLabel,     setCtaLabel]     = useState('')
   const [ctaUrl,       setCtaUrl]       = useState('')
   const [scheduleFor,  setScheduleFor]  = useState('')
-  const [previewing,   setPreviewing]   = useState(false)
+  const [previewOpen,  setPreviewOpen]  = useState(false)
   const [saving,       setSaving]       = useState(false)
   const [sending,      setSending]      = useState<string | null>(null)  // campaign id being sent
 
@@ -155,7 +312,7 @@ export default function MarketingPage() {
 
   function resetCompose() {
     setSubject(''); setBody(''); setCtaLabel(''); setCtaUrl('')
-    setScheduleFor(''); setPreviewing(false); setComposing(false)
+    setScheduleFor(''); setPreviewOpen(false); setComposing(false)
     setTemplate('bench_notes'); setGreeting('A note from the bench.')
     setSaleHeadline(''); setDiscountCode(''); setSaleEndDate('')
     setSelectedProducts([]); setProductSearch(''); setProductResults([])
@@ -302,44 +459,10 @@ export default function MarketingPage() {
   // ── Preview HTML ───────────────────────────────────────────────────────────
 
   function buildPreviewHtml(): string {
-    const sub = subject || '(No subject)'
-    const bodyText = body.split('\n').filter(l => l.trim())
-      .map(l => `<p style="font-size:15px;line-height:1.7;color:#6B6257;margin:0 0 16px;">${l}</p>`)
-      .join('')
-    const cta = ctaLabel && ctaUrl
-      ? `<a href="${ctaUrl}" style="display:inline-block;background:#2C5F2E;color:#F5F1E6;text-decoration:none;padding:12px 28px;border-radius:3px;font-family:sans-serif;font-size:14px;font-weight:600;margin-bottom:32px;">${ctaLabel}</a>`
-      : ''
-    const footer = `<div style="border-top:1px solid #E8E0D4;padding-top:16px;margin-top:32px;"><p style="font-size:12px;color:#A89F94;line-height:1.6;margin:0;">Acme Vintage Supply · Dartmouth, Nova Scotia<br>You're receiving this because you subscribed at acmevintagesupply.com.<br><a href="#" style="color:#A89F94;">Unsubscribe</a></p></div>`
-    const wrap = (inner: string) => `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;background:#F5F1E6;padding:40px 16px;"><div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;background:#FDFAF6;border:1px solid #E8E0D4;border-radius:8px;padding:40px 40px 32px;">${inner}</div></body></html>`
-
-    if (template === 'new_arrivals') {
-      const intro = bodyText
-      const cards = selectedProducts.map(p => `
-        <table style="width:100%;border-collapse:collapse;margin-bottom:16px;border:1px solid #E8E0D4;border-radius:6px;">
-          <tr>
-            <td style="width:88px;padding:12px;vertical-align:top;">
-              ${p.imageUrl ? `<img src="${p.imageUrl}" width="64" height="64" style="object-fit:cover;border-radius:4px;display:block;" alt="${p.title}" />` : `<div style="width:64px;height:64px;background:#E8E0D4;border-radius:4px;"></div>`}
-            </td>
-            <td style="padding:12px;vertical-align:top;">
-              <p style="font-size:14px;font-weight:600;color:#2C2C2A;margin:0 0 4px;">${p.title}</p>
-              <p style="font-size:13px;color:#6B6257;margin:0 0 10px;">${p.price}</p>
-              <span style="font-size:12px;color:#2C5F2E;font-family:sans-serif;font-weight:600;">View product →</span>
-            </td>
-          </tr>
-        </table>`).join('')
-      return wrap(`<h2 style="font-size:22px;font-weight:600;margin:0 0 20px;color:#2C2C2A;">${sub}</h2>${intro}${cards}${cta}${footer}`)
-    }
-
-    if (template === 'seasonal_sale') {
-      const headline = saleHeadline ? `<h2 style="font-size:22px;font-weight:700;color:#2C2C2A;margin:0 0 20px;">${saleHeadline}</h2>` : ''
-      const code = discountCode ? `<div style="background:#F5F1E6;border:2px dashed #B8964E;border-radius:6px;padding:16px;text-align:center;margin:20px 0;"><p style="font-size:11px;color:#A89F94;font-family:sans-serif;text-transform:uppercase;letter-spacing:2px;margin:0 0 6px;">Use code</p><p style="font-size:26px;font-weight:700;color:#B8964E;letter-spacing:4px;margin:0;">${discountCode}</p></div>` : ''
-      const urgency = saleEndDate ? `<p style="font-size:13px;color:#B8964E;text-align:center;margin:0 0 20px;font-family:sans-serif;">Offer ends ${new Date(saleEndDate).toLocaleDateString('en-CA', { month: 'long', day: 'numeric', year: 'numeric' })}</p>` : ''
-      return wrap(`<h2 style="font-size:22px;font-weight:600;margin:0 0 20px;color:#2C2C2A;">${sub}</h2>${headline}${bodyText}${code}${urgency}${cta}${footer}`)
-    }
-
-    // bench_notes (default)
-    const greetingLine = `<p style="font-size:13px;color:#A89F94;font-family:sans-serif;letter-spacing:1px;text-transform:uppercase;margin:0 0 20px;">${greeting}</p>`
-    return wrap(`<h2 style="font-size:22px;font-weight:600;margin:0 0 20px;color:#2C2C2A;">${sub}</h2>${greetingLine}${bodyText}${cta}${footer}`)
+    return buildEmailPreviewHtml({
+      subject, body, ctaLabel, ctaUrl, template,
+      greeting, saleHeadline, discountCode, saleEndDate, selectedProducts,
+    })
   }
 
   const activeCount = subscribers.filter(s => !s.unsubscribed_at).length
@@ -674,30 +797,6 @@ export default function MarketingPage() {
                   />
                 </div>
 
-                {/* Preview toggle */}
-                <div>
-                  <button
-                    onClick={() => setPreviewing(p => !p)}
-                    className="text-[12px] text-(--admin-accent) hover:underline"
-                  >
-                    {previewing ? 'Hide preview' : 'Show preview'}
-                  </button>
-                </div>
-
-                {previewing && (
-                  <div className="rounded-lg border border-(--admin-border) overflow-hidden">
-                    <p className="px-3 py-2 text-[11px] font-mono text-(--admin-text-muted) bg-(--admin-surface-2) border-b border-(--admin-border)">
-                      Email preview
-                    </p>
-                    <iframe
-                      srcDoc={buildPreviewHtml()}
-                      sandbox="allow-same-origin"
-                      className="w-full h-125 bg-white"
-                      title="Email preview"
-                    />
-                  </div>
-                )}
-
                 {/* Actions */}
                 <div className="flex items-center gap-3 pt-2">
                   <button
@@ -714,6 +813,13 @@ export default function MarketingPage() {
                     className="flex items-center gap-2 px-4 py-2 rounded-md border border-(--admin-border) text-[13px] text-(--admin-text-soft) hover:text-(--admin-text) hover:bg-(--admin-surface-2) disabled:opacity-50 transition-colors"
                   >
                     Save Draft
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewOpen(true)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-md border border-(--admin-border) text-[13px] text-(--admin-text-soft) hover:text-(--admin-text) hover:bg-(--admin-surface-2) transition-colors"
+                  >
+                    Preview
                   </button>
                 </div>
               </div>
@@ -766,6 +872,15 @@ export default function MarketingPage() {
             )}
           </SectionCard>
         </div>
+      )}
+
+      {previewOpen && (
+        <PreviewModal
+          html={buildPreviewHtml()}
+          onClose={() => setPreviewOpen(false)}
+          onSendNow={handleSendNow}
+          saving={saving}
+        />
       )}
 
       {toast && (
