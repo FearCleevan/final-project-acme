@@ -53,10 +53,12 @@ export async function GET(req: NextRequest) {
   }
 
   const sent = await sendNewsletter(subscribers, {
-    subject:  campaign.subject,
-    body:     campaign.body,
-    ctaLabel: campaign.cta_label  ?? undefined,
-    ctaUrl:   campaign.cta_url    ?? undefined,
+    subject:      campaign.subject,
+    body:         campaign.body,
+    ctaLabel:     campaign.cta_label    ?? undefined,
+    ctaUrl:       campaign.cta_url      ?? undefined,
+    template:     campaign.template     ?? 'bench_notes',
+    templateData: campaign.template_data ?? undefined,
   })
 
   const { error: updateErr } = await supabase.from('email_campaigns').update({
