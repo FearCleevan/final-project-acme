@@ -28,12 +28,20 @@ interface PreviewParams {
 }
 
 function buildEmailPreviewHtml(p: PreviewParams): string {
-  const sub      = p.subject || '(No subject)'
+  function esc(s: string): string {
+    return s
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+  }
+
+  const sub      = esc(p.subject || '(No subject)')
   const bodyText = p.body.split('\n').filter(l => l.trim())
-    .map(l => `<p style="font-size:15px;line-height:1.7;color:#6B6257;margin:0 0 16px;">${l}</p>`)
+    .map(l => `<p style="font-size:15px;line-height:1.7;color:#6B6257;margin:0 0 16px;">${esc(l)}</p>`)
     .join('')
   const cta = p.ctaLabel && p.ctaUrl
-    ? `<a href="${p.ctaUrl}" style="display:inline-block;background:#2C5F2E;color:#F5F1E6;text-decoration:none;padding:12px 28px;border-radius:3px;font-family:sans-serif;font-size:14px;font-weight:600;margin-bottom:32px;">${p.ctaLabel}</a>`
+    ? `<a href="${esc(p.ctaUrl)}" style="display:inline-block;background:#2C5F2E;color:#F5F1E6;text-decoration:none;padding:12px 28px;border-radius:3px;font-family:sans-serif;font-size:14px;font-weight:600;margin-bottom:32px;">${esc(p.ctaLabel)}</a>`
     : ''
   const footer = `<div style="border-top:1px solid #E8E0D4;padding-top:16px;margin-top:32px;"><p style="font-size:12px;color:#A89F94;line-height:1.6;margin:0;">Acme Vintage Supply · Dartmouth, Nova Scotia<br>You're receiving this because you subscribed at acmevintagesupply.com.<br><a href="#" style="color:#A89F94;">Unsubscribe</a></p></div>`
   const wrap = (inner: string) => `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;background:#F5F1E6;padding:40px 16px;"><div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;background:#FDFAF6;border:1px solid #E8E0D4;border-radius:8px;padding:40px 40px 32px;">${inner}</div></body></html>`
@@ -43,11 +51,11 @@ function buildEmailPreviewHtml(p: PreviewParams): string {
       <table style="width:100%;border-collapse:collapse;margin-bottom:16px;border:1px solid #E8E0D4;border-radius:6px;">
         <tr>
           <td style="width:88px;padding:12px;vertical-align:top;">
-            ${prod.imageUrl ? `<img src="${prod.imageUrl}" width="64" height="64" style="object-fit:cover;border-radius:4px;display:block;" alt="${prod.title}" />` : `<div style="width:64px;height:64px;background:#E8E0D4;border-radius:4px;"></div>`}
+            ${prod.imageUrl ? `<img src="${esc(prod.imageUrl)}" width="64" height="64" style="object-fit:cover;border-radius:4px;display:block;" alt="${esc(prod.title)}" />` : `<div style="width:64px;height:64px;background:#E8E0D4;border-radius:4px;"></div>`}
           </td>
           <td style="padding:12px;vertical-align:top;">
-            <p style="font-size:14px;font-weight:600;color:#2C2C2A;margin:0 0 4px;">${prod.title}</p>
-            <p style="font-size:13px;color:#6B6257;margin:0 0 10px;">${prod.price}</p>
+            <p style="font-size:14px;font-weight:600;color:#2C2C2A;margin:0 0 4px;">${esc(prod.title)}</p>
+            <p style="font-size:13px;color:#6B6257;margin:0 0 10px;">${esc(prod.price)}</p>
             <span style="font-size:12px;color:#2C5F2E;font-family:sans-serif;font-weight:600;">View product →</span>
           </td>
         </tr>
@@ -56,14 +64,14 @@ function buildEmailPreviewHtml(p: PreviewParams): string {
   }
 
   if (p.template === 'seasonal_sale') {
-    const headline = p.saleHeadline ? `<h2 style="font-size:22px;font-weight:700;color:#2C2C2A;margin:0 0 20px;">${p.saleHeadline}</h2>` : ''
-    const code = p.discountCode ? `<div style="background:#F5F1E6;border:2px dashed #B8964E;border-radius:6px;padding:16px;text-align:center;margin:20px 0;"><p style="font-size:11px;color:#A89F94;font-family:sans-serif;text-transform:uppercase;letter-spacing:2px;margin:0 0 6px;">Use code</p><p style="font-size:26px;font-weight:700;color:#B8964E;letter-spacing:4px;margin:0;">${p.discountCode}</p></div>` : ''
+    const headline = p.saleHeadline ? `<h2 style="font-size:22px;font-weight:700;color:#2C2C2A;margin:0 0 20px;">${esc(p.saleHeadline)}</h2>` : ''
+    const code = p.discountCode ? `<div style="background:#F5F1E6;border:2px dashed #B8964E;border-radius:6px;padding:16px;text-align:center;margin:20px 0;"><p style="font-size:11px;color:#A89F94;font-family:sans-serif;text-transform:uppercase;letter-spacing:2px;margin:0 0 6px;">Use code</p><p style="font-size:26px;font-weight:700;color:#B8964E;letter-spacing:4px;margin:0;">${esc(p.discountCode)}</p></div>` : ''
     const urgency = p.saleEndDate ? `<p style="font-size:13px;color:#B8964E;text-align:center;margin:0 0 20px;font-family:sans-serif;">Offer ends ${new Date(p.saleEndDate).toLocaleDateString('en-CA', { month: 'long', day: 'numeric', year: 'numeric' })}</p>` : ''
     return wrap(`<h2 style="font-size:22px;font-weight:600;margin:0 0 20px;color:#2C2C2A;">${sub}</h2>${headline}${bodyText}${code}${urgency}${cta}${footer}`)
   }
 
   // bench_notes (default)
-  const greetingLine = `<p style="font-size:13px;color:#A89F94;font-family:sans-serif;letter-spacing:1px;text-transform:uppercase;margin:0 0 20px;">${p.greeting}</p>`
+  const greetingLine = `<p style="font-size:13px;color:#A89F94;font-family:sans-serif;letter-spacing:1px;text-transform:uppercase;margin:0 0 20px;">${esc(p.greeting)}</p>`
   return wrap(`<h2 style="font-size:22px;font-weight:600;margin:0 0 20px;color:#2C2C2A;">${sub}</h2>${greetingLine}${bodyText}${cta}${footer}`)
 }
 
@@ -219,7 +227,7 @@ function PreviewModal({
           </button>
           <button
             type="button"
-            onClick={() => { onClose(); onSendNow() }}
+            onClick={() => { onSendNow(); onClose() }}
             disabled={saving}
             className="flex items-center gap-2 px-4 py-2 rounded-md bg-(--admin-accent) text-(--admin-accent-text) text-[13px] font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
           >
@@ -883,6 +891,7 @@ export default function MarketingPage() {
                 {/* Actions */}
                 <div className="flex items-center gap-3 pt-2">
                   <button
+                    type="button"
                     onClick={handleSendNow}
                     disabled={saving}
                     className="flex items-center gap-2 px-4 py-2 rounded-md bg-(--admin-accent) text-(--admin-accent-text) text-[13px] font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
@@ -891,6 +900,7 @@ export default function MarketingPage() {
                     Send Now
                   </button>
                   <button
+                    type="button"
                     onClick={handleSaveDraft}
                     disabled={saving}
                     className="flex items-center gap-2 px-4 py-2 rounded-md border border-(--admin-border) text-[13px] text-(--admin-text-soft) hover:text-(--admin-text) hover:bg-(--admin-surface-2) disabled:opacity-50 transition-colors"
