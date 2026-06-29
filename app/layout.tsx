@@ -123,6 +123,10 @@ export const metadata: Metadata = {
     images: ['/opengraph-image'],
   },
 
+  verification: {
+    google: '0pvUyzec7naF0n7smU2oVwGC6zuco5vaME8Pwn8tTAY',
+  },
+
   robots: {
     index: true,
     follow: true,
