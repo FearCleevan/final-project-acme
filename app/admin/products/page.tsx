@@ -17,13 +17,19 @@ import Pagination from '@/components/admin/shared/Pagination'
 import ConfirmModal from '@/components/admin/shared/ConfirmModal'
 import { cn } from '@/lib/utils'
 
-type TabFilter = 'all' | ProductStatus
+type TabFilter = 'all' | ProductStatus | 'complete' | 'incomplete'
 
 const TABS: { label: string; value: TabFilter }[] = [
-  { label: 'All',    value: 'all' },
-  { label: 'Active', value: 'active' },
-  { label: 'Draft',  value: 'draft' },
+  { label: 'All',        value: 'all' },
+  { label: 'Active',     value: 'active' },
+  { label: 'Draft',      value: 'draft' },
+  { label: 'Complete',   value: 'complete' },
+  { label: 'Incomplete', value: 'incomplete' },
 ]
+
+function isComplete(p: AdminProduct) {
+  return p.price > 0 && !!p.images?.[0]
+}
 
 const PAGE_SIZES = [20, 30, 50, 100]
 
@@ -150,7 +156,9 @@ export default function ProductsPage() {
 
   const filtered = useMemo(() => {
     let list = products
-    if (tab !== 'all')        list = list.filter(p => p.status === tab)
+    if (tab === 'complete')        list = list.filter(p => isComplete(p))
+    else if (tab === 'incomplete') list = list.filter(p => !isComplete(p))
+    else if (tab !== 'all')        list = list.filter(p => p.status === tab)
     if (collection !== 'all') list = list.filter(p => p.collections.includes(collection))
     if (search.trim()) {
       const q = search.toLowerCase()
@@ -173,8 +181,12 @@ export default function ProductsPage() {
   const totalPages = Math.ceil(filtered.length / pageSize)
   const paginated  = filtered.slice((page - 1) * pageSize, page * pageSize)
 
-  const tabCount = (v: TabFilter) =>
-    v === 'all' ? products.length : products.filter(p => p.status === v).length
+  const tabCount = (v: TabFilter) => {
+    if (v === 'all')        return products.length
+    if (v === 'complete')   return products.filter(p => isComplete(p)).length
+    if (v === 'incomplete') return products.filter(p => !isComplete(p)).length
+    return products.filter(p => p.status === v).length
+  }
 
   const handleTabChange = (v: TabFilter) => { setTab(v); setPage(1) }
   const handleSearch    = (v: string)    => { setSearch(v); setPage(1) }
@@ -425,28 +437,39 @@ export default function ProductsPage() {
         {/* Filters */}
         <div className="flex flex-col gap-3 px-4 sm:px-5 py-4 border-b border-(--admin-border)">
           <div className="flex items-center gap-1 flex-wrap">
-            {TABS.map(t => (
-              <button
-                key={t.value}
-                onClick={() => handleTabChange(t.value)}
-                className={cn(
-                  'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] transition-colors',
-                  tab === t.value
-                    ? 'bg-(--admin-accent) text-(--admin-accent-text)'
-                    : 'text-(--admin-text-soft) hover:bg-(--admin-surface-2) hover:text-(--admin-text)'
-                )}
-              >
-                {t.label}
-                <span className={cn(
-                  'text-[10px] px-1.5 py-0.5 rounded-full',
-                  tab === t.value
-                    ? 'bg-white/20 text-(--admin-accent-text)'
-                    : 'bg-(--admin-border) text-(--admin-text-muted)'
-                )}>
-                  {tabCount(t.value)}
-                </span>
-              </button>
-            ))}
+            {TABS.map(t => {
+              const isActive = tab === t.value
+              const isCompleteTab   = t.value === 'complete'
+              const isIncompleteTab = t.value === 'incomplete'
+              return (
+                <button
+                  key={t.value}
+                  onClick={() => handleTabChange(t.value)}
+                  className={cn(
+                    'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] transition-colors',
+                    isActive && isCompleteTab   ? 'bg-emerald-600 text-white' :
+                    isActive && isIncompleteTab ? 'bg-amber-500 text-white' :
+                    isActive                    ? 'bg-(--admin-accent) text-(--admin-accent-text)' :
+                    isCompleteTab               ? 'text-emerald-700 hover:bg-emerald-50' :
+                    isIncompleteTab             ? 'text-amber-700 hover:bg-amber-50' :
+                    'text-(--admin-text-soft) hover:bg-(--admin-surface-2) hover:text-(--admin-text)'
+                  )}
+                >
+                  {t.label}
+                  <span className={cn(
+                    'text-[10px] px-1.5 py-0.5 rounded-full',
+                    isActive && isCompleteTab   ? 'bg-white/20 text-white' :
+                    isActive && isIncompleteTab ? 'bg-white/20 text-white' :
+                    isActive                    ? 'bg-white/20 text-(--admin-accent-text)' :
+                    isCompleteTab               ? 'bg-emerald-100 text-emerald-700' :
+                    isIncompleteTab             ? 'bg-amber-100 text-amber-700' :
+                    'bg-(--admin-border) text-(--admin-text-muted)'
+                  )}>
+                    {tabCount(t.value)}
+                  </span>
+                </button>
+              )
+            })}
           </div>
 
           {/* Quick filters */}
