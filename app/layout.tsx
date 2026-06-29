@@ -1,10 +1,13 @@
 import type { Metadata } from 'next'
 import { Playfair_Display, Inter, JetBrains_Mono, Geist } from 'next/font/google'
+import Script from 'next/script'
 import './globals.css'
 import ShellClient from '@/components/shared/ShellClient'
 import { cn } from "@/lib/utils";
 import { Analytics } from '@vercel/analytics/react'
 import PageViewTracker from '@/components/analytics/PageViewTracker'
+
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -213,6 +216,22 @@ export default function RootLayout({
         <ShellClient>{children}</ShellClient>
         <Analytics />
         <PageViewTracker />
+        {GA_ID && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="ga4-init" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${GA_ID}');
+              `}
+            </Script>
+          </>
+        )}
       </body>
     </html>
   )
