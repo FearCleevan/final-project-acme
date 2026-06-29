@@ -17,8 +17,6 @@ import { CrateItem as CrateItemType } from '@/lib/types'
 export default function CrateDrawer() {
   const { isOpen, closeCrate, items } = useCrateStore()
   const itemCount = useCrateStore(s => s.itemCount())
-  const { currency, rates } = useCurrencyStore()
-  const fmt = (amount: number) => formatCurrencyPrice(amount, currency, rates)
   const closeRef = useRef<HTMLButtonElement>(null)
 
   /* Focus trap — move focus into drawer on open */
@@ -120,6 +118,8 @@ export default function CrateDrawer() {
 function DrawerVariantGroup({ name, image, items }: { name: string; image: string; items: CrateItemType[] }) {
   const removeItem     = useCrateStore(s => s.removeItem)
   const updateQuantity = useCrateStore(s => s.updateQuantity)
+  const { currency, rates } = useCurrencyStore()
+  const fmt = (amount: number) => formatCurrencyPrice(amount, currency, rates)
   const groupQty   = items.reduce((s, i) => s + i.quantity, 0)
   const groupTotal = items.reduce((s, i) => s + i.product.price * i.quantity, 0)
 
