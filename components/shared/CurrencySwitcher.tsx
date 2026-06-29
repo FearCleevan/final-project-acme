@@ -9,7 +9,7 @@ import { CURRENCIES, CurrencyCode } from '@/lib/currency'
 const OPTIONS: CurrencyCode[] = ['CAD', 'USD', 'EUR', 'GBP']
 
 export default function CurrencySwitcher() {
-  const { currency, setCurrency, ensureRates } = useCurrencyStore()
+  const { currency, setCurrency, ensureRates, autoDetect } = useCurrencyStore()
   const updateCartCurrency = useCrateStore(s => s.updateCartCurrency)
   const [open, setOpen]     = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -18,7 +18,8 @@ export default function CurrencySwitcher() {
   useEffect(() => {
     setMounted(true)
     ensureRates()
-  }, [ensureRates])
+    autoDetect()
+  }, [ensureRates, autoDetect])
 
   useEffect(() => {
     if (!open) return
