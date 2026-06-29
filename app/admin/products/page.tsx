@@ -583,6 +583,12 @@ export default function ProductsPage() {
             </select>
 
             <button
+              onClick={() => exportProductsCSV(products.filter(p => selectedIds.has(p.id)))}
+              className="flex items-center gap-1.5 h-7 px-3 text-[11px] text-(--admin-text-soft) bg-(--admin-surface-2) border border-(--admin-border) rounded-md hover:bg-(--admin-border) transition-colors"
+            >
+              <BiExport size={12} /> Export selected
+            </button>
+            <button
               onClick={() => setDeleteTarget(Array.from(selectedIds))}
               className="flex items-center gap-1.5 h-7 px-3 text-[11px] text-(--admin-red) bg-(--admin-red-bg) border border-(--admin-red)/20 rounded-md hover:opacity-80 transition-opacity"
             >
