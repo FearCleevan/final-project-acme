@@ -2,8 +2,9 @@
 
 import { useCrateStore } from '@/store/crateStore'
 import { useCustomerStore } from '@/store/customerStore'
-import { formatPrice } from '@/lib/utils'
 import Button from '@/components/shared/Button'
+import CurrencyPrice from '@/components/shared/CurrencyPrice'
+import { useCurrencyStore } from '@/store/currencyStore'
 
 interface CrateSummaryProps {
   onClose: () => void
@@ -16,6 +17,7 @@ export default function CrateSummary({ onClose }: CrateSummaryProps) {
   const checkout       = useCrateStore(s => s.checkout)
   const cartCreating   = useCrateStore(s => s._cartCreating)
   const isLoggedIn     = useCustomerStore(s => s.isLoggedIn)
+  const currency       = useCurrencyStore(s => s.currency)
 
   const fullCrateHref  = isLoggedIn ? '/account?tab=crate' : '/crate'
 
@@ -31,15 +33,15 @@ export default function CrateSummary({ onClose }: CrateSummaryProps) {
     <div className="sticky bottom-0 border-t border-ink-rule bg-parchment pt-4 pb-6 px-6 space-y-3">
       <div className="flex justify-between text-[13px] text-ink-soft">
         <span className="font-sans">Subtotal ({itemCount} {itemCount === 1 ? 'item' : 'items'})</span>
-        <span className="font-serif text-ink-iron">{formatPrice(total)}</span>
+        <CurrencyPrice amount={total} className="font-serif text-ink-iron" />
       </div>
       <div className="flex justify-between text-[13px] text-ink-soft">
         <span className="font-sans">Freight (straw-packed crate)</span>
         <span className="font-mono text-[11px] uppercase tracking-eyebrow">Free</span>
       </div>
       <div className="flex justify-between items-baseline border-t border-ink-rule pt-3">
-        <span className="font-sans text-[13px] text-ink-iron font-semibold">Total · USD</span>
-        <span className="font-serif text-[22px] text-brass-deep">{formatPrice(total)}</span>
+        <span className="font-sans text-[13px] text-ink-iron font-semibold">Total · {currency}</span>
+        <CurrencyPrice amount={total} className="font-serif text-[22px] text-brass-deep" />
       </div>
 
       <p className="text-[10px] font-mono uppercase tracking-eyebrow text-green-brand">

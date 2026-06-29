@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { BiRevision, BiTag, BiEnvelope } from "react-icons/bi";
 import { Product } from "@/lib/types";
-import { formatPrice } from "@/lib/utils";
+import { useCurrencyStore } from '@/store/currencyStore'
+import { formatCurrencyPrice } from '@/lib/currency'
+import CurrencyPrice from '@/components/shared/CurrencyPrice'
 import { useCrateStore } from "@/store/crateStore";
 import FitmentBox from "./FitmentBox";
 import NotifyMeForm from "./NotifyMeForm";
@@ -22,6 +24,8 @@ export default function ProductInfo({ product, reviewSummary }: ProductInfoProps
   const addItem        = useCrateStore((s) => s.addItem);
   const updateQuantity = useCrateStore((s) => s.updateQuantity);
   const items          = useCrateStore((s) => s.items);
+  const { currency, rates } = useCurrencyStore();
+  const fmt = (amount: number) => formatCurrencyPrice(amount, currency, rates);
 
   // For colour-variant products each colour is its own cart entry (keyed by variant id)
   const hasColourVariants = product.colorVariants.length >= 1;
@@ -202,7 +206,7 @@ export default function ProductInfo({ product, reviewSummary }: ProductInfoProps
       <div className="pb-4 border-b border-ink-rule">
         <div className="flex items-baseline gap-3">
           <span className="font-serif text-[28px] text-brass-deep leading-none">
-            {formatPrice(activePrice)}
+            <CurrencyPrice amount={activePrice} />
           </span>
           <span className="text-[11px] font-mono uppercase tracking-eyebrow text-ink-soft">
             CAD · Free freight over $150
@@ -300,7 +304,7 @@ export default function ProductInfo({ product, reviewSummary }: ProductInfoProps
                         >+</button>
                       </div>
                       <span className={`text-[12px] font-mono text-ink-soft w-14 text-right tabular-nums ${q === 0 ? 'invisible' : ''}`}>
-                        {formatPrice(cv.price * q)}
+                        {fmt(cv.price * q)}
                       </span>
                     </>
                   )}
@@ -429,9 +433,9 @@ export default function ProductInfo({ product, reviewSummary }: ProductInfoProps
             ? '✓ Added to your crate'
             : hasColourVariants && multiMode
               ? multiCount > 0
-                ? `Add ${multiCount} item${multiCount !== 1 ? 's' : ''} to crate — ${formatPrice(multiTotal)}`
+                ? `Add ${multiCount} item${multiCount !== 1 ? 's' : ''} to crate — ${fmt(multiTotal)}`
                 : 'Select quantities above'
-              : `Add to crate — ${formatPrice(lineTotal)}`}
+              : `Add to crate — ${fmt(lineTotal)}`}
         </button>
       )}
 

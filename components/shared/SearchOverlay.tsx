@@ -3,7 +3,7 @@
 import { useEffect, useRef, useMemo, useState, useCallback } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { BiSearch, BiX, BiHistory, BiChevronRight } from 'react-icons/bi'
-import { formatPrice } from '@/lib/utils'
+import CurrencyPrice from '@/components/shared/CurrencyPrice'
 import PlateImage from './PlateImage'
 import Link from 'next/link'
 
@@ -225,7 +225,7 @@ export default function SearchOverlay({ isOpen, onClose, query, onQueryChange }:
                                 </p>
                               </div>
                               <p className="font-serif text-[15px] text-brass-deep shrink-0">
-                                {formatPrice(product.price)}
+                                <CurrencyPrice amount={product.price} />
                               </p>
                               <BiChevronRight size={16} className="text-ink-soft shrink-0" aria-hidden="true" />
                             </Link>

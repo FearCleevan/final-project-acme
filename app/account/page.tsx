@@ -566,7 +566,7 @@ function AccountContent() {
                       </div>
                     </div>
                     <div className="border-t border-ink-rule pt-4 flex justify-between items-baseline">
-                      <span className="font-sans text-[13px] text-ink-iron font-semibold">Total · USD</span>
+                      <span className="font-sans text-[13px] text-ink-iron font-semibold">Total · CAD</span>
                       <span className="font-serif text-[22px] text-brass-deep">
                         ${(crateTotal >= 150 ? crateTotal : crateTotal + 18).toFixed(2)}
                       </span>

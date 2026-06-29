@@ -84,11 +84,12 @@ function toLines(
  */
 export async function cartCreate(
   lines: { merchandiseId: string; quantity: number }[],
-  customerAccessToken?: string | null
+  customerAccessToken?: string | null,
+  countryCode?: string
 ): Promise<{ cartId: string; checkoutUrl: string; lines: ShopifyCartLine[] } | null> {
-  const buyerIdentity = customerAccessToken
-    ? { buyerIdentity: { customerAccessToken } }
-    : {}
+  const buyerIdentity: Record<string, unknown> = {}
+  if (customerAccessToken) buyerIdentity.customerAccessToken = customerAccessToken
+  if (countryCode)         buyerIdentity.countryCode         = countryCode
 
   const data = await cartFetch<{
     cartCreate: {
@@ -102,11 +103,32 @@ export async function cartCreate(
         userErrors { field message }
       }
     }`,
-    { lines, buyerIdentity: customerAccessToken ? { customerAccessToken } : null }
+    { lines, buyerIdentity: Object.keys(buyerIdentity).length ? buyerIdentity : null }
   )
   const cart = data?.cartCreate?.cart
   if (!cart) return null
   return { cartId: cart.id, checkoutUrl: cart.checkoutUrl, lines: toLines(cart) }
+}
+
+export async function cartCountryUpdate(
+  cartId: string,
+  countryCode: string
+): Promise<string | null> {
+  const data = await cartFetch<{
+    cartBuyerIdentityUpdate: {
+      cart: { checkoutUrl: string } | null
+      userErrors: { field: string; message: string }[]
+    }
+  }>(
+    `mutation cartBuyerIdentityUpdate($cartId: ID!, $buyerIdentity: CartBuyerIdentityInput!) {
+      cartBuyerIdentityUpdate(cartId: $cartId, buyerIdentity: $buyerIdentity) {
+        cart { checkoutUrl }
+        userErrors { field message }
+      }
+    }`,
+    { cartId, buyerIdentity: { countryCode } }
+  )
+  return data?.cartBuyerIdentityUpdate?.cart?.checkoutUrl ?? null
 }
 
 /**
