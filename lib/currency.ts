@@ -24,7 +24,7 @@ export function formatCurrencyPrice(
 ): string {
   const rate      = (rates[currency] as number | undefined) ?? 1
   const converted = amountCAD * rate
-  return new Intl.NumberFormat('en-CA', {
+  return new Intl.NumberFormat('en-US', {
     style:                 'currency',
     currency,
     minimumFractionDigits: 2,
