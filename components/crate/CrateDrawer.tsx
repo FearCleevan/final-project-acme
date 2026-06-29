@@ -9,13 +9,16 @@ import CrateItem from './CrateItem'
 import CrateSummary from './CrateSummary'
 import Button from '@/components/shared/Button'
 import { groupCartItems, getColourHex } from '@/lib/cartGrouping'
-import { formatPrice } from '@/lib/utils'
+import { useCurrencyStore } from '@/store/currencyStore'
+import { formatCurrencyPrice } from '@/lib/currency'
 import PlateImage from '@/components/shared/PlateImage'
 import { CrateItem as CrateItemType } from '@/lib/types'
 
 export default function CrateDrawer() {
   const { isOpen, closeCrate, items } = useCrateStore()
   const itemCount = useCrateStore(s => s.itemCount())
+  const { currency, rates } = useCurrencyStore()
+  const fmt = (amount: number) => formatCurrencyPrice(amount, currency, rates)
   const closeRef = useRef<HTMLButtonElement>(null)
 
   /* Focus trap — move focus into drawer on open */
@@ -130,7 +133,7 @@ function DrawerVariantGroup({ name, image, items }: { name: string; image: strin
         <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
           <p className="font-serif text-[14px] font-medium text-ink-iron leading-snug line-clamp-2">{name}</p>
           <p className="text-[11px] font-mono text-brass-deep">
-            {groupQty} {groupQty === 1 ? 'item' : 'items'} · {formatPrice(groupTotal)}
+            {groupQty} {groupQty === 1 ? 'item' : 'items'} · {fmt(groupTotal)}
           </p>
         </div>
       </div>

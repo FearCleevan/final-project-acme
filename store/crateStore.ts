@@ -10,8 +10,10 @@ import {
   cartLinesUpdate,
   cartLinesRemove,
   cartBuyerIdentityUpdate,
+  cartCountryUpdate,
   fetchCart,
 } from '@/lib/shopifyCart'
+import { CURRENCIES, CurrencyCode } from '@/lib/currency'
 
 interface CrateStore {
   items:           CrateItem[]
@@ -29,7 +31,8 @@ interface CrateStore {
   checkout:        () => void
   total:           () => number
   itemCount:       () => number
-  initCart:        (customerAccessToken?: string | null) => Promise<void>
+  initCart:           (customerAccessToken?: string | null) => Promise<void>
+  updateCartCurrency: (currency: CurrencyCode) => Promise<void>
 }
 
 export const useCrateStore = create<CrateStore>()(
@@ -255,6 +258,14 @@ export const useCrateStore = create<CrateStore>()(
             return { ...item, cartLineId: line?.id ?? null }
           }),
         }))
+      },
+
+      updateCartCurrency: async (currency: CurrencyCode) => {
+        const { cartId } = get()
+        if (!cartId) return
+        const { country } = CURRENCIES[currency]
+        const newUrl = await cartCountryUpdate(cartId, country)
+        if (newUrl) set({ checkoutUrl: newUrl })
       },
     }),
     {

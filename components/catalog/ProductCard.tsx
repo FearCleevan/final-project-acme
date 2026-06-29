@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { memo, useState } from 'react'
 import { BiPackage } from 'react-icons/bi'
 import { Product } from '@/lib/types'
-import { formatPrice } from '@/lib/utils'
+import CurrencyPrice from '@/components/shared/CurrencyPrice'
 import { useCrateStore } from '@/store/crateStore'
 import PlateImage from '@/components/shared/PlateImage'
 
@@ -112,7 +112,7 @@ const ProductCard = memo(function ProductCard({
         {/* Price + action */}
         <div className="flex items-center justify-between mb-1 sm:mb-2">
           <span className="font-serif text-[14px] sm:text-[22px] text-brass-deep leading-none">
-            {formatPrice(product.price)}
+            <CurrencyPrice amount={product.price} />
           </span>
 
           {/* Desktop: navigate to product */}

@@ -6,6 +6,7 @@ import { useCrateStore } from '@/store/crateStore'
 import { useCustomerStore } from '@/store/customerStore'
 import { cn } from '@/lib/utils'
 import AccountDropdown from './AccountDropdown'
+import CurrencySwitcher from '@/components/shared/CurrencySwitcher'
 
 interface NavActionsProps {
   onSearchOpen: () => void
@@ -28,6 +29,8 @@ export default function NavActions({ onSearchOpen }: NavActionsProps) {
 
   return (
     <div className="flex items-center gap-1">
+      <CurrencySwitcher />
+
       <button
         onClick={onSearchOpen}
         className={iconBtn}

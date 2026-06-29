@@ -3,7 +3,9 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useCrateStore } from '@/store/crateStore'
-import { formatPrice } from '@/lib/utils'
+import { useCurrencyStore } from '@/store/currencyStore'
+import { formatCurrencyPrice } from '@/lib/currency'
+import CurrencyPrice from '@/components/shared/CurrencyPrice'
 import Breadcrumb from '@/components/shared/Breadcrumb'
 import Eyebrow from '@/components/shared/Eyebrow'
 import CheckoutSteps from '@/components/checkout/CheckoutSteps'
@@ -14,6 +16,8 @@ import OrderSummary from '@/components/checkout/OrderSummary'
 type Step = 1 | 2 | 3
 
 export default function CheckoutPage() {
+  const { currency, rates } = useCurrencyStore()
+  const fmt = (amount: number) => formatCurrencyPrice(amount, currency, rates)
   const router = useRouter()
   const items = useCrateStore(s => s.items)
   const clearCrate = useCrateStore(s => s.clearCrate)

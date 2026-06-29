@@ -1,13 +1,17 @@
 'use client'
 
 import { useCrateStore } from '@/store/crateStore'
-import { formatPrice } from '@/lib/utils'
+import { useCurrencyStore } from '@/store/currencyStore'
+import { formatCurrencyPrice } from '@/lib/currency'
+import CurrencyPrice from '@/components/shared/CurrencyPrice'
 import PlateImage from '@/components/shared/PlateImage'
 import Eyebrow from '@/components/shared/Eyebrow'
 
 const FREIGHT_THRESHOLD = 150
 
 export default function OrderSummary() {
+  const { currency, rates } = useCurrencyStore()
+  const fmt = (amount: number) => formatCurrencyPrice(amount, currency, rates)
   const items = useCrateStore(s => s.items)
   const total = useCrateStore(s => s.total)()
   const freeFreight = total >= FREIGHT_THRESHOLD
@@ -45,7 +49,7 @@ export default function OrderSummary() {
                 <p className="text-[11px] font-mono text-ink-soft mt-1">Qty: {item.quantity}</p>
               </div>
               <p className="font-serif text-[14px] text-brass-deep shrink-0">
-                {formatPrice(item.product.price * item.quantity)}
+                {fmt(item.product.price * item.quantity)}
               </p>
             </li>
           ))}
@@ -56,14 +60,14 @@ export default function OrderSummary() {
       <div className="border-t border-ink-rule pt-4 space-y-2">
         <div className="flex justify-between items-baseline">
           <span className="text-[12px] font-mono uppercase tracking-eyebrow text-ink-soft">Subtotal</span>
-          <span className="font-sans text-[14px] text-ink-iron">{formatPrice(total)}</span>
+          <span className="font-sans text-[14px] text-ink-iron">{fmt(total)}</span>
         </div>
         <div className="flex justify-between items-baseline">
           <span className="text-[12px] font-mono uppercase tracking-eyebrow text-ink-soft">
             Freight (straw-packed)
           </span>
           <span className={`font-sans text-[14px] ${freeFreight ? 'text-green-brand' : 'text-ink-iron'}`}>
-            {freeFreight ? 'Free' : formatPrice(18)}
+            {freeFreight ? 'Free' : fmt(18)}
           </span>
         </div>
         <div className="flex justify-between items-baseline">
@@ -77,7 +81,7 @@ export default function OrderSummary() {
             Total · CAD
           </span>
           <span className="font-serif text-[22px] text-brass-deep leading-none">
-            {formatPrice(freeFreight ? total : total + 18)}
+            {fmt(freeFreight ? total : total + 18)}
           </span>
         </div>
       </div>

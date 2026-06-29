@@ -2,7 +2,7 @@
 
 import { useCrateStore } from '@/store/crateStore'
 import { CrateItem as CrateItemType } from '@/lib/types'
-import { formatPrice } from '@/lib/utils'
+import CurrencyPrice from '@/components/shared/CurrencyPrice'
 import PlateImage from '@/components/shared/PlateImage'
 
 interface CrateItemProps {
@@ -37,7 +37,7 @@ export default function CrateItem({ item }: CrateItemProps) {
 
         <div className="flex items-center justify-between mt-2">
           <p className="font-serif text-[16px] text-brass-deep">
-            {formatPrice(product.price)}
+            <CurrencyPrice amount={product.price} />
           </p>
 
           <div className="flex items-center gap-1">

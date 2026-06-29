@@ -3,7 +3,9 @@
 import { useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { useCrateStore } from '@/store/crateStore'
-import { formatPrice } from '@/lib/utils'
+import { useCurrencyStore } from '@/store/currencyStore'
+import { formatCurrencyPrice } from '@/lib/currency'
+import CurrencyPrice from '@/components/shared/CurrencyPrice'
 import Breadcrumb from '@/components/shared/Breadcrumb'
 import Eyebrow from '@/components/shared/Eyebrow'
 import CrateItem from '@/components/crate/CrateItem'
@@ -14,6 +16,8 @@ import { groupCartItems, getColourHex } from '@/lib/cartGrouping'
 const FREIGHT_THRESHOLD = 150
 
 export default function CratePage() {
+  const { currency, rates } = useCurrencyStore()
+  const fmt = (amount: number) => formatCurrencyPrice(amount, currency, rates)
   const items       = useCrateStore(s => s.items)
   const total       = useCrateStore(s => s.total())
   const clearCrate  = useCrateStore(s => s.clearCrate)
@@ -121,10 +125,10 @@ export default function CratePage() {
             </div>
             <div className="text-right">
               <p className="font-serif text-[22px] text-brass-deep leading-none">
-                {formatPrice(item.product.price * item.quantity)}
+                {fmt(item.product.price * item.quantity)}
               </p>
               {item.quantity > 1 && (
-                <p className="text-[11px] font-mono text-ink-soft mt-0.5">{formatPrice(item.product.price)} each</p>
+                <p className="text-[11px] font-mono text-ink-soft mt-0.5">{fmt(item.product.price)} each</p>
               )}
             </div>
           </div>
@@ -160,7 +164,7 @@ export default function CratePage() {
             </h2>
           </Link>
           <p className="text-[12px] font-mono text-brass-deep">
-            {groupQty} {groupQty === 1 ? 'item' : 'items'} · {formatPrice(groupTotal)}
+            {groupQty} {groupQty === 1 ? 'item' : 'items'} · {fmt(groupTotal)}
           </p>
         </div>
       </div>
@@ -183,7 +187,7 @@ export default function CratePage() {
                 <CrateItemStepper item={item} />
               </div>
               <p className="font-serif text-[18px] text-brass-deep leading-none w-24 text-right tabular-nums">
-                {formatPrice(item.product.price * item.quantity)}
+                {fmt(item.product.price * item.quantity)}
               </p>
             </div>
           )
@@ -213,20 +217,20 @@ export default function CratePage() {
                 <span className="font-sans text-[14px] text-ink-soft">
                   Subtotal ({itemCount} {itemCount === 1 ? 'item' : 'items'})
                 </span>
-                <span className="font-sans text-[15px] text-ink-iron">{formatPrice(total)}</span>
+                <span className="font-sans text-[15px] text-ink-iron">{fmt(total)}</span>
               </div>
               <div className="flex justify-between items-baseline">
                 <span className="font-sans text-[14px] text-ink-soft">Freight (straw-packed crate)</span>
                 <span className={`font-sans text-[15px] ${freeFreight ? 'text-green-brand' : 'text-ink-iron'}`}>
-                  {freeFreight ? 'Free' : formatPrice(freight)}
+                  {freeFreight ? 'Free' : fmt(freight)}
                 </span>
               </div>
             </div>
 
             <div className="border-t border-ink-rule pt-4 flex justify-between items-baseline">
-              <span className="font-sans text-[14px] font-semibold text-ink-charcoal">Total · USD</span>
+              <span className="font-sans text-[14px] font-semibold text-ink-charcoal">Total · {currency}</span>
               <span className="font-serif text-[28px] text-brass-deep leading-none">
-                {formatPrice(orderTotal)}
+                {fmt(orderTotal)}
               </span>
             </div>
 
@@ -236,7 +240,7 @@ export default function CratePage() {
               </p>
             ) : (
               <p className="text-[10px] font-mono uppercase tracking-eyebrow text-ink-soft">
-                Free freight on orders over {formatPrice(FREIGHT_THRESHOLD)}
+                Free freight on orders over {fmt(FREIGHT_THRESHOLD)}
               </p>
             )}
 
