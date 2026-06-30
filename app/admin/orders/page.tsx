@@ -268,7 +268,10 @@ export default function OrdersPage() {
             className="relative inline-block"
           >
             <div
-              onClick={() => setOpenDropdownId(isOpen ? null : row.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpenDropdownId(isOpen ? null : row.id);
+              }}
               className="cursor-pointer"
             >
               <Badge
