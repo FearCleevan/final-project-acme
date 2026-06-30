@@ -28,6 +28,7 @@ import {
   BiBox,
   BiCopy,
 } from "react-icons/bi";
+import { TbTruckDelivery } from "react-icons/tb";
 
 const CSV_HEADERS = [
   "Order #",
@@ -255,7 +256,7 @@ export default function OrdersPage() {
 
         let icon = null;
         if (status === "in_transit" || status === "out_for_delivery") {
-          icon = <BiSolidTruck />;
+          icon = <TbTruckDelivery  />;
         } else if (status === "delivered") {
           icon = <BiCheckCircle />;
         }
