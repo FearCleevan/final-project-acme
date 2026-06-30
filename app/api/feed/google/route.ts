@@ -33,7 +33,7 @@ export async function GET() {
       const category = GOOGLE_CATEGORY[p.category] ?? 'Home &amp; Garden &gt; Lighting'
 
       return `    <item>
-      <g:id>${esc(p.slug)}</g:id>
+      <g:id>${esc(p.id)}</g:id>
       <g:title>${esc(p.name)}</g:title>
       <g:description>${desc}</g:description>
       <g:link>${SITE_URL}/catalog/${esc(p.slug)}</g:link>
