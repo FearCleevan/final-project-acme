@@ -40,7 +40,7 @@ export default function FulfillmentTimeline({ events, fulfillmentStatus }: Props
             {/* Vertical connector line */}
             {!isLast && (
               <span
-                className="absolute left-[9px] top-[18px] bottom-0 w-px"
+                className="absolute left-2.25 top-4.5 bottom-0 w-px"
                 style={{ background: done ? 'var(--admin-accent)' : 'var(--admin-border)' }}
                 aria-hidden="true"
               />
@@ -48,7 +48,7 @@ export default function FulfillmentTimeline({ events, fulfillmentStatus }: Props
 
             {/* Dot */}
             <span
-              className="absolute left-0 top-0.5 w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center shrink-0"
+              className="absolute left-0 top-0.5 w-4.5 h-4.5 rounded-full border-2 flex items-center justify-center shrink-0"
               style={{
                 background:   current ? 'var(--admin-accent)' : done ? 'var(--admin-surface)' : 'var(--admin-surface-2)',
                 borderColor:  done    ? 'var(--admin-accent)' : 'var(--admin-border)',
