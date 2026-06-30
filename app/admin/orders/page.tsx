@@ -164,7 +164,12 @@ export default function OrdersPage() {
       label: "Order",
       sortable: true,
       render: (row) => (
-        <span className="text-[12px] font-medium text-(--admin-text)">
+        <span
+          onClick={() =>
+            router.push(`/admin/orders/${row.id.replace("#", "")}`)
+          }
+          className="text-[12px] font-medium text-(--admin-text) hover:underline cursor-pointer"
+        >
           {row.id}
         </span>
       ),
@@ -173,7 +178,12 @@ export default function OrdersPage() {
       key: "customer",
       label: "Customer",
       render: (row) => (
-        <div>
+        <div
+          onClick={() =>
+            router.push(`/admin/orders/${row.id.replace("#", "")}`)
+          }
+          className="cursor-pointer hover:opacity-80 transition-opacity"
+        >
           <p className="text-[13px] text-(--admin-text)">{row.customer.name}</p>
           <p className="text-[11px] text-(--admin-text-muted)">
             {row.customer.email}
@@ -268,10 +278,7 @@ export default function OrdersPage() {
             className="relative inline-block"
           >
             <div
-              onClick={(e) => {
-                e.stopPropagation();
-                setOpenDropdownId(isOpen ? null : row.id);
-              }}
+              onClick={() => setOpenDropdownId(isOpen ? null : row.id)}
               className="cursor-pointer"
             >
               <Badge
@@ -489,11 +496,6 @@ export default function OrdersPage() {
               columns={COLUMNS as unknown as Column<Record<string, unknown>>[]}
               data={paginated as unknown as Record<string, unknown>[]}
               keyField="id"
-              onRowClick={(row) =>
-                router.push(
-                  `/admin/orders/${(row as unknown as AdminOrder).id.replace("#", "")}`,
-                )
-              }
               emptyMessage="No orders found"
               emptyDescription="Try adjusting your filters or search."
             />
