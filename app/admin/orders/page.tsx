@@ -290,7 +290,7 @@ export default function OrdersPage() {
               />
 
               {isOpen && (
-                <div className="absolute top-full left-0 mt-2 z-10 w-70 bg-white border border-gray-200 rounded-lg shadow-lg p-3 flex flex-col gap-2.5">
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-10 w-70 bg-white border border-gray-200 rounded-lg shadow-lg p-3 flex flex-col gap-2.5">
                   <div className="flex items-center justify-between">
                     <Badge
                       label={
