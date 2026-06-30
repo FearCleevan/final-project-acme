@@ -290,7 +290,7 @@ export default function OrdersPage() {
               />
 
               {isOpen && (
-                <div className="absolute top-full left-0 mt-2 z-10 w-[280px] bg-white border border-gray-200 rounded-lg shadow-lg p-3 flex flex-col gap-2.5">
+                <div className="absolute top-full left-0 mt-2 z-10 w-70 bg-white border border-gray-200 rounded-lg shadow-lg p-3 flex flex-col gap-2.5">
                   <div className="flex items-center justify-between">
                     <Badge
                       label={
@@ -305,7 +305,7 @@ export default function OrdersPage() {
                     </span>
                   </div>
                   <div className="flex items-center justify-between bg-gray-50 rounded-md p-2 border border-gray-100">
-                    <div className="flex items-center gap-2 text-[12px] text-gray-700 truncate max-w-[200px]">
+                    <div className="flex items-center gap-2 text-[12px] text-gray-700 truncate max-w-50">
                       <BiBox size={14} className="text-gray-500 shrink-0" />
                       <span className="font-medium shrink-0">
                         {latestEvent?.carrier || "Carrier"}:
