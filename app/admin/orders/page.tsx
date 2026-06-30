@@ -3,16 +3,16 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { formatCurrency, formatDate } from '@/lib/admin/utils'
-import { OrderStatus, PaymentStatus } from '@/lib/admin/types'
+import { FulfillmentEventStatus, OrderStatus, PaymentStatus } from '@/lib/admin/types'
 import PageHeader from '@/components/admin/shared/PageHeader'
 import SectionCard from '@/components/admin/shared/SectionCard'
 import DataTable, { Column } from '@/components/admin/shared/DataTable'
-import Badge, { orderStatusVariant, paymentStatusVariant } from '@/components/admin/shared/Badge'
+import Badge, { BadgeVariant, orderStatusVariant, paymentStatusVariant } from '@/components/admin/shared/Badge'
 import SearchInput from '@/components/admin/shared/SearchInput'
 import Pagination from '@/components/admin/shared/Pagination'
 import { cn } from '@/lib/utils'
 import { AdminOrder } from '@/lib/admin/types'
-import { BiExport } from 'react-icons/bi'
+import { BiExport, BiSolidTruck, BiCheckCircle } from 'react-icons/bi'
 
 const CSV_HEADERS = [
   'Order #', 'Customer Name', 'Customer Email', 'Date',
@@ -122,7 +122,59 @@ const COLUMNS: Column<AdminOrder>[] = [
       <Badge label={row.fulfillmentStatus} variant={orderStatusVariant(row.fulfillmentStatus)} />
     ),
   },
+  {
+    key: 'deliveryStatus',
+    label: 'Delivery Status',
+    render: row => {
+      const status = getLatestDeliveryStatus(row)
+      if (!status) return <span className="text-[12px] text-(--admin-text-muted)">-</span>
+
+      let icon =  null
+      if (status === 'in_transit' || status === 'out_for_delivery') {
+        icon = <BiSolidTruck />
+      } else if (status === 'delivered') {
+        icon = <BiCheckCircle/>
+      }
+
+      return (
+        <Badge 
+          label={deliveryStatusLabels[status] || status.replace(/_/g, ' ')}
+          variant={deliveryStatusVariants[status] || 'neutral'}
+          icon={icon}
+        />
+      )
+    }
+  },
 ]
+ 
+const getLatestDeliveryStatus = (order: AdminOrder): FulfillmentEventStatus | null => {
+  if (!order.fulfillmentStatus || order.fulfillmentEvents.length === 0) return null
+
+  const sorted = [...order.fulfillmentEvents].sort((a, b) => 
+    new Date(b.happenedAt).getTime() - new Date(a.happenedAt).getTime()
+  )
+  return sorted[0].status
+}
+
+const deliveryStatusLabels: Record<FulfillmentEventStatus, string> = {
+  confirmed: 'Confirmed',
+  label_printed: 'Label printed',
+  in_transit: 'In transit',
+  out_for_delivery: 'Out for Delivery',
+  delivered: 'Delivered',
+  attempted_delivery: 'Attempted Delivery',
+  failure: 'Failure'
+}
+
+const deliveryStatusVariants: Record<FulfillmentEventStatus, BadgeVariant> = {
+  confirmed: 'neutral',
+  label_printed: 'neutral',
+  in_transit: 'blue',
+  out_for_delivery: 'blue',
+  delivered: 'neutral',
+  attempted_delivery: 'amber',
+  failure: 'red',
+}
 
 export default function OrdersPage() {
   const router  = useRouter()

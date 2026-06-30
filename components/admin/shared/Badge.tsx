@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils'
+import React from 'react';
 
 export type BadgeVariant = 'green' | 'amber' | 'red' | 'neutral' | 'blue'
 
@@ -6,6 +7,7 @@ interface BadgeProps {
   label: string
   variant: BadgeVariant
   className?: string
+  icon?: React.ReactNode
 }
 
 const styles: Record<BadgeVariant, string> = {
@@ -13,7 +15,7 @@ const styles: Record<BadgeVariant, string> = {
   amber:   'bg-(--admin-amber-bg) text-(--admin-amber) border-(--admin-amber)/20',
   red:     'bg-(--admin-red-bg) text-(--admin-red) border-(--admin-red)/20',
   neutral: 'bg-(--admin-surface-2) text-(--admin-text-soft) border-(--admin-border)',
-  blue:    'bg-(--admin-surface-2) text-(--admin-text-soft) border-(--admin-border)',
+  blue:    'bg-blue-100 text-blue-700 border-blue-200',
 }
 
 export function orderStatusVariant(status: string): BadgeVariant {
@@ -40,7 +42,7 @@ export function productStatusVariant(status: string): BadgeVariant {
   return status === 'active' ? 'green' : 'neutral'
 }
 
-export default function Badge({ label, variant, className }: BadgeProps) {
+export default function Badge({ label, variant, className, icon }: BadgeProps) {
   return (
     <span
       className={cn(
@@ -49,6 +51,7 @@ export default function Badge({ label, variant, className }: BadgeProps) {
         className
       )}
     >
+      {icon && <span className="text-[13px]" >{icon}</span>}
       {label}
     </span>
   )
