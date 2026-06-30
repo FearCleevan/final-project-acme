@@ -46,7 +46,7 @@ export default function Badge({ label, variant, className, icon }: BadgeProps) {
   return (
     <span
       className={cn(
-        'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] border capitalize',
+        'inline-flex items-center gap-2.5 px-2 py-0.5 rounded-full text-[11px] border capitalize',
         styles[variant],
         className
       )}
