@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { BiArrowBack, BiCheck, BiPackage, BiPlus, BiPrinter } from 'react-icons/bi'
