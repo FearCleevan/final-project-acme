@@ -25,6 +25,7 @@ import {
   BiExport,
   BiSolidTruck,
   BiCheckCircle,
+  BiCheck,
   BiBox,
   BiCopy,
 } from "react-icons/bi";
@@ -95,6 +96,59 @@ const TABS: { label: string; value: TabFilter }[] = [
 
 const PAGE_SIZE = 20;
 
+export interface Carrier {
+  name: string;
+  shopifyCode: string;
+  trackingUrl: string;
+}
+
+export const CARRIERS: Carrier[] = [
+  {
+    name: "Canada Post",
+    shopifyCode: "Canada Post",
+    trackingUrl:
+      "https://www.canadapost-postescanada.ca/track-reperage/en#/search?searchFor=",
+  },
+  {
+    name: "UPS",
+    shopifyCode: "UPS",
+    trackingUrl: "https://www.ups.com/track?tracknum=",
+  },
+  {
+    name: "FedEx",
+    shopifyCode: "FedEx",
+    trackingUrl: "https://www.fedex.com/apps/fedextrack/?tracknumbers=",
+  },
+  {
+    name: "Purolator",
+    shopifyCode: "Purolator",
+    trackingUrl:
+      "https://www.purolator.com/en/ship-track/tracking-details.page?pin=",
+  },
+  {
+    name: "DHL Express",
+    shopifyCode: "DHL Express",
+    trackingUrl: "https://www.dhl.com/en/express/tracking.html?AWB=",
+  },
+  {
+    name: "Canpar",
+    shopifyCode: "Canpar",
+    trackingUrl:
+      "https://www.canpar.com/en/manage/tracking/trackingBarcodes.do?barcode=",
+  },
+  {
+    name: "USPS",
+    shopifyCode: "USPS",
+    trackingUrl: "https://tools.usps.com/go/TrackConfirmAction?tLabels=",
+  },
+  {
+    name: "Amazon Logistics",
+    shopifyCode: "Amazon Logistics",
+    trackingUrl: "https://track.amazon.ca/tracking/",
+  },
+  { name: "Other", shopifyCode: "Other", trackingUrl: "" },
+];
+
 const deliveryStatusLabels: Record<FulfillmentEventStatus, string> = {
   confirmed: "Confirmed",
   label_printed: "Label printed",
@@ -125,6 +179,7 @@ export default function OrdersPage() {
 
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -145,6 +200,19 @@ export default function OrdersPage() {
       .then(setOrders)
       .finally(() => setLoading(false));
   }, []);
+
+  const getCarrierUrl = (carrierName: string, trackingNum: string) => {
+    const found = CARRIERS.find(
+      (c) => c.name === carrierName || c.shopifyCode === carrierName,
+    );
+    return found?.trackingUrl ? `${found.trackingUrl}${trackingNum}` : null;
+  };
+
+  const handleCopyTracking = (id: string, text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
 
   const getLatestFulfillmentEvent = (
     order: AdminOrder,
@@ -256,7 +324,7 @@ export default function OrdersPage() {
 
         let icon = null;
         if (status === "in_transit" || status === "out_for_delivery") {
-          icon = <TbTruckDelivery  />;
+          icon = <TbTruckDelivery />;
         } else if (status === "delivered") {
           icon = <BiCheckCircle />;
         }
@@ -305,25 +373,58 @@ export default function OrdersPage() {
                       {row.id}
                     </span>
                   </div>
+
+                  {/* --- UPDATED INTERNAL BOX --- */}
                   <div className="flex items-center justify-between bg-gray-50 rounded-md p-2 border border-gray-100">
                     <div className="flex items-center gap-2 text-[12px] text-gray-700 truncate max-w-50">
                       <BiBox size={14} className="text-gray-500 shrink-0" />
                       <span className="font-medium shrink-0">
                         {latestEvent?.carrier || "Carrier"}:
                       </span>
-                      <span className="font-mono truncate">{trackingNum}</span>
+                      {/* Tracking Number Link */}
+                      {getCarrierUrl(
+                        latestEvent?.carrier || "",
+                        trackingNum,
+                      ) ? (
+                        <a
+                          href={
+                            getCarrierUrl(
+                              latestEvent?.carrier || "",
+                              trackingNum,
+                            )!
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-mono truncate hover:underline text-blue-600 transition-colors"
+                        >
+                          {trackingNum}
+                        </a>
+                      ) : (
+                        <span className="font-mono truncate">
+                          {trackingNum}
+                        </span>
+                      )}
                     </div>
+
+                    {/* Copy Button with Feedback */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigator.clipboard.writeText(trackingNum);
+                        handleCopyTracking(row.id, trackingNum);
                       }}
-                      className="p-1 hover:bg-gray-200 rounded transition-colors text-gray-500 shrink-0"
-                      title="Copy tracking number"
+                      className="p-1 hover:bg-gray-200 rounded transition-colors shrink-0"
+                      title={
+                        copiedId === row.id ? "Copied!" : "Copy tracking number"
+                      }
                     >
-                      <BiCopy size={14} />
+                      {copiedId === row.id ? (
+                        <BiCheck size={14} className="text-green-600" />
+                      ) : (
+                        <BiCopy size={14} className="text-gray-500" />
+                      )}
                     </button>
                   </div>
+                  {/* -------------------------- */}
                 </div>
               )}
             </div>
