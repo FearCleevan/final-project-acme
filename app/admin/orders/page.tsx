@@ -7,7 +7,6 @@ import {
   FulfillmentEvent,
   FulfillmentEventStatus,
   OrderStatus,
-  PaymentStatus,
 } from "@/lib/admin/types";
 import PageHeader from "@/components/admin/shared/PageHeader";
 import SectionCard from "@/components/admin/shared/SectionCard";
@@ -23,7 +22,6 @@ import { cn } from "@/lib/utils";
 import { AdminOrder } from "@/lib/admin/types";
 import {
   BiExport,
-  BiSolidTruck,
   BiCheckCircle,
   BiCheck,
   BiBox,
