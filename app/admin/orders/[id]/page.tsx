@@ -12,6 +12,8 @@ import AddFulfillmentEventModal from '@/components/admin/orders/AddFulfillmentEv
 import OrderTimeline from '@/components/admin/orders/OrderTimeline'
 import { AdminOrder, FulfillmentEvent } from '@/lib/admin/types'
 
+import Image from 'next/image';
+
 export default function OrderDetailPage() {
   const { id }   = useParams<{ id: string }>()
   const router   = useRouter()
@@ -124,7 +126,7 @@ export default function OrderDetailPage() {
                 <div key={item.id} className="flex items-center gap-4 px-5 py-3.5">
                   <div className="w-10 h-10 rounded-md bg-(--admin-surface-2) border border-(--admin-border) shrink-0 flex items-center justify-center overflow-hidden">
                     {item.image
-                      ? <img src={item.image} alt="" className="w-full h-full object-cover" />
+                      ? <Image src={item.image} alt="" className="w-full h-full object-cover" />
                       : <BiPackage size={16} className="text-(--admin-text-muted)" />
                     }
                   </div>
