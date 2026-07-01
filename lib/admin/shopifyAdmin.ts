@@ -1,4 +1,4 @@
-// lib/admin/shopify.ts
+// lib/admin/shopifyAdmin.ts
 
 import type { AdminProduct, ProductStatus } from './types'
 
