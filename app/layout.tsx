@@ -35,7 +35,7 @@ const jetbrainsMono = JetBrains_Mono({
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://acmevintagesupply.com'
 const SITE_NAME = 'Acme Vintage Supply'
 const DESCRIPTION =
-  'Buy oil lamp chimneys, shades, pressure lamp glass, wicks, and original Victorian enamel advertising signs. Bench-tested antique lamp parts shipped across Canada and North America from Dartmouth, Nova Scotia.'
+  'Authentic oil lamp chimneys, shades, pressure lamp glass, wicks, and vintage enamel signs. Bench-tested antique parts shipped across Canada and the US.'
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
