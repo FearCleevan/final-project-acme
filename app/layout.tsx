@@ -144,8 +144,8 @@ export const metadata: Metadata = {
   },
 
   icons: {
-    icon: '/icon.svg',
-    shortcut: '/icon.svg',
+    icon: '/icon.png',
+    shortcut: '/icon.png',
   },
 
   category: 'shopping',
@@ -157,7 +157,7 @@ const jsonLd = {
   name: SITE_NAME,
   description: DESCRIPTION,
   url: SITE_URL,
-  logo: `${SITE_URL}/icon.svg`,
+  logo: `${SITE_URL}/icon.png`,
   image: `${SITE_URL}/opengraph-image`,
   telephone: '+1-902-481-1007',
   email: 'acmesign01@gmail.com',
