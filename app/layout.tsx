@@ -180,13 +180,6 @@ const jsonLd = {
     '@type': 'OfferCatalog',
     name: 'Oil Lamp Parts & Enamel Advertising Signs',
     description: 'Oil lamp chimneys, shades, pressure lamp glass, wicks, burners, and original Victorian enamel advertising signs. Each piece bench-inspected before dispatch.',
-    itemListElement: [
-      { '@type': 'Offer', itemOffered: { '@type': 'Product', name: 'Oil Lamp Chimneys' } },
-      { '@type': 'Offer', itemOffered: { '@type': 'Product', name: 'Oil Lamp Shades' } },
-      { '@type': 'Offer', itemOffered: { '@type': 'Product', name: 'Pressure Lamp Glass' } },
-      { '@type': 'Offer', itemOffered: { '@type': 'Product', name: 'Enamel Advertising Signs' } },
-      { '@type': 'Offer', itemOffered: { '@type': 'Product', name: 'Oil Lamp Wicks' } },
-    ],
   },
   sameAs: [],
 }
