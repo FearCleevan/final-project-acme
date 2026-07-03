@@ -150,9 +150,9 @@ export const metadata: Metadata = {
   },
 
   icons: {
-    icon: "/acme-lamp-sign/public/icon.png",
-    shortcut: "/acme-lamp-sign/public/icon.png",
-    apple: "/acme-lamp-sign/public/icon.png",
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/icon.png",
   },
 
   category: "shopping",
