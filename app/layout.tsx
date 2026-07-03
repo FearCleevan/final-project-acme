@@ -114,19 +114,19 @@ export const metadata: Metadata = {
     description: DESCRIPTION,
     images: [
       {
-        url: "/opengraph-image",
-        width: 1200,
-        height: 630,
-        alt: `${SITE_NAME} — Oil Lamp Chimneys, Shades & Enamel Signs`,
+        url: `${SITE_URL}/icon.png`,
+        width: 1024,
+        height: 1024,
+        alt: `${SITE_NAME} Logo`,
       },
     ],
   },
 
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: `${SITE_NAME} — Oil Lamp Chimneys, Shades & Enamel Signs`,
     description: DESCRIPTION,
-    images: ["/opengraph-image"],
+    images: [`${SITE_URL}/icon.png`],
   },
 
   verification: {
@@ -165,7 +165,7 @@ const jsonLd = {
   description: DESCRIPTION,
   url: SITE_URL,
   logo: `${SITE_URL}/icon.png`,
-  image: `${SITE_URL}/opengraph-image`,
+  image: `${SITE_URL}/icon.png`,
   telephone: "+1-902-481-1007",
   email: "acmesign01@gmail.com",
   address: {
@@ -238,11 +238,11 @@ export default function RootLayout({
             />
             <Script id="ga4-init" strategy="afterInteractive">
               {`
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
-                gtag('js', new Date());
-                gtag('config', '${GA_ID}');
-              `}
+                 window.dataLayer = window.dataLayer || [];
+                 function gtag(){dataLayer.push(arguments);}
+                 gtag('js', new Date());
+                 gtag('config', '${GA_ID}');
+               `}
             </Script>
           </>
         )}
