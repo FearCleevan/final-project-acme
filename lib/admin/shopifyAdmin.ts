@@ -168,16 +168,32 @@ const PRODUCT_FIELDS = `
   ${METAFIELD_FRAGMENT}
 `
 
-export async function getAdminProducts(first = 50): Promise<AdminProduct[]> {
-  const data = await adminFetch<{ products: { edges: { node: ShopifyProductNode }[] } }>(
-    `query GetProducts($first: Int!) {
-      products(first: $first) {
-        edges { node { ${PRODUCT_FIELDS} } }
+export async function getAdminProducts(): Promise<AdminProduct[]> {
+  const nodes: ShopifyProductNode[] = []
+  let cursor: string | null = null
+  let hasNextPage = true
+
+  while (hasNextPage) {
+    const data: {
+      products: {
+        edges: { node: ShopifyProductNode }[]
+        pageInfo: { hasNextPage: boolean; endCursor: string | null }
       }
-    }`,
-    { first }
-  )
-  return data.products.edges.map(e => toAdminProduct(e.node))
+    } = await adminFetch(
+      `query GetProducts($first: Int!, $after: String) {
+        products(first: $first, after: $after) {
+          edges { node { ${PRODUCT_FIELDS} } }
+          pageInfo { hasNextPage endCursor }
+        }
+      }`,
+      { first: 100, after: cursor }
+    )
+    nodes.push(...data.products.edges.map(e => e.node))
+    hasNextPage = data.products.pageInfo.hasNextPage
+    cursor = data.products.pageInfo.endCursor
+  }
+
+  return nodes.map(toAdminProduct)
 }
 
 export async function getProductByTitle(title: string): Promise<AdminProduct | null> {
@@ -1361,7 +1377,7 @@ export async function getAdminNotifications(): Promise<AdminNotification[]> {
 
   // ── Low stock (≤ 3 units) ─────────────────────────────────────────────────
   try {
-    const products = await getAdminProducts(100)
+    const products = await getAdminProducts()
     for (const p of products.filter(p => p.stock <= 3)) {
       notifications.push({
         id:        `stock-${p.id}`,
