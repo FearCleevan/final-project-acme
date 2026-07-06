@@ -149,12 +149,6 @@ export const metadata: Metadata = {
     canonical: SITE_URL,
   },
 
-  icons: {
-    icon: "/icon.png",
-    shortcut: "/icon.png",
-    apple: "/icon.png",
-  },
-
   category: "shopping",
 };
 
