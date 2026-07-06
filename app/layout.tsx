@@ -149,15 +149,6 @@ export const metadata: Metadata = {
     canonical: SITE_URL,
   },
 
-  icons: {
-    icon: [
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/icon.png", type: "image/png", sizes: "1024x1024" },
-    ],
-    shortcut: "/favicon.ico",
-    apple: "/icon.png",
-  },
-
   category: "shopping",
 };
 
