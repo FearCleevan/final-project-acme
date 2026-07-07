@@ -19,7 +19,6 @@ interface Props {
   hideFooter?: boolean
   formId?: string
   saving?: boolean
-  draftKey?: string
 }
 
 const BLANK: Partial<AdminProduct> = {
@@ -61,7 +60,7 @@ const inputCls = 'w-full h-9 px-3 text-[13px] text-(--admin-text) bg-(--admin-su
 const labelCls = 'block text-[12px] font-medium text-(--admin-text) mb-1.5'
 const errorCls = 'text-[11px] text-(--admin-red) mt-1'
 
-export default function ProductForm({ defaultValues, onSave, onDiscard, hideFooter, formId = 'product-form', saving: externalSaving, draftKey }: Props) {
+export default function ProductForm({ defaultValues, onSave, onDiscard, hideFooter, formId = 'product-form', saving: externalSaving }: Props) {
   const merged = { ...BLANK, ...defaultValues }
 
   const {
@@ -137,39 +136,6 @@ export default function ProductForm({ defaultValues, onSave, onDiscard, hideFoot
   useEffect(() => {
     if (!handleLocked) setSeoHandle(slugify(title ?? ''))
   }, [title, handleLocked])
-
-  // ── Draft persistence ────────────────────────────────────────────────────────
-  const draftTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  // Load draft on mount — only for new products (no id in defaultValues)
-  useEffect(() => {
-    if (!draftKey || defaultValues?.id) return
-    try {
-      const raw = localStorage.getItem(draftKey)
-      if (!raw) return
-      const draft = JSON.parse(raw) as Record<string, unknown>
-      const skip = new Set(['images', 'collections', 'category', 'tagsInput'])
-      Object.entries(draft).forEach(([k, v]) => {
-        if (!skip.has(k)) setValue(k as keyof AdminProduct, v as never)
-      })
-      if (Array.isArray(draft.images))      setImages(draft.images as string[])
-      if (Array.isArray(draft.collections)) setCollections(draft.collections as string[])
-      if ('category' in draft)              setCategory(draft.category as typeof category)
-      if (typeof draft.tagsInput === 'string') setTagsInput(draft.tagsInput)
-    } catch { /* corrupt draft — ignore */ }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draftKey])
-
-  // Save draft 800 ms after any change
-  const allValues = watch()
-  useEffect(() => {
-    if (!draftKey) return
-    if (draftTimer.current) clearTimeout(draftTimer.current)
-    draftTimer.current = setTimeout(() => {
-      localStorage.setItem(draftKey, JSON.stringify({ ...allValues, images, collections, category, tagsInput }))
-    }, 800)
-    return () => { if (draftTimer.current) clearTimeout(draftTimer.current) }
-  }, [allValues, images, collections, category, tagsInput, draftKey])
 
   function onSubmit(data: AdminProduct) {
     setInternalSaving(true)

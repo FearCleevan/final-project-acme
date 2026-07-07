@@ -9,12 +9,6 @@ import Toast, { ToastType } from '@/components/admin/shared/Toast'
 import { AdminProduct } from '@/lib/admin/types'
 import Spinner from '@/components/admin/shared/Spinner'
 
-const DRAFT_KEY = 'draft:product:new'
-
-function clearDraft() {
-  try { localStorage.removeItem(DRAFT_KEY) } catch { /* ignore */ }
-}
-
 function NewProductInner() {
   const router       = useRouter()
   const searchParams = useSearchParams()
@@ -43,7 +37,6 @@ function NewProductInner() {
       }
 
       if (!res.ok) throw new Error(await res.text())
-      clearDraft()
       setSuccess(true)
       setToast({ message: 'Product added to Shopify.', type: 'success' })
       setTimeout(() => router.push(backHref), 1200)
@@ -56,7 +49,6 @@ function NewProductInner() {
   }
 
   function handleDiscard() {
-    clearDraft()
     router.push(backHref)
   }
 
@@ -134,7 +126,6 @@ function NewProductInner() {
         <ProductForm
           formId="new-product-form"
           hideFooter
-          draftKey={DRAFT_KEY}
           saving={saving}
           onSave={handleSave}
           onDiscard={handleDiscard}
