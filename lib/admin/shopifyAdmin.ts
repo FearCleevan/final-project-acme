@@ -7,6 +7,11 @@ const TOKEN   = process.env.SHOPIFY_ADMIN_TOKEN!
 const VERSION = '2026-04'
 const GQL_URL = `https://${DOMAIN}/admin/api/${VERSION}/graphql.json`
 
+// Orders/customers created before the real public launch (pre-launch QA/test
+// checkouts) are excluded from admin lists and analytics so dashboard figures
+// reflect real store activity only.
+const LAUNCH_DATE = '2026-07-07'
+
 // ─── Core fetch ──────────────────────────────────────────────────────────────
 
 export async function adminFetch<T>(query: string, variables?: Record<string, unknown>): Promise<T> {
@@ -1084,12 +1089,12 @@ const ORDER_FIELDS = `
 
 export async function getAdminOrders(first = 50): Promise<AdminOrder[]> {
   const data = await adminFetch<{ orders: { edges: { node: ShopifyOrderNode }[] } }>(
-    `query GetOrders($first: Int!) {
-      orders(first: $first, sortKey: CREATED_AT, reverse: true) {
+    `query GetOrders($first: Int!, $query: String!) {
+      orders(first: $first, query: $query, sortKey: CREATED_AT, reverse: true) {
         edges { node { ${ORDER_FIELDS} } }
       }
     }`,
-    { first }
+    { first, query: `created_at:>=${LAUNCH_DATE}` }
   )
   return data.orders.edges.map(e => toAdminOrder(e.node))
 }
@@ -1476,12 +1481,12 @@ const CUSTOMER_FIELDS = `
 
 export async function getAdminCustomers(first = 250): Promise<AdminCustomer[]> {
   const data = await adminFetch<{ customers: { edges: { node: ShopifyCustomerNode }[] } }>(
-    `query GetCustomers($first: Int!) {
-      customers(first: $first, sortKey: CREATED_AT, reverse: true) {
+    `query GetCustomers($first: Int!, $query: String!) {
+      customers(first: $first, query: $query, sortKey: CREATED_AT, reverse: true) {
         edges { node { ${CUSTOMER_FIELDS} } }
       }
     }`,
-    { first }
+    { first, query: `created_at:>=${LAUNCH_DATE}` }
   )
   return data.customers.edges.map(e => toAdminCustomer(e.node))
 }
