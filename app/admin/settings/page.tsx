@@ -5,7 +5,6 @@ import { useTheme } from 'next-themes'
 import PageHeader from '@/components/admin/shared/PageHeader'
 import SectionCard from '@/components/admin/shared/SectionCard'
 import { BiCheck, BiSun, BiMoon, BiLockAlt, BiShow, BiHide } from 'react-icons/bi'
-import { MOCK_ADMIN_PASSWORD } from '@/lib/admin/mockData'
 import AdminSelect from '@/components/admin/shared/AdminSelect'
 import { cn } from '@/lib/utils'
 
@@ -34,18 +33,33 @@ function SaveButton({ saving, saved }: { saving: boolean; saved: boolean }) {
 function useSection() {
   const [saving, setSaving] = useState(false)
   const [saved,  setSaved]  = useState(false)
+  const [error,  setError]  = useState<string | null>(null)
 
-  function triggerSave(e: React.FormEvent) {
+  async function triggerSave(e: React.FormEvent, payload: Record<string, unknown>) {
     e.preventDefault()
     setSaving(true)
-    setTimeout(() => {
-      setSaving(false)
+    setError(null)
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload),
+      })
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}))
+        setError(json.error ?? 'Could not save changes.')
+        return
+      }
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
-    }, 700)
+    } catch {
+      setError('Network error. Please try again.')
+    } finally {
+      setSaving(false)
+    }
   }
 
-  return { saving, saved, triggerSave }
+  return { saving, saved, error, triggerSave }
 }
 
 function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
@@ -77,24 +91,26 @@ export default function SettingsPage() {
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
 
+  type SettingsApiShape = {
+    storeName: string; storeEmail: string; storePhone: string
+    storeAddress: string; storeCity: string; storeProvince: string; storeCountry: string
+    currency: string; timezone: string; dateFormat: string
+    notifyOrderPlaced: boolean; notifyOrderFulfilled: boolean; notifyLowStock: boolean
+    notifyAbandonedCheckout: boolean; notifyWeeklyDigest: boolean
+  }
+
+  const [settingsLoaded, setSettingsLoaded] = useState(false)
+
   // Store Details
   const storeSection = useSection()
   const [store, setStore] = useState({
-    name:    'Acme Lamp & Sign Co.',
-    email:   'hello@acmelamp.com',
-    phone:   '+1 902 555 0100',
-    address: '42 Victoria Lane',
-    city:    'Halifax',
-    province:'Nova Scotia',
-    country: 'Canada',
+    name: '', email: '', phone: '', address: '', city: '', province: '', country: '',
   })
 
   // Regional
   const regionalSection = useSection()
   const [regional, setRegional] = useState({
-    currency: 'CAD',
-    timezone: 'America/Halifax',
-    dateFormat: 'DD MMM YYYY',
+    currency: 'CAD', timezone: 'America/Halifax', dateFormat: 'DD MMM YYYY',
   })
 
   // Password
@@ -103,26 +119,41 @@ export default function SettingsPage() {
   const [pwSaving, setPwSaving] = useState(false)
   const [pwSaved,  setPwSaved]  = useState(false)
   const [showPw,   setShowPw]   = useState({ current: false, next: false, confirm: false })
-  const [mockPw,   setMockPw]   = useState(MOCK_ADMIN_PASSWORD)
 
-  function handlePasswordSave(e: React.FormEvent) {
+  async function handlePasswordSave(e: React.FormEvent) {
     e.preventDefault()
     const errs: typeof pwErrors = {}
-    if (!pwFields.current)                        errs.current = 'Current password is required.'
-    else if (pwFields.current !== mockPw)         errs.current = 'Incorrect current password.'
-    if (!pwFields.next)                           errs.next    = 'New password is required.'
-    else if (pwFields.next.length < 6)            errs.next    = 'Must be at least 6 characters.'
-    if (pwFields.confirm !== pwFields.next)       errs.confirm = 'Passwords do not match.'
+    if (!pwFields.current)                  errs.current = 'Current password is required.'
+    if (!pwFields.next)                     errs.next    = 'New password is required.'
+    else if (pwFields.next.length < 8)      errs.next    = 'Must be at least 8 characters.'
+    if (pwFields.confirm !== pwFields.next) errs.confirm = 'Passwords do not match.'
     if (Object.keys(errs).length) { setPwErrors(errs); return }
+
     setPwSaving(true)
-    setTimeout(() => {
-      setMockPw(pwFields.next)
+    try {
+      const res = await fetch('/api/admin/auth/change-password', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ currentPassword: pwFields.current, newPassword: pwFields.next }),
+      })
+      const json = await res.json()
+
+      if (!res.ok) {
+        if (res.status === 401) setPwErrors({ current: json.error })
+        else if (res.status === 400 && /new password/i.test(json.error ?? '')) setPwErrors({ next: json.error })
+        else setPwErrors({ current: json.error ?? 'Could not update password.' })
+        return
+      }
+
       setPwFields({ current: '', next: '', confirm: '' })
       setPwErrors({})
-      setPwSaving(false)
       setPwSaved(true)
       setTimeout(() => setPwSaved(false), 2000)
-    }, 700)
+    } catch {
+      setPwErrors({ current: 'Network error. Please try again.' })
+    } finally {
+      setPwSaving(false)
+    }
   }
 
   // Notifications
@@ -135,6 +166,34 @@ export default function SettingsPage() {
     weeklyDigest:      true,
   })
 
+  useEffect(() => {
+    fetch('/api/admin/settings')
+      .then(r => r.ok ? r.json() : null)
+      .then((d: SettingsApiShape | null) => {
+        if (!d) return
+        setStore({
+          name: d.storeName, email: d.storeEmail, phone: d.storePhone,
+          address: d.storeAddress, city: d.storeCity, province: d.storeProvince, country: d.storeCountry,
+        })
+        setRegional({ currency: d.currency, timezone: d.timezone, dateFormat: d.dateFormat })
+        setNotifs({
+          orderPlaced: d.notifyOrderPlaced, orderFulfilled: d.notifyOrderFulfilled,
+          lowStock: d.notifyLowStock, abandonedCheckout: d.notifyAbandonedCheckout,
+          weeklyDigest: d.notifyWeeklyDigest,
+        })
+      })
+      .finally(() => setSettingsLoaded(true))
+  }, [])
+
+  if (!settingsLoaded) {
+    return (
+      <div>
+        <PageHeader title="Settings" subtitle="Manage your store preferences" />
+        <p className="text-[13px] text-(--admin-text-soft)">Loading settings…</p>
+      </div>
+    )
+  }
+
   return (
     <div>
       <PageHeader
@@ -146,11 +205,15 @@ export default function SettingsPage() {
 
         {/* ── Store Details ── */}
         <SectionCard>
-          <form onSubmit={storeSection.triggerSave}>
+          <form onSubmit={e => storeSection.triggerSave(e, {
+            storeName: store.name, storeEmail: store.email, storePhone: store.phone,
+            storeAddress: store.address, storeCity: store.city, storeProvince: store.province, storeCountry: store.country,
+          })}>
             <div className="flex items-center justify-between mb-5">
               <p className="text-[13px] font-semibold text-(--admin-text)">Store Details</p>
               <SaveButton saving={storeSection.saving} saved={storeSection.saved} />
             </div>
+            {storeSection.error && <p className="text-[11px] text-(--admin-red) mt-1">{storeSection.error}</p>}
 
             <div className="space-y-4">
               <div>
@@ -227,11 +290,14 @@ export default function SettingsPage() {
 
         {/* ── Regional ── */}
         <SectionCard>
-          <form onSubmit={regionalSection.triggerSave}>
+          <form onSubmit={e => regionalSection.triggerSave(e, {
+            currency: regional.currency, timezone: regional.timezone, dateFormat: regional.dateFormat,
+          })}>
             <div className="flex items-center justify-between mb-5">
               <p className="text-[13px] font-semibold text-(--admin-text)">Regional</p>
               <SaveButton saving={regionalSection.saving} saved={regionalSection.saved} />
             </div>
+            {regionalSection.error && <p className="text-[11px] text-(--admin-red) mt-1">{regionalSection.error}</p>}
 
             <div className="grid grid-cols-3 gap-4">
               <div>
@@ -287,11 +353,16 @@ export default function SettingsPage() {
 
         {/* ── Notifications ── */}
         <SectionCard>
-          <form onSubmit={notifSection.triggerSave}>
+          <form onSubmit={e => notifSection.triggerSave(e, {
+            notifyOrderPlaced: notifs.orderPlaced, notifyOrderFulfilled: notifs.orderFulfilled,
+            notifyLowStock: notifs.lowStock, notifyAbandonedCheckout: notifs.abandonedCheckout,
+            notifyWeeklyDigest: notifs.weeklyDigest,
+          })}>
             <div className="flex items-center justify-between mb-5">
               <p className="text-[13px] font-semibold text-(--admin-text)">Email Notifications</p>
               <SaveButton saving={notifSection.saving} saved={notifSection.saved} />
             </div>
+            {notifSection.error && <p className="text-[11px] text-(--admin-red) mt-1">{notifSection.error}</p>}
 
             <div>
               <Toggle
@@ -351,7 +422,7 @@ export default function SettingsPage() {
             <div className="space-y-4">
               {([
                 { key: 'current', label: 'Current password', placeholder: 'Enter current password' },
-                { key: 'next',    label: 'New password',     placeholder: 'At least 6 characters'  },
+                { key: 'next',    label: 'New password',     placeholder: 'At least 8 characters'  },
                 { key: 'confirm', label: 'Confirm new password', placeholder: 'Repeat new password' },
               ] as const).map(({ key, label, placeholder }) => (
                 <div key={key}>
