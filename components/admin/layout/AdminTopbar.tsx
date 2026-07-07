@@ -1,11 +1,10 @@
 'use client'
 
-import { useState, useRef, useEffect, useMemo } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { BiSearch, BiBell, BiX, BiPackage, BiCog, BiLogOut, BiBox, BiReceipt, BiUser } from 'react-icons/bi'
 import LogoutModal from '@/components/admin/shared/LogoutModal'
-import { mockAdminProducts, mockCustomers } from '@/lib/admin/mockData'
-import type { AdminOrder, AdminNotification } from '@/lib/admin/types'
+import type { AdminOrder, AdminProduct, AdminCustomer, AdminNotification } from '@/lib/admin/types'
 import { formatCurrency } from '@/lib/admin/utils'
 
 function useClickOutside(ref: React.RefObject<HTMLElement | null>, onClose: () => void) {
@@ -18,12 +17,10 @@ function useClickOutside(ref: React.RefObject<HTMLElement | null>, onClose: () =
   }, [ref, onClose])
 }
 
-const MAX_RESULTS = 3
-
 type SearchResult = {
-  products: typeof mockAdminProducts
+  products: AdminProduct[]
   orders:   AdminOrder[]
-  customers: typeof mockCustomers
+  customers: AdminCustomer[]
 }
 
 function SearchDropdown({
@@ -71,7 +68,7 @@ function SearchDropdown({
               {results.orders.map(o => (
                 <button
                   key={o.id}
-                  onClick={() => onResultClick(`/admin/orders/${o.id}`)}
+                  onClick={() => onResultClick(`/admin/orders/${o.id.replace('#', '')}`)}
                   className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-(--admin-surface-2) transition-colors text-left"
                 >
                   <div className="w-7 h-7 rounded-md bg-(--admin-surface-2) border border-(--admin-border) flex items-center justify-center shrink-0">
@@ -171,17 +168,21 @@ export default function AdminTopbar() {
   const visibleNotifs = notifications.filter(n => !dismissed.has(n.id))
   const notifCount    = visibleNotifs.length
 
-  const searchResults = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    if (!q) return null
-    const products = mockAdminProducts.filter(p =>
-      p.title.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q)
-    ).slice(0, MAX_RESULTS)
-    const orders: AdminOrder[] = [] // live order search — wired in a future sprint
-    const customers = mockCustomers.filter(c =>
-      c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q)
-    ).slice(0, MAX_RESULTS)
-    return { products, orders, customers }
+  const [searchResults, setSearchResults] = useState<SearchResult | null>(null)
+
+  useEffect(() => {
+    const q = search.trim()
+    if (!q) { setSearchResults(null); return }
+
+    const controller = new AbortController()
+    const timer = setTimeout(() => {
+      fetch(`/api/admin/search?q=${encodeURIComponent(q)}`, { signal: controller.signal })
+        .then(r => r.ok ? r.json() : null)
+        .then(d => { if (d) setSearchResults(d) })
+        .catch(err => { if (err.name !== 'AbortError') console.error(err) })
+    }, 300)
+
+    return () => { clearTimeout(timer); controller.abort() }
   }, [search])
 
   const hasResults = searchResults && (
