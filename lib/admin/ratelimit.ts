@@ -35,6 +35,16 @@ export const otpResendRatelimit = hasUpstash
     })
   : null
 
+// 5 change-password attempts per IP per 15 minutes
+export const changePasswordRatelimit = hasUpstash
+  ? new Ratelimit({
+      redis:     Redis.fromEnv(),
+      limiter:   Ratelimit.slidingWindow(5, '15 m'),
+      analytics: false,
+      prefix:    'acme_admin_change_password',
+    })
+  : null
+
 // 10 unsubscribe requests per IP per minute
 export const unsubscribeRatelimit = hasUpstash
   ? new Ratelimit({
