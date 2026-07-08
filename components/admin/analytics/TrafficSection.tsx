@@ -79,7 +79,7 @@ export default function TrafficSection() {
 
   if (!data) return null
 
-  const { summary, topProducts, topPages, devices, recent, locations } = data
+  const { summary, topProducts, topPages, devices, recent, locations = [] } = data
   const totalDevices = devices.mobile + devices.tablet + devices.desktop
 
   return (
