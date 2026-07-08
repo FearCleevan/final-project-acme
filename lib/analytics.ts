@@ -109,3 +109,40 @@ export async function getRecentViews(limit = 20): Promise<PageViewRow[]> {
     createdAt:     row.created_at     as string,
   }))
 }
+
+export interface VisitorLocation {
+  city:    string
+  country: string | null
+  lat:     number
+  lng:     number
+  count:   number
+}
+
+export async function getVisitorLocations(days = 30): Promise<VisitorLocation[]> {
+  const { data } = await supabaseAdmin
+    .from('page_views')
+    .select('city, country, lat, lng')
+    .not('city', 'is', null)
+    .not('lat', 'is', null)
+    .not('lng', 'is', null)
+    .gte('created_at', daysAgo(days))
+
+  const byCity = new Map<string, VisitorLocation>()
+  for (const row of data ?? []) {
+    const city    = row.city    as string
+    const country = row.country as string | null
+    const lat     = row.lat     as number
+    const lng     = row.lng     as number
+    // Key includes country so two different cities with the same name
+    // (e.g. "London, UK" vs "London, Ontario") never collide.
+    const key = `${city}|${country ?? ''}`
+    const existing = byCity.get(key)
+    if (existing) {
+      existing.count += 1
+    } else {
+      byCity.set(key, { city, country, lat, lng, count: 1 })
+    }
+  }
+
+  return Array.from(byCity.values())
+}
