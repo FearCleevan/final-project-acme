@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { sendNewOrderAdminAlert } from '@/lib/email'
+import { convertCartActivity } from '@/lib/cartActivity'
 
 function verifyShopifyWebhook(body: string, hmacHeader: string): boolean {
   const secret = process.env.SHOPIFY_WEBHOOK_SECRET
@@ -35,7 +36,10 @@ export async function POST(req: NextRequest) {
         total_price:       string
         email:             string
         customer?:         { first_name: string; last_name: string }
-        line_items:        { title: string; quantity: number; price: string }[]
+        line_items:        {
+          title: string; quantity: number; price: string
+          product_id: number | null; variant_id: number | null
+        }[]
         shipping_address?: {
           address1: string; city: string; province: string; country: string
         }
@@ -61,6 +65,16 @@ export async function POST(req: NextRequest) {
         })),
         shippingAddress: addr,
       })
+
+      const trackedLineItems = o.line_items
+        .filter(i => i.product_id != null)
+        .map(i => ({
+          productId: String(i.product_id),
+          variantId: i.variant_id != null ? String(i.variant_id) : null,
+        }))
+      if (o.email && trackedLineItems.length > 0) {
+        await convertCartActivity(o.email, trackedLineItems, o.name)
+      }
     } catch (err) {
       console.error('[webhook orders/paid]', err)
     }
