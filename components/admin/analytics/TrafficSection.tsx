@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { BiMobile, BiDesktop, BiTable, BiTrendingUp, BiTime } from 'react-icons/bi'
-import type { AnalyticsSummary, PageViewRow } from '@/lib/analytics'
+import type { AnalyticsSummary, PageViewRow, VisitorLocation } from '@/lib/analytics'
+import VisitorMap from './VisitorMap'
 
 interface TrafficData {
   summary:     AnalyticsSummary
@@ -10,6 +11,7 @@ interface TrafficData {
   topPages:    { path: string; views: number }[]
   devices:     { mobile: number; tablet: number; desktop: number }
   recent:      PageViewRow[]
+  locations:   VisitorLocation[]
 }
 
 function StatCard({ label, value }: { label: string; value: number }) {
@@ -77,7 +79,7 @@ export default function TrafficSection() {
 
   if (!data) return null
 
-  const { summary, topProducts, topPages, devices, recent } = data
+  const { summary, topProducts, topPages, devices, recent, locations = [] } = data
   const totalDevices = devices.mobile + devices.tablet + devices.desktop
 
   return (
@@ -172,6 +174,9 @@ export default function TrafficSection() {
         </div>
 
       </div>
+
+      <VisitorMap locations={locations} />
+
     </div>
   )
 }

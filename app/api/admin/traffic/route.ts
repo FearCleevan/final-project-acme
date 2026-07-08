@@ -9,19 +9,21 @@ import {
   getTopPages,
   getDeviceBreakdown,
   getRecentViews,
+  getVisitorLocations,
 } from '@/lib/analytics'
 
 export async function GET() {
   const session = await getIronSession<AdminSession>(await cookies(), sessionOptions)
   if (!session.isLoggedIn) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const [summary, topProducts, topPages, devices, recent] = await Promise.all([
+  const [summary, topProducts, topPages, devices, recent, locations] = await Promise.all([
     getAnalyticsSummary(),
     getTopProducts(30, 10),
     getTopPages(30, 10),
     getDeviceBreakdown(30),
     getRecentViews(20),
+    getVisitorLocations(30),
   ])
 
-  return NextResponse.json({ summary, topProducts, topPages, devices, recent })
+  return NextResponse.json({ summary, topProducts, topPages, devices, recent, locations })
 }
