@@ -32,6 +32,7 @@ export interface AdminCustomer {
   orders: number
   totalSpent: number
   joined: string
+  cartActivity?: { productTitle: string; quantity: number }[]
 }
 
 export interface AdminOrderItem {

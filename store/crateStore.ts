@@ -14,6 +14,7 @@ import {
   fetchCart,
 } from '@/lib/shopifyCart'
 import { CURRENCIES, CurrencyCode } from '@/lib/currency'
+import { trackCartActivity, untrackCartActivity } from '@/lib/cartActivityClient'
 
 interface CrateStore {
   items:           CrateItem[]
@@ -22,6 +23,7 @@ interface CrateStore {
   checkoutUrl:     string | null
   _cartCreating:   boolean
   _customerToken:  string | null   // set by initCart so addItem can use it without circular imports
+  _customerEmail:  string | null   // set by customerStore so addItem/removeItem can track cart activity
   openCrate:       () => void
   closeCrate:      () => void
   addItem:         (product: Product, finish: string, burnerSize: string, selectedColour?: string, quantity?: number) => void
@@ -33,6 +35,7 @@ interface CrateStore {
   itemCount:       () => number
   initCart:           (customerAccessToken?: string | null) => Promise<void>
   updateCartCurrency: (currency: CurrencyCode) => Promise<void>
+  setCustomerEmail:   (email: string | null) => void
 }
 
 export const useCrateStore = create<CrateStore>()(
@@ -44,6 +47,7 @@ export const useCrateStore = create<CrateStore>()(
       checkoutUrl:    null,
       _cartCreating:  false,
       _customerToken: null,
+      _customerEmail: null,
 
       openCrate:  () => set({ isOpen: true }),
       closeCrate: () => set({ isOpen: false }),
@@ -60,6 +64,9 @@ export const useCrateStore = create<CrateStore>()(
               i.product.id === product.id ? { ...i, quantity: newQty } : i
             ),
           })
+
+          const email = get()._customerEmail
+          if (email) trackCartActivity(email, product, newQty)
           // Background sync: update the Shopify line quantity
           const { cartId } = get()
           if (cartId && existing.cartLineId) {
@@ -83,6 +90,9 @@ export const useCrateStore = create<CrateStore>()(
               { product, quantity, selectedFinish: finish, selectedBurnerSize: burnerSize, selectedColour, cartLineId: null },
             ],
           })
+
+          const email = get()._customerEmail
+          if (email) trackCartActivity(email, product, quantity)
 
           const { cartId } = get()
 
@@ -162,6 +172,8 @@ export const useCrateStore = create<CrateStore>()(
         if (cartId && item?.cartLineId) {
           cartLinesRemove(cartId, [item.cartLineId])
         }
+        const email = get()._customerEmail
+        if (email && item) untrackCartActivity(email, item.product)
       },
 
       updateQuantity: (productId, quantity) => {
@@ -179,9 +191,11 @@ export const useCrateStore = create<CrateStore>()(
         if (existing) clearTimeout(existing)
         const timer = setTimeout(() => {
           _syncTimers.delete(productId)
-          const { cartId, items } = get()
+          const { cartId, items, _customerEmail } = get()
           const current = items.find(i => i.product.id === productId)
-          if (!current || !cartId || !current.cartLineId) return
+          if (!current) return
+          if (_customerEmail) trackCartActivity(_customerEmail, current.product, current.quantity)
+          if (!cartId || !current.cartLineId) return
           cartLinesUpdate(cartId, [{ id: current.cartLineId, quantity: current.quantity }]).then(result => {
             if (!result) {
               set(state => ({
@@ -196,7 +210,7 @@ export const useCrateStore = create<CrateStore>()(
         _syncTimers.set(productId, timer)
       },
 
-      clearCrate: () => set({ items: [], cartId: null, checkoutUrl: null, _customerToken: null }),
+      clearCrate: () => set({ items: [], cartId: null, checkoutUrl: null, _customerToken: null, _customerEmail: null }),
 
       // Capture URL, wipe the cart, then send user to Shopify checkout.
       // Cart is cleared immediately so returning users always see an empty state.
@@ -267,6 +281,8 @@ export const useCrateStore = create<CrateStore>()(
         const newUrl = await cartCountryUpdate(cartId, country)
         if (newUrl) set({ checkoutUrl: newUrl })
       },
+
+      setCustomerEmail: (email) => set({ _customerEmail: email }),
     }),
     {
       name:    'acme-crate',

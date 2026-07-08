@@ -4,6 +4,7 @@ import { getIronSession } from 'iron-session'
 import { sessionOptions } from '@/lib/admin/session'
 import type { AdminSession } from '@/lib/admin/auth'
 import { getAdminCustomerById, getAdminOrders } from '@/lib/admin/shopifyAdmin'
+import { getCartActivityHistoryForEmail } from '@/lib/cartActivity'
 
 async function requireAuth() {
   const session = await getIronSession<AdminSession>(await cookies(), sessionOptions)
@@ -20,7 +21,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     ])
     if (!customer) return NextResponse.json({ error: 'Customer not found' }, { status: 404 })
     const orders = allOrders.filter(o => o.customer.email === customer.email)
-    return NextResponse.json({ customer, orders })
+    const cartActivityHistory = await getCartActivityHistoryForEmail(customer.email)
+    return NextResponse.json({ customer, orders, cartActivityHistory })
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 })
   }

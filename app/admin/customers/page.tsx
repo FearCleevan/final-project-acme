@@ -163,6 +163,15 @@ export default function CustomersPage() {
                 <p className="text-[11px] text-(--admin-text-muted) mt-0.5">
                   {c.city}, {c.province} · {c.orders} order{c.orders !== 1 ? 's' : ''}
                 </p>
+                {c.cartActivity && c.cartActivity.length > 0 && (
+                  <p
+                    className="text-[11px] text-(--admin-text-muted) mt-0.5 truncate"
+                    title={c.cartActivity.map(i => `${i.productTitle} (${i.quantity})`).join(', ')}
+                  >
+                    In cart: {c.cartActivity[0].productTitle}
+                    {c.cartActivity.length > 1 ? ` +${c.cartActivity.length - 1} more` : ''}
+                  </p>
+                )}
               </div>
             </div>
           ))}
@@ -173,7 +182,7 @@ export default function CustomersPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-(--admin-border)">
-                {['Customer', 'Location', 'Orders', 'Total Spent', 'Joined'].map(h => (
+                {['Customer', 'Location', 'Orders', 'In Cart', 'Total Spent', 'Joined'].map(h => (
                   <th key={h} className="px-5 py-3 text-[11px] font-medium uppercase tracking-wider text-(--admin-text-muted) whitespace-nowrap">
                     {h}
                   </th>
@@ -183,7 +192,7 @@ export default function CustomersPage() {
             <tbody>
               {paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-5 py-16 text-center">
+                  <td colSpan={6} className="px-5 py-16 text-center">
                     <BiUser size={28} className="mx-auto text-(--admin-border) mb-2" />
                     <p className="text-[13px] text-(--admin-text-soft)">No customers found</p>
                     <p className="text-[11px] text-(--admin-text-muted) mt-1">Try adjusting your search.</p>
@@ -219,6 +228,19 @@ export default function CustomersPage() {
                     )}>
                       {c.orders}
                     </span>
+                  </td>
+                  <td className="px-5 py-3">
+                    {c.cartActivity && c.cartActivity.length > 0 ? (
+                      <span
+                        className="text-[12px] text-(--admin-text-soft)"
+                        title={c.cartActivity.map(i => `${i.productTitle} (${i.quantity})`).join(', ')}
+                      >
+                        {c.cartActivity[0].productTitle}
+                        {c.cartActivity.length > 1 ? ` +${c.cartActivity.length - 1} more` : ''}
+                      </span>
+                    ) : (
+                      <span className="text-[12px] text-(--admin-text-muted)">—</span>
+                    )}
                   </td>
                   <td className="px-5 py-3">
                     <span className={cn(

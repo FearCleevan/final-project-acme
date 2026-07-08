@@ -35,6 +35,7 @@ export const useCustomerStore = create<CustomerStore>()((set, get) => ({
       if (!res.ok) {
         set({ isLoggedIn: false, accessToken: null })
         useCrateStore.getState().initCart()
+        useCrateStore.getState().setCustomerEmail(null)
         return
       }
       const { accessToken, expiresAt } = await res.json()
@@ -44,6 +45,7 @@ export const useCustomerStore = create<CustomerStore>()((set, get) => ({
     } catch {
       set({ isLoggedIn: false, accessToken: null })
       useCrateStore.getState().initCart()
+      useCrateStore.getState().setCustomerEmail(null)
     }
   },
 
@@ -73,11 +75,17 @@ export const useCustomerStore = create<CustomerStore>()((set, get) => ({
     set({ loading: true })
     try {
       const res = await fetch('/api/auth/profile')
-      if (!res.ok) { set({ loading: false, profile: null }); return }
+      if (!res.ok) {
+        set({ loading: false, profile: null })
+        useCrateStore.getState().setCustomerEmail(null)
+        return
+      }
       const { profile } = await res.json()
       set({ loading: false, profile: profile ?? null })
+      useCrateStore.getState().setCustomerEmail(profile?.email ?? null)
     } catch {
       set({ loading: false, profile: null })
+      useCrateStore.getState().setCustomerEmail(null)
     }
   },
 

@@ -50,3 +50,6 @@ next-env.d.ts
 
 .vercel
 .env*
+
+# git worktrees (scratch space for isolated feature work)
+/.worktrees
