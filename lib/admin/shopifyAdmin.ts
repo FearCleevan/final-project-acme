@@ -1,6 +1,7 @@
 // lib/admin/shopifyAdmin.ts
 
 import type { AdminProduct, ProductStatus } from './types'
+import { getActiveCartActivityByEmails } from '@/lib/cartActivity'
 
 const DOMAIN  = process.env.SHOPIFY_STORE_DOMAIN!
 const TOKEN   = process.env.SHOPIFY_ADMIN_TOKEN!
@@ -1488,7 +1489,9 @@ export async function getAdminCustomers(first = 250): Promise<AdminCustomer[]> {
     }`,
     { first, query: `created_at:>=${LAUNCH_DATE}` }
   )
-  return data.customers.edges.map(e => toAdminCustomer(e.node))
+  const customers = data.customers.edges.map(e => toAdminCustomer(e.node))
+  const cartActivityByEmail = await getActiveCartActivityByEmails(customers.map(c => c.email))
+  return customers.map(c => ({ ...c, cartActivity: cartActivityByEmail.get(c.email) ?? [] }))
 }
 
 export async function getAdminCustomerById(customerId: string): Promise<AdminCustomer | null> {
@@ -1499,7 +1502,10 @@ export async function getAdminCustomerById(customerId: string): Promise<AdminCus
     }`,
     { id: gid }
   )
-  return data.customer ? toAdminCustomer(data.customer) : null
+  if (!data.customer) return null
+  const customer = toAdminCustomer(data.customer)
+  const cartActivityByEmail = await getActiveCartActivityByEmails([customer.email])
+  return { ...customer, cartActivity: cartActivityByEmail.get(customer.email) ?? [] }
 }
 
 // ─── Analytics ───────────────────────────────────────────────────────────────
