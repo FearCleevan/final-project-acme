@@ -1,7 +1,8 @@
 import { Product } from '@/lib/types'
 
 function realProductId(product: Product): string {
-  return product.id.replace(/^sp-/, '')
+  const match = product.id.match(/^sp-(\d+)/)
+  return match ? match[1] : product.id.replace(/^sp-/, '')
 }
 
 function realVariantId(product: Product): string | null {

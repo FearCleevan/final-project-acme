@@ -20,10 +20,13 @@ CREATE TABLE IF NOT EXISTS cart_activity (
   converted_at   timestamptz
 );
 
--- One row per customer+product — re-adding the same product upserts quantity
--- instead of creating a duplicate row.
-CREATE UNIQUE INDEX IF NOT EXISTS cart_activity_email_product_idx
-  ON cart_activity(customer_email, product_id);
+-- One active row per customer+product — re-adding the same product upserts
+-- quantity instead of creating a duplicate row. Scoped to status = 'active'
+-- so a converted row (purchase history) is never overwritten by a fresh
+-- add-to-cart of the same product.
+CREATE UNIQUE INDEX IF NOT EXISTS cart_activity_email_product_active_idx
+  ON cart_activity(customer_email, product_id)
+  WHERE status = 'active';
 
 CREATE INDEX IF NOT EXISTS cart_activity_status_idx
   ON cart_activity(status);

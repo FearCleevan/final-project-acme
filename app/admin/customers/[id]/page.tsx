@@ -193,7 +193,7 @@ export default function CustomerDetailPage() {
                       <span className="text-[13px] text-(--admin-text-soft)">
                         {item.productTitle} <span className="text-(--admin-text-muted)">×{item.quantity}</span>
                       </span>
-                      <span className="text-[12px] text-(--admin-text-muted)">{item.orderName}</span>
+                      <span className="text-[12px] text-(--admin-text-muted)">{item.orderName} · {formatDate(item.convertedAt ?? '')}</span>
                     </div>
                   ))}
                 </div>

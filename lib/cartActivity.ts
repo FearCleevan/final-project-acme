@@ -30,10 +30,37 @@ export interface CartActivityHistoryItem {
 }
 
 export async function upsertCartActivity(input: CartActivityInput): Promise<void> {
-  const { error } = await getSupabase()
+  const supabase = getSupabase()
+
+  const { data: existing, error: selectError } = await supabase
     .from('cart_activity')
-    .upsert(
-      {
+    .select('id')
+    .eq('customer_email', input.customerEmail)
+    .eq('product_id', input.productId)
+    .eq('status', 'active')
+    .maybeSingle()
+
+  if (selectError) {
+    console.error('[cartActivity] upsert select error:', selectError)
+    return
+  }
+
+  if (existing) {
+    const { error } = await supabase
+      .from('cart_activity')
+      .update({
+        customer_id:   input.customerId,
+        product_title: input.productTitle,
+        variant_id:    input.variantId,
+        quantity:      input.quantity,
+        last_added_at: new Date().toISOString(),
+      })
+      .eq('id', existing.id)
+    if (error) console.error('[cartActivity] upsert update error:', error)
+  } else {
+    const { error } = await supabase
+      .from('cart_activity')
+      .insert({
         customer_email: input.customerEmail,
         customer_id:    input.customerId,
         product_id:     input.productId,
@@ -41,13 +68,10 @@ export async function upsertCartActivity(input: CartActivityInput): Promise<void
         variant_id:     input.variantId,
         quantity:       input.quantity,
         status:         'active',
-        order_name:     null,
-        converted_at:   null,
         last_added_at:  new Date().toISOString(),
-      },
-      { onConflict: 'customer_email,product_id' }
-    )
-  if (error) console.error('[cartActivity] upsert error:', error)
+      })
+    if (error) console.error('[cartActivity] upsert insert error:', error)
+  }
 }
 
 export async function removeCartActivity(customerEmail: string, productId: string): Promise<void> {
