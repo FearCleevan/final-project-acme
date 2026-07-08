@@ -15,6 +15,9 @@ export default function CustomerDetailPage() {
 
   const [customer, setCustomer] = useState<AdminCustomer | null>(null)
   const [orders,   setOrders]   = useState<AdminOrder[]>([])
+  const [cartActivityHistory, setCartActivityHistory] = useState<
+    { productTitle: string; quantity: number; orderName: string | null; convertedAt: string | null }[]
+  >([])
   const [loading,  setLoading]  = useState(true)
   const [notFound, setNotFound] = useState(false)
 
@@ -28,6 +31,7 @@ export default function CustomerDetailPage() {
         if (!d) return
         setCustomer(d.customer)
         setOrders(d.orders ?? [])
+        setCartActivityHistory(d.cartActivityHistory ?? [])
         setLoading(false)
       })
       .catch(() => setLoading(false))
@@ -155,6 +159,47 @@ export default function CustomerDetailPage() {
               </SectionCard>
             ))}
           </div>
+
+          {/* Cart activity */}
+          {(customer.cartActivity && customer.cartActivity.length > 0) || cartActivityHistory.length > 0 ? (
+            <SectionCard noPadding>
+              <div className="px-5 py-4 border-b border-(--admin-border)">
+                <p className="text-[13px] font-semibold text-(--admin-text)">
+                  Cart Activity
+                  <span className="ml-2 text-[11px] font-normal text-(--admin-text-muted)">
+                    {customer.cartActivity?.length ?? 0} active
+                  </span>
+                </p>
+              </div>
+
+              {customer.cartActivity && customer.cartActivity.length > 0 && (
+                <div className="px-5 py-3 space-y-2">
+                  {customer.cartActivity.map((item, i) => (
+                    <div key={i} className="flex items-center justify-between">
+                      <span className="text-[13px] text-(--admin-text)">{item.productTitle}</span>
+                      <span className="text-[12px] text-(--admin-text-muted)">Qty {item.quantity}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {cartActivityHistory.length > 0 && (
+                <div className="px-5 py-3 border-t border-(--admin-border) space-y-2">
+                  <p className="text-[11px] font-medium uppercase tracking-wider text-(--admin-text-muted) mb-1">
+                    Converted
+                  </p>
+                  {cartActivityHistory.map((item, i) => (
+                    <div key={i} className="flex items-center justify-between">
+                      <span className="text-[13px] text-(--admin-text-soft)">
+                        {item.productTitle} <span className="text-(--admin-text-muted)">×{item.quantity}</span>
+                      </span>
+                      <span className="text-[12px] text-(--admin-text-muted)">{item.orderName}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </SectionCard>
+          ) : null}
 
           {/* Order history */}
           <SectionCard noPadding>
