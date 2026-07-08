@@ -7,6 +7,12 @@ function getDevice(ua: string): 'mobile' | 'tablet' | 'desktop' {
   return 'desktop'
 }
 
+function parseGeoFloat(raw: string | null): number | null {
+  if (!raw) return null
+  const n = parseFloat(raw)
+  return Number.isFinite(n) ? n : null
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => null)
@@ -22,7 +28,10 @@ export async function POST(req: NextRequest) {
 
     const ua       = req.headers.get('user-agent') ?? ''
     const referrer = req.headers.get('referer') ?? null
-    const country  = req.headers.get('x-vercel-ip-country') ?? null
+    const country  = req.headers.get('x-vercel-ip-country')   ?? null
+    const city     = req.headers.get('x-vercel-ip-city')      ?? null
+    const lat      = parseGeoFloat(req.headers.get('x-vercel-ip-latitude'))
+    const lng      = parseGeoFloat(req.headers.get('x-vercel-ip-longitude'))
     const device   = getDevice(ua)
 
     await supabaseAdmin.from('page_views').insert({
@@ -30,6 +39,9 @@ export async function POST(req: NextRequest) {
       product_handle: productHandle ?? null,
       referrer,
       country,
+      city,
+      lat,
+      lng,
       device,
     })
 
