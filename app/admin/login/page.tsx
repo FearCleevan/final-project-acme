@@ -103,7 +103,6 @@ export default function AdminLoginPage() {
   const [step,            setStep]            = useState<'password' | 'otp'>('password')
   const [otp,             setOtp]             = useState('')
   const [pendingToken,    setPendingToken]     = useState('')
-  const [maskedEmail,     setMaskedEmail]      = useState('')
   const [resendCountdown, setResendCountdown]  = useState(0)
   const firstBoxRef = useRef<HTMLDivElement>(null)
 
@@ -139,7 +138,6 @@ export default function AdminLoginPage() {
 
     if (res.ok) {
       setPendingToken(data.pendingToken)
-      setMaskedEmail(data.maskedEmail)
       setResendCountdown(60)
       setPassword('')
       setStep('otp')
@@ -197,7 +195,6 @@ export default function AdminLoginPage() {
     setOtp('')
     setError('')
     setPendingToken('')
-    setMaskedEmail('')
     setResendCountdown(0)
     setLoading(false)
   }
@@ -270,8 +267,7 @@ export default function AdminLoginPage() {
               <div className="flex items-center gap-2 mb-5">
                 <BiEnvelope size={15} className="text-(--admin-text-muted) shrink-0" />
                 <p className="text-[12px] text-(--admin-text-muted)">
-                  Code sent to{' '}
-                  <span className="text-(--admin-text) font-medium">{maskedEmail}</span>
+                  If your email is associated with this account, you&rsquo;ll receive a code.
                 </p>
               </div>
 

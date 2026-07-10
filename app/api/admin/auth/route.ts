@@ -4,7 +4,6 @@ import {
   generateOtp,
   createPendingToken,
   sendOtpEmail,
-  maskEmail,
 } from '@/lib/admin/auth'
 import { loginRatelimit } from '@/lib/admin/ratelimit'
 
@@ -45,8 +44,7 @@ export async function POST(req: NextRequest) {
 
   // ── Generate OTP + send email ──────────────────────────────────────────────
   const otp          = generateOtp()
-  const pendingToken = createPendingToken(otp, !!rememberMe)
-  const adminEmail   = process.env.ADMIN_EMAIL ?? ''
+  const pendingToken = await createPendingToken(otp, !!rememberMe)
 
   try {
     await sendOtpEmail(otp)
@@ -57,7 +55,5 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // Show masked version of first recipient only
-  const primaryEmail = adminEmail.split(',')[0].trim()
-  return NextResponse.json({ pendingToken, maskedEmail: maskEmail(primaryEmail) })
+  return NextResponse.json({ pendingToken })
 }
