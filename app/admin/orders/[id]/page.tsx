@@ -22,7 +22,7 @@ export default function OrderDetailPage() {
   const [events,        setEvents]        = useState<FulfillmentEvent[]>([])
   const [fulfillmentId, setFulfillmentId] = useState<string | null>(null)
   const [showModal,     setShowModal]     = useState(false)
-  const [printMode,     setPrintMode]     = useState<'invoice' | 'label' | null>(null)
+  const [printMode,     setPrintMode]     = useState<'invoice' | 'label' | 'packing-slip' | 'pick-list' | null>(null)
 
   useEffect(() => {
     fetch(`/api/admin/orders/${encodeURIComponent(id)}`)
@@ -76,7 +76,7 @@ export default function OrderDetailPage() {
     if (newFulfillmentId) setFulfillmentId(newFulfillmentId)
   }
 
-  function triggerPrint(mode: 'invoice' | 'label') {
+  function triggerPrint(mode: 'invoice' | 'label' | 'packing-slip' | 'pick-list') {
     setPrintMode(mode)
     setTimeout(() => {
       window.print()
@@ -96,6 +96,18 @@ export default function OrderDetailPage() {
               className="flex items-center gap-1.5 h-8 px-3 text-[12px] text-(--admin-text-soft) bg-(--admin-surface-2) border border-(--admin-border) rounded-md hover:bg-(--admin-border) transition-colors"
             >
               <BiPrinter size={14} /> Shipping Label
+            </button>
+            <button
+              onClick={() => triggerPrint('packing-slip')}
+              className="flex items-center gap-1.5 h-8 px-3 text-[12px] text-(--admin-text-soft) bg-(--admin-surface-2) border border-(--admin-border) rounded-md hover:bg-(--admin-border) transition-colors"
+            >
+              <BiPrinter size={14} /> Packing Slip
+            </button>
+            <button
+              onClick={() => triggerPrint('pick-list')}
+              className="flex items-center gap-1.5 h-8 px-3 text-[12px] text-(--admin-text-soft) bg-(--admin-surface-2) border border-(--admin-border) rounded-md hover:bg-(--admin-border) transition-colors"
+            >
+              <BiPrinter size={14} /> Pick List
             </button>
             <button
               onClick={() => triggerPrint('invoice')}
@@ -360,14 +372,123 @@ export default function OrderDetailPage() {
         </div>
       )}
 
+      {printMode === 'packing-slip' && (
+        <div className="hidden print:block fixed inset-0 bg-white p-10 z-9999" style={{ fontFamily: '"Inter", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif', fontSize: 15 }}>
+          {/* Header */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 36 }}>
+            <div style={{ fontSize: 28, textTransform: 'uppercase' }}>Acme Vintage Supply</div>
+            <div style={{ textAlign: 'right', fontSize: 14, lineHeight: 1.5 }}>
+              Order {order.id}<br />
+              {formatDate(order.date)}
+            </div>
+          </div>
+
+          {/* Ship To / Bill To */}
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 8 }}>SHIP TO / BILL TO</div>
+            <div style={{ lineHeight: 1.5 }}>
+              <div>{order.customer.name}</div>
+              {order.customer.address && <div>{order.customer.address}</div>}
+              <div>{[order.customer.city, order.customer.province].filter(Boolean).join(', ')}</div>
+              <div>{order.customer.country}</div>
+            </div>
+          </div>
+
+          <hr style={{ height: 2, border: 'none', backgroundColor: '#000', margin: '0 0 16px' }} />
+
+          {/* Items */}
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr>
+                <th colSpan={2} style={{ textAlign: 'left', fontSize: 12, fontWeight: 700, paddingBottom: 12 }}>ITEMS</th>
+                <th style={{ textAlign: 'right', fontSize: 12, fontWeight: 700, paddingBottom: 12 }}>QUANTITY</th>
+              </tr>
+            </thead>
+            <tbody>
+              {order.items.map(item => (
+                <tr key={item.id}>
+                  <td style={{ width: 56, padding: '10px 0' }}>
+                    <div style={{ width: 56, height: 56, background: '#f2f2f2', border: '1px solid #e0e0e0', borderRadius: 3, overflow: 'hidden' }}>
+                      {item.image && <Image src={item.image} alt="" className="w-full h-full object-cover" />}
+                    </div>
+                  </td>
+                  <td style={{ paddingLeft: 16 }}>
+                    <div>{item.title}</div>
+                    {item.variantTitle && item.variantTitle !== 'Default Title' && (
+                      <div style={{ color: '#555' }}>{item.variantTitle}</div>
+                    )}
+                    {item.sku && <div style={{ fontSize: 12, color: '#888' }}>SKU: {item.sku}</div>}
+                  </td>
+                  <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>{item.quantity}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <hr style={{ height: 2, border: 'none', backgroundColor: '#000', margin: '18px 0 0' }} />
+
+          {/* Footer */}
+          <div style={{ textAlign: 'center', marginTop: 44, lineHeight: 1.9 }}>
+            <div>Thank you for shopping with us!</div>
+            <div>&nbsp;</div>
+            <div>Acme Vintage Supply</div>
+            <div>25 Raddall Ave, Dartmouth NS B3B 1L4, Canada</div>
+            <div>acmesign01@gmail.com</div>
+            <div>acmevintagesupply.com</div>
+          </div>
+        </div>
+      )}
+
+      {printMode === 'pick-list' && (
+        <div className="hidden print:block fixed inset-0 bg-white p-10 z-9999" style={{ fontFamily: '"Inter", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif', fontSize: 15 }}>
+          {/* Header */}
+          <div style={{ marginBottom: 32 }}>
+            <div style={{ fontSize: 24, fontWeight: 700, textTransform: 'uppercase' }}>Pick List</div>
+            <div style={{ color: '#555', marginTop: 4 }}>Order {order.id}</div>
+          </div>
+
+          <hr style={{ height: 2, border: 'none', backgroundColor: '#000', margin: '0 0 16px' }} />
+
+          {/* Items */}
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <tbody>
+              {order.items.map(item => (
+                <tr key={item.id} style={{ borderBottom: '1px solid #eee' }}>
+                  <td style={{ width: 28, padding: '14px 0' }}>
+                    <div style={{ width: 18, height: 18, border: '2px solid #000' }} />
+                  </td>
+                  <td style={{ width: 56, padding: '14px 0' }}>
+                    <div style={{ width: 56, height: 56, background: '#f2f2f2', border: '1px solid #e0e0e0', borderRadius: 3, overflow: 'hidden' }}>
+                      {item.image && <Image src={item.image} alt="" className="w-full h-full object-cover" />}
+                    </div>
+                  </td>
+                  <td style={{ paddingLeft: 16 }}>
+                    <div>{item.title}</div>
+                    {item.variantTitle && item.variantTitle !== 'Default Title' && (
+                      <div style={{ color: '#555' }}>{item.variantTitle}</div>
+                    )}
+                    {item.sku && <div style={{ fontSize: 12, color: '#888' }}>SKU: {item.sku}</div>}
+                  </td>
+                  <td style={{ textAlign: 'right', fontWeight: 700, whiteSpace: 'nowrap' }}>Qty: {item.quantity}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <div style={{ marginTop: 24, fontSize: 12, color: '#888' }}>
+            {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
+          </div>
+        </div>
+      )}
+
       {printMode === 'invoice' && (
-        <div className="hidden print:block fixed inset-0 bg-white p-10 z-9999" style={{ fontFamily: 'Georgia, serif', fontSize: 13 }}>
+        <div className="hidden print:block fixed inset-0 bg-white p-10 z-9999" style={{ fontFamily: '"Inter", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif', fontSize: 13 }}>
           {/* Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 32 }}>
             <div>
               <div style={{ fontSize: 20, fontWeight: 700 }}>ACME VINTAGE SUPPLY</div>
               <div style={{ color: '#555', marginTop: 4 }}>25 Raddall Ave, Dartmouth, NS  B3B 1L4</div>
-              <div style={{ color: '#555' }}>hello@acmevintagesupply.ca</div>
+              <div style={{ color: '#555' }}>acmesign01@gmail.com</div>
             </div>
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontSize: 16, fontWeight: 700 }}>INVOICE</div>
@@ -376,7 +497,7 @@ export default function OrderDetailPage() {
             </div>
           </div>
 
-          <div style={{ borderTop: '1px solid #ccc', marginBottom: 24 }} />
+          <div style={{ borderTop: '2px solid #000', marginBottom: 24 }} />
 
           {/* Bill to */}
           <div style={{ marginBottom: 32 }}>
@@ -440,8 +561,8 @@ export default function OrderDetailPage() {
           </div>
 
           {/* Footer */}
-          <div style={{ borderTop: '1px solid #ccc', marginTop: 48, paddingTop: 16, fontSize: 11, color: '#888', textAlign: 'center' }}>
-            Thank you for your order. For returns or questions, contact hello@acmevintagesupply.ca · 30-day returns on whole pieces.
+          <div style={{ borderTop: '2px solid #000', marginTop: 48, paddingTop: 16, fontSize: 11, color: '#888', textAlign: 'center' }}>
+            Thank you for your order. For returns or questions, contact acmesign01@gmail.com · 30-day returns on whole pieces.
           </div>
         </div>
       )}
