@@ -4,7 +4,7 @@ import { getIronSession } from 'iron-session'
 import { sessionOptions } from '@/lib/admin/session'
 import type { AdminSession } from '@/lib/admin/auth'
 import { createClient } from '@supabase/supabase-js'
-import DOMPurify from 'isomorphic-dompurify'
+import sanitizeHtml from 'sanitize-html'
 import { sendContactReply } from '@/lib/email'
 
 function getSupabase() {
@@ -31,7 +31,16 @@ export async function POST(req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: 'Reply body is required.' }, { status: 400 })
   }
 
-  const cleanHtml = DOMPurify.sanitize(rawHtml)
+  // Allowlist matches exactly what the composer's toolbar can produce
+  // (Bold/Italic/Underline/Bullet/Numbered lists/Link/Image) — nothing more.
+  const cleanHtml = sanitizeHtml(rawHtml, {
+    allowedTags: ['p', 'br', 'strong', 'em', 'u', 'ul', 'ol', 'li', 'a', 'img'],
+    allowedAttributes: {
+      a:   ['href', 'target', 'rel'],
+      img: ['src', 'alt', 'width', 'height'],
+    },
+    allowedSchemes: ['http', 'https', 'mailto'],
+  })
   const supabase  = getSupabase()
 
   const { data: msg, error: fetchErr } = await supabase
