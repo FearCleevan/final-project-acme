@@ -305,7 +305,7 @@ export default function OrderDetailPage() {
 
       {/* ── Print layouts (hidden on screen, visible only when printing) ── */}
       {printMode === 'label' && (
-        <div className="hidden print:block fixed inset-0 bg-white p-10 z-9999" style={{ fontFamily: 'Georgia, serif' }}>
+        <div className="hidden print:block fixed inset-0 bg-white p-10 z-9999" style={{ fontFamily: '"Inter", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif' }}>
           {/* FROM */}
           <div style={{ fontSize: 13, color: '#555', marginBottom: 32 }}>
             <div style={{ fontWeight: 700, fontSize: 15, color: '#000', marginBottom: 4 }}>ACME VINTAGE SUPPLY</div>
@@ -350,7 +350,7 @@ export default function OrderDetailPage() {
           </div>
 
           {/* Item list */}
-          <div style={{ borderTop: '1px solid #ccc', paddingTop: 16 }}>
+          <div style={{ borderTop: '2px solid #000', paddingTop: 16 }}>
             <div style={{ fontSize: 10, letterSpacing: 2, color: '#888', marginBottom: 10 }}>CONTENTS</div>
             {order.items.map(item => (
               <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>

@@ -212,7 +212,7 @@ export default function AdminTopbar() {
   return (
     <>
     <header
-      className="fixed top-0 left-0 right-0 lg:left-60 flex items-center gap-3 px-4 sm:px-6 bg-(--admin-surface) border-b border-(--admin-border) z-20"
+      className="fixed top-0 left-0 right-0 lg:left-60 flex items-center gap-3 px-4 sm:px-6 bg-(--admin-surface) border-b border-(--admin-border) z-40"
       style={{ height: 'var(--admin-topbar-h)' }}
     >
       {/* Mobile: store name */}
