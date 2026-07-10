@@ -909,6 +909,14 @@ export async function uploadProductImage(
 // ─── Orders ───────────────────────────────────────────────────────────────────
 
 import type { AdminOrder, AdminOrderItem, AdminCustomer, OrderStatus, PaymentStatus, AdminCollection, AdminNotification, FulfillmentEvent, FulfillmentEventStatus } from './types'
+import { createClient } from '@supabase/supabase-js'
+
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
 
 interface ShopifyOrderNode {
   id: string
@@ -1429,6 +1437,84 @@ export async function getAdminNotifications(): Promise<AdminNotification[]> {
       })
     }
   } catch { /* Shopify not configured */ }
+
+  // ── Unread contact messages ───────────────────────────────────────────────
+  try {
+    const supabase = getSupabase()
+    const { data } = await supabase
+      .from('contact_messages')
+      .select('id, name, email, subject, created_at')
+      .is('read_at', null)
+      .order('created_at', { ascending: false })
+      .limit(5)
+    for (const m of data ?? []) {
+      notifications.push({
+        id:        `contact-${m.id}`,
+        type:      'contact_message',
+        title:     `New message from ${m.name}`,
+        subtitle:  `${m.subject} · ${m.email}`,
+        href:      '/admin/communications',
+        timestamp: m.created_at,
+        severity:  'warning',
+      })
+    }
+  } catch { /* Supabase not configured */ }
+
+  // ── Pending reviews ───────────────────────────────────────────────────────
+  try {
+    const supabase = getSupabase()
+    const { data } = await supabase
+      .from('reviews')
+      .select('id, product_handle, customer_name, rating, created_at')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false })
+      .limit(5)
+    for (const r of data ?? []) {
+      notifications.push({
+        id:        `review-${r.id}`,
+        type:      'pending_review',
+        title:     `New review: ${r.rating}★ on ${r.product_handle}`,
+        subtitle:  `by ${r.customer_name}`,
+        href:      '/admin/reviews',
+        timestamp: r.created_at,
+        severity:  'info',
+      })
+    }
+  } catch { /* Supabase not configured */ }
+
+  // ── Restock waitlist signups ──────────────────────────────────────────────
+  try {
+    const supabase = getSupabase()
+    const { data } = await supabase
+      .from('back_in_stock_requests')
+      .select('product_handle, product_title, created_at')
+      .is('notified_at', null)
+      .order('created_at', { ascending: false })
+    const byHandle = new Map<string, { product_title: string; count: number; latest: string }>()
+    for (const row of data ?? []) {
+      const existing = byHandle.get(row.product_handle)
+      if (existing) {
+        existing.count += 1
+        if (row.created_at > existing.latest) existing.latest = row.created_at
+      } else {
+        byHandle.set(row.product_handle, { product_title: row.product_title, count: 1, latest: row.created_at })
+      }
+    }
+    const grouped = [...byHandle.entries()]
+      .sort((a, b) => b[1].count - a[1].count)
+      .slice(0, 5)
+    for (const [handle, g] of grouped) {
+      notifications.push({
+        id:        `restock-${handle}`,
+        type:      'restock_signup',
+        title:     `${g.count} waiting — ${g.product_title}`,
+        subtitle:  'Restock waitlist',
+        href:      '/admin/communications',
+        timestamp: g.latest,
+        severity:  'info',
+      })
+    }
+  } catch { /* Supabase not configured */ }
 
   // Sort all notifications newest-first
   return notifications.sort(
