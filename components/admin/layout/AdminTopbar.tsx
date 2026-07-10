@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { BiSearch, BiBell, BiX, BiPackage, BiCog, BiLogOut, BiBox, BiReceipt, BiUser } from 'react-icons/bi'
+import { BiSearch, BiBell, BiX, BiPackage, BiCog, BiLogOut, BiBox, BiReceipt, BiUser, BiEnvelope, BiStar, BiRefresh } from 'react-icons/bi'
 import LogoutModal from '@/components/admin/shared/LogoutModal'
 import type { AdminOrder, AdminProduct, AdminCustomer, AdminNotification } from '@/lib/admin/types'
 import { formatCurrency } from '@/lib/admin/utils'
@@ -317,16 +317,25 @@ export default function AdminTopbar() {
                 <div className="divide-y divide-(--admin-border) max-h-80 overflow-y-auto">
                   {visibleNotifs.map(n => {
                     const severity  = n.severity ?? 'info'
-                    const Icon      = n.type === 'new_order' ? BiReceipt : n.type === 'new_customer' ? BiUser : BiPackage
-                    const iconBg    = severity === 'error'   ? 'bg-(--admin-red-bg)'
-                                    : severity === 'warning' ? 'bg-(--admin-amber-bg)'
-                                    : n.type === 'new_order' ? 'bg-(--admin-green-bg)'
-                                    : n.type === 'new_customer' ? 'bg-(--admin-accent)/10'
+                    const Icon      = n.type === 'new_order'       ? BiReceipt
+                                    : n.type === 'new_customer'     ? BiUser
+                                    : n.type === 'contact_message'  ? BiEnvelope
+                                    : n.type === 'pending_review'   ? BiStar
+                                    : n.type === 'restock_signup'   ? BiRefresh
+                                    : BiPackage
+                    const iconBg    = severity === 'error'      ? 'bg-(--admin-red-bg)'
+                                    : severity === 'warning'     ? 'bg-(--admin-amber-bg)'
+                                    : n.type === 'new_order'     ? 'bg-(--admin-green-bg)'
+                                    : n.type === 'new_customer'  ? 'bg-(--admin-accent)/10'
+                                    : n.type === 'pending_review' ? 'bg-(--admin-accent)/10'
+                                    : n.type === 'restock_signup' ? 'bg-(--admin-accent)/10'
                                     : 'bg-(--admin-amber-bg)'
-                    const iconColor = severity === 'error'   ? 'text-(--admin-red)'
-                                    : severity === 'warning' ? 'text-(--admin-amber)'
-                                    : n.type === 'new_order' ? 'text-(--admin-green)'
-                                    : n.type === 'new_customer' ? 'text-(--admin-accent)'
+                    const iconColor = severity === 'error'      ? 'text-(--admin-red)'
+                                    : severity === 'warning'     ? 'text-(--admin-amber)'
+                                    : n.type === 'new_order'     ? 'text-(--admin-green)'
+                                    : n.type === 'new_customer'  ? 'text-(--admin-accent)'
+                                    : n.type === 'pending_review' ? 'text-(--admin-accent)'
+                                    : n.type === 'restock_signup' ? 'text-(--admin-accent)'
                                     : 'text-(--admin-amber)'
                     return (
                       <button

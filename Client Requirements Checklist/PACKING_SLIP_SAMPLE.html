@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Packing Slip Sample — Acme Vintage Supply</title>
+<style>
+  body {
+    margin: 0;
+    padding: 40px;
+    background: #e8e8e8;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+  .slip {
+    width: 850px;
+    max-width: 100%;
+    margin: 0 auto;
+    background: #fff;
+    padding: 56px 64px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    box-sizing: border-box;
+    color: #1a1a1a;
+    font-size: 15px;
+  }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .slip { box-shadow: none; }
+  }
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 36px;
+  }
+  .store-name {
+    font-size: 30px;
+  }
+  .order-meta {
+    text-align: right;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .addresses {
+    display: flex;
+    gap: 80px;
+    margin-bottom: 28px;
+  }
+  .addr-label {
+    font-weight: 700;
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+  .addr-block div {
+    line-height: 1.5;
+  }
+  .rule-thick {
+    border: none;
+    border-top: 2px solid #1a1a1a;
+    margin: 0 0 18px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  thead th {
+    text-align: left;
+    font-size: 13px;
+    font-weight: 700;
+    padding-bottom: 14px;
+  }
+  thead th.qty {
+    text-align: right;
+  }
+  tbody td {
+    padding: 14px 0;
+    vertical-align: middle;
+  }
+  .thumb {
+    width: 56px;
+    height: 56px;
+    background: #f2f2f2;
+    border: 1px solid #e0e0e0;
+    border-radius: 3px;
+  }
+  .item-title {
+    padding-left: 20px;
+  }
+  .item-variant {
+    color: #1a1a1a;
+  }
+  .qty-cell {
+    text-align: right;
+    white-space: nowrap;
+  }
+  .footer {
+    text-align: center;
+    margin-top: 44px;
+    line-height: 1.9;
+  }
+</style>
+</head>
+<body>
+
+<div class="slip">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="store-name">ACME VINTAGE SUPPLY</div>
+    <div class="order-meta">
+      Order ACMEORDER-1020<br>
+      June 9, 2026
+    </div>
+  </div>
+
+  <!-- Ship To / Bill To -->
+  <div class="addresses">
+    <div class="addr-block">
+      <div class="addr-label">SHIP TO</div>
+      <div>Anonymous Customer</div>
+      <div>&nbsp;</div>
+      <div>Vancouver BC</div>
+      <div>Canada</div>
+    </div>
+    <div class="addr-block">
+      <div class="addr-label">BILL TO</div>
+      <div>Anonymous Customer</div>
+      <div>&nbsp;</div>
+      <div>Vancouver BC</div>
+      <div>Canada</div>
+    </div>
+  </div>
+
+  <hr class="rule-thick">
+
+  <!-- Items -->
+  <table>
+    <thead>
+      <tr>
+        <th colspan="2">ITEMS</th>
+        <th class="qty">QUANTITY</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="width:56px;"><div class="thumb"></div></td>
+        <td class="item-title">OIL LAMP CHIMNEY - Crystal Cut Chimney 3&quot; Crimped Top</td>
+        <td class="qty-cell">1 of 1</td>
+      </tr>
+      <tr>
+        <td style="width:56px;"><div class="thumb"></div></td>
+        <td class="item-title">
+          OIL LAMP SHADE - Closed Tulip Etched Shade 4&quot; Fit<br>
+          <span class="item-variant">Green</span>
+        </td>
+        <td class="qty-cell">1 of 1</td>
+      </tr>
+      <tr>
+        <td style="width:56px;"><div class="thumb"></div></td>
+        <td class="item-title">
+          OIL LAMP SHADE - Closed Tulip Etched Shade 4&quot; Fit<br>
+          <span class="item-variant">Red</span>
+        </td>
+        <td class="qty-cell">1 of 1</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <hr class="rule-thick" style="margin-top:18px;">
+
+  <!-- Footer -->
+  <div class="footer">
+    <div>Thank you for shopping with us!</div>
+    <div>&nbsp;</div>
+    <div>Acme Vintage Supply</div>
+    <div>25 Raddall Ave, Dartmouth NS B3B 1L4, Canada</div>
+    <div>acmesign01@gmail.com</div>
+    <div>acmevintagesupply.com</div>
+  </div>
+
+</div>
+
+</body>
+</html>
