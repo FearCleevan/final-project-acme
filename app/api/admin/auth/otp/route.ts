@@ -2,7 +2,7 @@ import crypto from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { getIronSession } from 'iron-session'
-import { pendingOtps } from '@/lib/admin/auth'
+import { getPendingOtp, setPendingOtp, deletePendingOtp } from '@/lib/admin/auth'
 import type { AdminSession } from '@/lib/admin/auth'
 import { sessionOptions } from '@/lib/admin/session'
 import { otpVerifyRatelimit } from '@/lib/admin/ratelimit'
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
   }
 
   // ── Look up pending token ──────────────────────────────────────────────────
-  const record = pendingOtps.get(pendingToken)
+  const record = await getPendingOtp(pendingToken)
   if (!record) {
     return NextResponse.json(
       { error: 'Your code has expired. Please sign in again.' },
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
 
   // ── Check expiry ───────────────────────────────────────────────────────────
   if (Date.now() > record.expiry) {
-    pendingOtps.delete(pendingToken)
+    await deletePendingOtp(pendingToken)
     return NextResponse.json(
       { error: 'Your code has expired. Please sign in again.' },
       { status: 401 }
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
   // ── Increment attempts ─────────────────────────────────────────────────────
   record.attempts += 1
   if (record.attempts > 5) {
-    pendingOtps.delete(pendingToken)
+    await deletePendingOtp(pendingToken)
     return NextResponse.json(
       { error: 'Too many incorrect attempts. Please sign in again.' },
       { status: 401 }
@@ -69,6 +69,7 @@ export async function POST(req: NextRequest) {
   const supplied = Buffer.from(code.padEnd(6, ' '))
   const stored   = Buffer.from(record.otp.padEnd(6, ' '))
   if (!crypto.timingSafeEqual(supplied, stored)) {
+    await setPendingOtp(pendingToken, record)
     const remaining = 5 - record.attempts
     return NextResponse.json(
       { error: `Incorrect code. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining.` },
@@ -78,7 +79,7 @@ export async function POST(req: NextRequest) {
 
   // ── Create session ─────────────────────────────────────────────────────────
   const { rememberMe } = record
-  pendingOtps.delete(pendingToken)
+  await deletePendingOtp(pendingToken)
   const opts = rememberMe
     ? { ...sessionOptions, cookieOptions: { ...sessionOptions.cookieOptions, maxAge: 60 * 60 * 24 * 7 } }
     : sessionOptions

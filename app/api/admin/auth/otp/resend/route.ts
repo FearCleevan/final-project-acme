@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { pendingOtps, generateOtp, sendOtpEmail } from '@/lib/admin/auth'
+import { getPendingOtp, setPendingOtp, deletePendingOtp, generateOtp, sendOtpEmail } from '@/lib/admin/auth'
 import { otpResendRatelimit } from '@/lib/admin/ratelimit'
 
 export async function POST(req: NextRequest) {
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
   }
 
   // ── Look up pending token ──────────────────────────────────────────────────
-  const record = pendingOtps.get(pendingToken)
+  const record = await getPendingOtp(pendingToken)
   if (!record) {
     return NextResponse.json(
       { error: 'Session expired. Please sign in again.' },
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
 
   // ── Check expiry ───────────────────────────────────────────────────────────
   if (Date.now() > record.expiry) {
-    pendingOtps.delete(pendingToken)
+    await deletePendingOtp(pendingToken)
     return NextResponse.json(
       { error: 'Session expired. Please sign in again.' },
       { status: 401 }
@@ -64,5 +64,6 @@ export async function POST(req: NextRequest) {
     )
   }
 
+  await setPendingOtp(pendingToken, record)
   return NextResponse.json({ ok: true })
 }

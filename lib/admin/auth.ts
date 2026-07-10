@@ -38,6 +38,12 @@ export interface AdminSession {
 }
 
 // ─── OTP store ─────────────────────────────────────────────────────────────────
+// Backed by Redis (not an in-memory Map) because Vercel serverless functions do
+// not share memory across invocations/instances — a login request and the
+// following verify/resend request can land on different instances, which made
+// an in-memory store report "expired" almost immediately rather than after the
+// real 10-minute window. Follows the same Redis.fromEnv() pattern already used
+// in lib/admin/ratelimit.ts for the same cross-invocation persistence need.
 const OTP_TTL_MS = 10 * 60 * 1000 // 10 minutes
 
 interface OtpRecord {
@@ -47,23 +53,40 @@ interface OtpRecord {
   rememberMe: boolean
 }
 
-export const pendingOtps = new Map<string, OtpRecord>()
+function getOtpRedis() {
+  return new Redis({
+    url:   process.env.UPSTASH_REDIS_REST_URL  ?? '',
+    token: process.env.UPSTASH_REDIS_REST_TOKEN ?? '',
+  })
+}
+
+function otpKey(token: string): string {
+  return `acme:admin:otp:${token}`
+}
 
 export function generateOtp(): string {
   const n = crypto.randomInt(0, 1_000_000)
   return n.toString().padStart(6, '0')
 }
 
-export function createPendingToken(otp: string, rememberMe = false): string {
-  const token = crypto.randomBytes(16).toString('hex')
-  pendingOtps.set(token, { otp, expiry: Date.now() + OTP_TTL_MS, attempts: 0, rememberMe })
+export async function createPendingToken(otp: string, rememberMe = false): Promise<string> {
+  const token  = crypto.randomBytes(16).toString('hex')
+  const record: OtpRecord = { otp, expiry: Date.now() + OTP_TTL_MS, attempts: 0, rememberMe }
+  await getOtpRedis().set(otpKey(token), record, { ex: Math.ceil(OTP_TTL_MS / 1000) })
   return token
 }
 
-export function maskEmail(email: string): string {
-  const [local, domain] = email.split('@')
-  if (!local || !domain) return email
-  return `${local[0]}***@${domain}`
+export async function getPendingOtp(token: string): Promise<OtpRecord | null> {
+  return await getOtpRedis().get<OtpRecord>(otpKey(token))
+}
+
+export async function setPendingOtp(token: string, record: OtpRecord): Promise<void> {
+  const ttlSeconds = Math.max(1, Math.ceil((record.expiry - Date.now()) / 1000))
+  await getOtpRedis().set(otpKey(token), record, { ex: ttlSeconds })
+}
+
+export async function deletePendingOtp(token: string): Promise<void> {
+  await getOtpRedis().del(otpKey(token))
 }
 
 // ─── OTP email via Resend ──────────────────────────────────────────────────────
