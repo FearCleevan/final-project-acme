@@ -212,6 +212,19 @@ export async function sendContactAdminAlert(msg: {
   })
 }
 
+export async function sendContactReply(
+  to:      string,
+  subject: string,
+  html:    string
+): Promise<void> {
+  await resend.emails.send({
+    from:    FROM,
+    to,
+    subject: `Re: ${subject}`,
+    html,
+  })
+}
+
 function emailFooter(unsubscribeUrl: string): string {
   return `
   <div style="border-top:1px solid #E8E0D4;padding-top:16px;margin-top:32px;">

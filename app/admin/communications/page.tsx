@@ -5,6 +5,7 @@ import PageHeader from '@/components/admin/shared/PageHeader'
 import SectionCard from '@/components/admin/shared/SectionCard'
 import Badge from '@/components/admin/shared/Badge'
 import Toast, { ToastType } from '@/components/admin/shared/Toast'
+import ContactReplyComposer from '@/components/admin/communications/ContactReplyComposer'
 import { cn } from '@/lib/utils'
 import {
   BiEnvelope, BiNote, BiLoader, BiCheck, BiTrash, BiPin,
@@ -31,6 +32,7 @@ interface ContactMessage {
   read_at:    string | null
   replied_at: string | null
   created_at: string
+  reply_body: string | null
 }
 
 interface BenchNote {
@@ -72,6 +74,7 @@ export default function CommunicationsPage() {
   const [contactLoad,   setContactLoad]   = useState(true)
   const [openMsg,       setOpenMsg]       = useState<string | null>(null)
   const [inboxFilter,   setInboxFilter]   = useState<'all' | 'unread' | 'replied'>('all')
+  const [replyingTo,    setReplyingTo]    = useState<string | null>(null)
 
   // Notes state
   const [notes,         setNotes]         = useState<BenchNote[]>([])
@@ -441,13 +444,14 @@ export default function CommunicationsPage() {
                         <p className="text-[13px] text-(--admin-text) leading-relaxed whitespace-pre-wrap">{msg.message}</p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <a
-                          href={`mailto:${msg.email}?subject=Re: ${encodeURIComponent(msg.subject)}`}
-                          onClick={() => patchContact(msg.id, { markReplied: true })}
-                          className="flex items-center gap-1.5 h-8 px-3 text-[12px] font-medium bg-(--admin-accent) text-(--admin-accent-text) rounded hover:opacity-90 transition-opacity"
-                        >
-                          <BiEnvelope size={13} /> Reply via email
-                        </a>
+                        {replyingTo !== msg.id && (
+                          <button
+                            onClick={() => setReplyingTo(msg.id)}
+                            className="flex items-center gap-1.5 h-8 px-3 text-[12px] font-medium bg-(--admin-accent) text-(--admin-accent-text) rounded hover:opacity-90 transition-opacity"
+                          >
+                            <BiEnvelope size={13} /> Reply
+                          </button>
+                        )}
                         {!msg.read_at ? (
                           <button
                             onClick={() => patchContact(msg.id, { markRead: true })}
@@ -464,6 +468,32 @@ export default function CommunicationsPage() {
                           </button>
                         )}
                       </div>
+                      {msg.reply_body && replyingTo !== msg.id && (
+                        <div className="mt-3">
+                          <p className="text-[11px] font-medium text-(--admin-text-muted) mb-1">Your reply:</p>
+                          <div
+                            className="bg-(--admin-bg) rounded-md p-4 border border-(--admin-border) text-[13px] text-(--admin-text)"
+                            dangerouslySetInnerHTML={{ __html: msg.reply_body }}
+                          />
+                        </div>
+                      )}
+                      {replyingTo === msg.id && (
+                        <div className="mt-3">
+                          <ContactReplyComposer
+                            message={{ id: msg.id, name: msg.name, email: msg.email }}
+                            onSent={(replyBody) => {
+                              setContacts(cs => cs.map(c =>
+                                c.id === msg.id
+                                  ? { ...c, replied_at: new Date().toISOString(), reply_body: replyBody }
+                                  : c
+                              ))
+                              setReplyingTo(null)
+                            }}
+                            onCancel={() => setReplyingTo(null)}
+                            showToast={showToast}
+                          />
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
