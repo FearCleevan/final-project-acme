@@ -167,13 +167,14 @@ export default function CustomersPage() {
                   {c.city}, {c.province} · {c.orders} order{c.orders !== 1 ? 's' : ''}
                 </p>
                 {c.cartActivity && c.cartActivity.length > 0 && (
-                  <p
-                    className="text-[11px] text-(--admin-text-muted) mt-0.5 truncate"
-                    title={c.cartActivity.map(i => `${i.productTitle} (${i.quantity})`).join(', ')}
-                  >
-                    In cart: {c.cartActivity[0].productTitle}
-                    {c.cartActivity.length > 1 ? ` +${c.cartActivity.length - 1} more` : ''}
-                  </p>
+                  <div className="mt-0.5 space-y-0.5">
+                    {c.cartActivity.map((item, i) => (
+                      <p key={i} className="text-[11px] text-(--admin-text-muted) truncate">
+                        {i === 0 ? 'In cart: ' : ''}{item.productTitle}
+                        {item.quantity > 1 ? ` (${item.quantity})` : ''}
+                      </p>
+                    ))}
+                  </div>
                 )}
               </div>
             </div>
@@ -237,13 +238,14 @@ export default function CustomersPage() {
                   </td>
                   <td className="px-5 py-3">
                     {c.cartActivity && c.cartActivity.length > 0 ? (
-                      <span
-                        className="text-[12px] text-(--admin-text-soft)"
-                        title={c.cartActivity.map(i => `${i.productTitle} (${i.quantity})`).join(', ')}
-                      >
-                        {c.cartActivity[0].productTitle}
-                        {c.cartActivity.length > 1 ? ` +${c.cartActivity.length - 1} more` : ''}
-                      </span>
+                      <div className="space-y-0.5">
+                        {c.cartActivity.map((item, i) => (
+                          <p key={i} className="text-[12px] text-(--admin-text-soft)">
+                            {item.productTitle}
+                            {item.quantity > 1 ? ` (${item.quantity})` : ''}
+                          </p>
+                        ))}
+                      </div>
                     ) : (
                       <span className="text-[12px] text-(--admin-text-muted)">—</span>
                     )}
