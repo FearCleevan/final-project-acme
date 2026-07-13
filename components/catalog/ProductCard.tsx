@@ -118,31 +118,44 @@ const ProductCard = memo(function ProductCard({
         <div className="border-t border-ink-rule mt-auto pt-2 sm:pt-3" />
 
         {/* Price + action */}
-        <div className="flex items-center justify-between mb-1 sm:mb-2">
-          <span className="font-serif text-[14px] sm:text-[22px] text-brass-deep leading-none">
-            {noPrice ? 'Price coming soon' : <CurrencyPrice amount={product.price} />}
-          </span>
+        {noPrice ? (
+          <div className="flex items-center justify-between gap-2 mb-1 sm:mb-2">
+            <span className="font-sans text-[11px] sm:text-[13px] text-ink-soft">
+              Price coming soon
+            </span>
+            <Link
+              href={`/catalog/${product.slug}`}
+              className="hidden sm:flex h-9 px-4 items-center justify-center bg-green-brand text-[#F5F1E6] rounded-btn font-sans text-[13px] font-semibold hover:bg-green-deep hover:shadow-cta-hover transition-all duration-200 shrink-0"
+            >
+              View details →
+            </Link>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between mb-1 sm:mb-2">
+            <span className="font-serif text-[14px] sm:text-[22px] text-brass-deep leading-none">
+              <CurrencyPrice amount={product.price} />
+            </span>
 
-          {/* Desktop: navigate to product */}
-          <Link
-            href={`/catalog/${product.slug}`}
-            className="hidden sm:flex h-9 px-4 items-center justify-center bg-green-brand text-[#F5F1E6] rounded-btn font-sans text-[13px] font-semibold hover:bg-green-deep hover:shadow-cta-hover transition-all duration-200"
-          >
-            View details →
-          </Link>
+            {/* Desktop: navigate to product */}
+            <Link
+              href={`/catalog/${product.slug}`}
+              className="hidden sm:flex h-9 px-4 items-center justify-center bg-green-brand text-[#F5F1E6] rounded-btn font-sans text-[13px] font-semibold hover:bg-green-deep hover:shadow-cta-hover transition-all duration-200"
+            >
+              View details →
+            </Link>
 
-          {/* Mobile: add to crate inline */}
-          <button
-            type="button"
-            onClick={handleAddToCrate}
-            disabled={noPrice}
-            className="sm:hidden h-6.5 px-2.5 flex items-center gap-1 border border-ink-rule rounded-btn font-sans text-[10px] font-semibold uppercase tracking-[0.04em] text-ink-iron hover:border-green-brand hover:bg-green-brand hover:text-[#F5F1E6] active:bg-green-brand active:text-[#F5F1E6] transition-all duration-150 disabled:opacity-40 disabled:pointer-events-none"
-            aria-label={`Add ${product.name} to crate`}
-          >
-            <BiPackage size={11} />
-            {added ? '✓' : '+ Crate'}
-          </button>
-        </div>
+            {/* Mobile: add to crate inline */}
+            <button
+              type="button"
+              onClick={handleAddToCrate}
+              className="sm:hidden h-6.5 px-2.5 flex items-center gap-1 border border-ink-rule rounded-btn font-sans text-[10px] font-semibold uppercase tracking-[0.04em] text-ink-iron hover:border-green-brand hover:bg-green-brand hover:text-[#F5F1E6] active:bg-green-brand active:text-[#F5F1E6] transition-all duration-150"
+              aria-label={`Add ${product.name} to crate`}
+            >
+              <BiPackage size={11} />
+              {added ? '✓' : '+ Crate'}
+            </button>
+          </div>
+        )}
 
         {/* Add to Crate — desktop full button */}
         <button

@@ -24,15 +24,17 @@ interface WaitlistGroup {
 }
 
 interface ContactMessage {
-  id:         string
-  name:       string
-  email:      string
-  subject:    string
-  message:    string
-  read_at:    string | null
-  replied_at: string | null
-  created_at: string
-  reply_body: string | null
+  id:             string
+  name:           string
+  email:          string
+  subject:        string
+  message:        string
+  read_at:        string | null
+  replied_at:     string | null
+  created_at:     string
+  reply_body:     string | null
+  product_handle: string | null
+  product_title:  string | null
 }
 
 interface BenchNote {
@@ -408,6 +410,9 @@ export default function CommunicationsPage() {
                         <span className="text-[14px] font-medium text-(--admin-text) truncate">{msg.name}</span>
                         <span className="text-[11px] text-(--admin-text-muted) shrink-0">{timeAgo(msg.created_at)}</span>
                       </div>
+                      {msg.product_title && (
+                        <Badge label={`Product inquiry: ${msg.product_title}`} variant="blue" />
+                      )}
                       <p className="text-[12px] text-(--admin-text-soft) truncate">{msg.subject}</p>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
