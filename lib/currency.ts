@@ -34,15 +34,14 @@ export function formatCurrencyPrice(
 
 export async function fetchExchangeRates(): Promise<ExchangeRates> {
   try {
-    const res = await fetch(
-      'https://api.frankfurter.app/latest?from=CAD&to=USD,EUR,GBP',
-      { cache: 'no-store' }
-    )
+    // Proxied through our own server route — Frankfurter doesn't support
+    // direct browser calls (no CORS headers), so this can't call
+    // frankfurter.app directly from the client.
+    const res = await fetch('/api/exchange-rates', { cache: 'no-store' })
     if (!res.ok) throw new Error('fetch failed')
-    const data = await res.json()
-    return { CAD: 1, ...data.rates } as ExchangeRates
+    return await res.json() as ExchangeRates
   } catch {
-    // Approximate fallback rates — only used if frankfurter is down
+    // Approximate fallback rates — only used if the proxy route is unreachable
     return { CAD: 1, USD: 0.74, EUR: 0.68, GBP: 0.58 }
   }
 }
