@@ -42,10 +42,16 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Campaign already being sent or not found' }, { status: 409 })
   }
 
-  const { data: subs } = await supabase
-    .from('newsletter_subscribers')
-    .select('email')
-    .is('unsubscribed_at', null)
+  const { data: subs } = campaign.recipient_emails
+    ? await supabase
+        .from('newsletter_subscribers')
+        .select('email')
+        .in('email', campaign.recipient_emails as string[])
+        .is('unsubscribed_at', null)
+    : await supabase
+        .from('newsletter_subscribers')
+        .select('email')
+        .is('unsubscribed_at', null)
 
   const subscribers = subs ?? []
   if (!subscribers.length) {
