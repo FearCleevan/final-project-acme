@@ -9,6 +9,7 @@ import Footer from '@/components/shared/Footer'
 import { useSearchOverlay } from '@/hooks/useSearchOverlay'
 import { useCustomerStore } from '@/store/customerStore'
 import { useLenis } from '@/hooks/useLenis'
+import { ensureVisitorId } from '@/lib/visitorId'
 
 interface ShellClientProps {
   children: React.ReactNode
@@ -21,6 +22,7 @@ export default function ShellClient({ children }: ShellClientProps) {
   useLenis()
 
   useEffect(() => {
+    ensureVisitorId()
     // hydrate() handles initCart internally for both guests and logged-in customers
     useCustomerStore.getState().hydrate()
   }, [])

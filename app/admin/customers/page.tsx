@@ -141,8 +141,11 @@ export default function CustomersPage() {
           ) : paginated.map(c => (
             <div
               key={c.id}
-              onClick={() => router.push(`/admin/customers/${c.id}`)}
-              className="flex items-center gap-3 px-4 py-3 hover:bg-(--admin-surface-2) cursor-pointer transition-colors"
+              onClick={c.isGuest ? undefined : () => router.push(`/admin/customers/${c.id}`)}
+              className={cn(
+                'flex items-center gap-3 px-4 py-3 transition-colors',
+                c.isGuest ? 'cursor-default' : 'hover:bg-(--admin-surface-2) cursor-pointer'
+              )}
             >
               <div className="w-9 h-9 rounded-full bg-(--admin-surface-2) border border-(--admin-border) flex items-center justify-center shrink-0">
                 <span className="text-[12px] font-semibold text-(--admin-text-muted)">
@@ -201,8 +204,11 @@ export default function CustomersPage() {
               ) : paginated.map(c => (
                 <tr
                   key={c.id}
-                  onClick={() => router.push(`/admin/customers/${c.id}`)}
-                  className="border-b border-(--admin-border) last:border-0 hover:bg-(--admin-surface-2) cursor-pointer transition-colors"
+                  onClick={c.isGuest ? undefined : () => router.push(`/admin/customers/${c.id}`)}
+                  className={cn(
+                    'border-b border-(--admin-border) last:border-0 transition-colors',
+                    c.isGuest ? 'cursor-default' : 'hover:bg-(--admin-surface-2) cursor-pointer'
+                  )}
                 >
                   <td className="px-5 py-3">
                     <div className="flex items-center gap-3">

@@ -65,8 +65,7 @@ export const useCrateStore = create<CrateStore>()(
             ),
           })
 
-          const email = get()._customerEmail
-          if (email) trackCartActivity(email, product, newQty)
+          trackCartActivity(get()._customerEmail, product, newQty)
           // Background sync: update the Shopify line quantity
           const { cartId } = get()
           if (cartId && existing.cartLineId) {
@@ -91,8 +90,7 @@ export const useCrateStore = create<CrateStore>()(
             ],
           })
 
-          const email = get()._customerEmail
-          if (email) trackCartActivity(email, product, quantity)
+          trackCartActivity(get()._customerEmail, product, quantity)
 
           const { cartId } = get()
 
@@ -172,8 +170,7 @@ export const useCrateStore = create<CrateStore>()(
         if (cartId && item?.cartLineId) {
           cartLinesRemove(cartId, [item.cartLineId])
         }
-        const email = get()._customerEmail
-        if (email && item) untrackCartActivity(email, item.product)
+        if (item) untrackCartActivity(get()._customerEmail, item.product)
       },
 
       updateQuantity: (productId, quantity) => {
@@ -194,7 +191,7 @@ export const useCrateStore = create<CrateStore>()(
           const { cartId, items, _customerEmail } = get()
           const current = items.find(i => i.product.id === productId)
           if (!current) return
-          if (_customerEmail) trackCartActivity(_customerEmail, current.product, current.quantity)
+          trackCartActivity(_customerEmail, current.product, current.quantity)
           if (!cartId || !current.cartLineId) return
           cartLinesUpdate(cartId, [{ id: current.cartLineId, quantity: current.quantity }]).then(result => {
             if (!result) {

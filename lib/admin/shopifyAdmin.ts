@@ -1,7 +1,7 @@
 // lib/admin/shopifyAdmin.ts
 
 import type { AdminProduct, ProductStatus } from './types'
-import { getActiveCartActivityByEmails } from '@/lib/cartActivity'
+import { getActiveCartActivityByEmails, getActiveGuestCartActivity } from '@/lib/cartActivity'
 
 const DOMAIN  = process.env.SHOPIFY_STORE_DOMAIN!
 const TOKEN   = process.env.SHOPIFY_ADMIN_TOKEN!
@@ -1577,7 +1577,28 @@ export async function getAdminCustomers(first = 250): Promise<AdminCustomer[]> {
   )
   const customers = data.customers.edges.map(e => toAdminCustomer(e.node))
   const cartActivityByEmail = await getActiveCartActivityByEmails(customers.map(c => c.email))
-  return customers.map(c => ({ ...c, cartActivity: cartActivityByEmail.get(c.email) ?? [] }))
+  const withCarts = customers.map(c => ({ ...c, cartActivity: cartActivityByEmail.get(c.email) ?? [] }))
+
+  const guests = await getActiveGuestCartActivity()
+  const guestRows: AdminCustomer[] = guests.map(g => ({
+    id:         `guest-${g.sessionId}`,
+    name:       'Guest',
+    email:      '',
+    phone:      '',
+    address:    '',
+    city:       g.city ?? '',
+    province:   '',
+    country:    '',
+    orders:     0,
+    totalSpent: 0,
+    joined:     g.lastAddedAt,
+    cartActivity: g.items,
+    isGuest:    true,
+  }))
+
+  return [...withCarts, ...guestRows].sort(
+    (a, b) => new Date(b.joined).getTime() - new Date(a.joined).getTime()
+  )
 }
 
 export async function getAdminCustomerById(customerId: string): Promise<AdminCustomer | null> {
