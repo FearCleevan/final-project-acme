@@ -22,7 +22,14 @@ const ProductCard = memo(function ProductCard({
   const addItem = useCrateStore(s => s.addItem)
   const [added, setAdded] = useState(false)
 
-  const isDark = (product.category as string) === 'signs'
+  const isDark  = (product.category as string) === 'signs'
+  const noImage = !product.images[0]
+  const noPrice = product.price === 0
+  const imageLabel = noImage && noPrice
+    ? 'Image & Price coming soon'
+    : noImage
+      ? 'Image coming soon'
+      : undefined
 
   function handleAddToCrate(e: React.MouseEvent) {
     e.preventDefault()
@@ -50,6 +57,7 @@ const ProductCard = memo(function ProductCard({
           alt={product.name}
           aspectRatio={aspectRatio}
           dark={isDark}
+          label={imageLabel}
           className="transition-transform duration-500 ease-out group-hover:scale-[1.04]"
         />
         {/* Hover brightness overlay — visible even on placeholder */}
@@ -112,7 +120,7 @@ const ProductCard = memo(function ProductCard({
         {/* Price + action */}
         <div className="flex items-center justify-between mb-1 sm:mb-2">
           <span className="font-serif text-[14px] sm:text-[22px] text-brass-deep leading-none">
-            <CurrencyPrice amount={product.price} />
+            {noPrice ? 'Price coming soon' : <CurrencyPrice amount={product.price} />}
           </span>
 
           {/* Desktop: navigate to product */}
@@ -127,7 +135,8 @@ const ProductCard = memo(function ProductCard({
           <button
             type="button"
             onClick={handleAddToCrate}
-            className="sm:hidden h-6.5 px-2.5 flex items-center gap-1 border border-ink-rule rounded-btn font-sans text-[10px] font-semibold uppercase tracking-[0.04em] text-ink-iron hover:border-green-brand hover:bg-green-brand hover:text-[#F5F1E6] active:bg-green-brand active:text-[#F5F1E6] transition-all duration-150"
+            disabled={noPrice}
+            className="sm:hidden h-6.5 px-2.5 flex items-center gap-1 border border-ink-rule rounded-btn font-sans text-[10px] font-semibold uppercase tracking-[0.04em] text-ink-iron hover:border-green-brand hover:bg-green-brand hover:text-[#F5F1E6] active:bg-green-brand active:text-[#F5F1E6] transition-all duration-150 disabled:opacity-40 disabled:pointer-events-none"
             aria-label={`Add ${product.name} to crate`}
           >
             <BiPackage size={11} />
@@ -138,11 +147,12 @@ const ProductCard = memo(function ProductCard({
         {/* Add to Crate — desktop full button */}
         <button
           onClick={handleAddToCrate}
-          className="hidden sm:flex w-full h-10 items-center justify-center gap-2 border border-ink-rule rounded-btn font-sans text-[12px] font-semibold uppercase tracking-[0.06em] text-ink-iron hover:border-green-brand hover:bg-green-brand hover:text-[#F5F1E6] transition-all duration-200 mt-1"
+          disabled={noPrice}
+          className="hidden sm:flex w-full h-10 items-center justify-center gap-2 border border-ink-rule rounded-btn font-sans text-[12px] font-semibold uppercase tracking-[0.06em] text-ink-iron hover:border-green-brand hover:bg-green-brand hover:text-[#F5F1E6] transition-all duration-200 mt-1 disabled:opacity-40 disabled:pointer-events-none"
           aria-label={`Add ${product.name} to crate`}
         >
           <BiPackage size={15} />
-          {added ? '✓ Added to Crate' : '+ Add to Crate'}
+          {noPrice ? 'Price coming soon' : added ? '✓ Added to Crate' : '+ Add to Crate'}
         </button>
       </div>
     </div>
