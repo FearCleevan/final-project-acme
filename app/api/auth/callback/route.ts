@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { getIronSession } from 'iron-session'
 import { customerSessionOptions, type CustomerSessionData } from '@/lib/customerSession'
+import { mergeGuestCartActivity } from '@/lib/cartActivity'
 
 export async function GET(req: NextRequest) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://acmevintagesupply.com'
@@ -103,6 +104,17 @@ export async function GET(req: NextRequest) {
   session.email        = email
   session.expiresAt    = Date.now() + ((expires_in as number ?? 3600) * 1000)
   await session.save()
+
+  // Reattach any guest cart activity from this browser to the now-known
+  // customer email — never let a merge failure block login.
+  if (email) {
+    try {
+      const visitorId = (await cookies()).get('acme_visitor_id')?.value
+      if (visitorId) await mergeGuestCartActivity(visitorId, email)
+    } catch (err) {
+      console.error('[callback] guest cart merge failed:', err)
+    }
+  }
 
   console.log('[callback] success — redirecting to', redirectTo)
   return NextResponse.redirect(`${siteUrl}${redirectTo}`)

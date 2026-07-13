@@ -33,6 +33,7 @@ export interface AdminCustomer {
   totalSpent: number
   joined: string
   cartActivity?: { productTitle: string; quantity: number }[]
+  isGuest?: boolean
 }
 
 export interface AdminOrderItem {

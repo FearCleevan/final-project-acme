@@ -9,12 +9,12 @@ function realVariantId(product: Product): string | null {
   return product.variantId ? product.variantId.split('/').pop()! : null
 }
 
-export function trackCartActivity(email: string, product: Product, quantity: number): void {
+export function trackCartActivity(email: string | null, product: Product, quantity: number): void {
   fetch('/api/cart-activity', {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      customerEmail: email,
+      customerEmail: email, // may be null for guests — API falls back to the visitor-id cookie
       productId:     realProductId(product),
       productTitle:  product.name,
       variantId:     realVariantId(product),
@@ -23,7 +23,7 @@ export function trackCartActivity(email: string, product: Product, quantity: num
   }).catch(err => console.warn('[cartActivityClient] track failed:', err))
 }
 
-export function untrackCartActivity(email: string, product: Product): void {
+export function untrackCartActivity(email: string | null, product: Product): void {
   fetch('/api/cart-activity', {
     method:  'DELETE',
     headers: { 'Content-Type': 'application/json' },
