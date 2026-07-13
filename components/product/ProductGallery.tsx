@@ -31,7 +31,7 @@ export default function ProductGallery({ images, productName, sku, dark = false 
             alt={`${productName} — view ${active + 1}`}
             aspectRatio="4/5"
             dark={dark}
-            label={`${sku} · View ${String(active + 1).padStart(2, '0')}`}
+            label={slots.length > 0 ? `${sku} · View ${String(active + 1).padStart(2, '0')}` : 'Image coming soon'}
             priority
             className="transition-transform duration-500 ease-out group-hover/main:scale-[1.04]"
           />

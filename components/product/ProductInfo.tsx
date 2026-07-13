@@ -34,6 +34,7 @@ export default function ProductInfo({ product, reviewSummary }: ProductInfoProps
 
   // Derive price and stock from selected variant when applicable
   const activePrice = hasColourVariants && selectedVariant ? selectedVariant.price : product.price;
+  const noPrice = activePrice === 0;
   const activeStock = hasColourVariants && selectedVariant ? selectedVariant.stock : product.stockQuantity;
   const activeInStock = hasColourVariants
     ? (selectedVariant ? selectedVariant.stock > 0 : true)
@@ -204,18 +205,26 @@ export default function ProductInfo({ product, reviewSummary }: ProductInfoProps
 
       {/* Price */}
       <div className="pb-4 border-b border-ink-rule">
-        <div className="flex items-baseline gap-3">
+        {noPrice ? (
           <span className="font-serif text-[28px] text-brass-deep leading-none">
-            <CurrencyPrice amount={activePrice} />
+            Price coming soon
           </span>
-          <span className="text-[11px] font-mono uppercase tracking-eyebrow text-ink-soft">
-            CAD · Free freight over $150
-          </span>
-        </div>
-        <p className="text-[11px] font-mono text-ink-soft mt-1">
-          Approx. US ${(activePrice * 0.74).toFixed(2)} · AU $
-          {(activePrice * 1.12).toFixed(2)} — prices shown in Canadian dollars
-        </p>
+        ) : (
+          <>
+            <div className="flex items-baseline gap-3">
+              <span className="font-serif text-[28px] text-brass-deep leading-none">
+                <CurrencyPrice amount={activePrice} />
+              </span>
+              <span className="text-[11px] font-mono uppercase tracking-eyebrow text-ink-soft">
+                CAD · Free freight over $150
+              </span>
+            </div>
+            <p className="text-[11px] font-mono text-ink-soft mt-1">
+              Approx. US ${(activePrice * 0.74).toFixed(2)} · AU $
+              {(activePrice * 1.12).toFixed(2)} — prices shown in Canadian dollars
+            </p>
+          </>
+        )}
       </div>
 
       {/* Colour variant swatches — single-select mode */}
@@ -417,8 +426,12 @@ export default function ProductInfo({ product, reviewSummary }: ProductInfoProps
         </p>
       )}
 
-      {/* Add to crate CTA — or notify-me form when out of stock */}
-      {!activeInStock && !multiMode ? (
+      {/* Add to crate CTA — or notify-me form when out of stock or price not set yet */}
+      {noPrice && !multiMode ? (
+        <div className="w-full min-h-15 flex items-center justify-center bg-parchment-2 border border-ink-rule rounded-btn font-sans text-[14px] text-ink-soft text-center px-4">
+          Not yet available for purchase — price coming soon.
+        </div>
+      ) : !activeInStock && !multiMode ? (
         <NotifyMeForm
           productHandle={product.slug}
           productTitle={product.name}
