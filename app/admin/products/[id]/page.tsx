@@ -2,7 +2,7 @@
 
 import { Suspense, useState, useEffect } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
-import { BiChevronRight, BiTrash, BiCheck, BiEnvelope } from 'react-icons/bi'
+import { BiChevronLeft, BiTrash, BiCheck, BiEnvelope } from 'react-icons/bi'
 import Link from 'next/link'
 import ProductForm from '@/components/admin/forms/ProductForm'
 import ConfirmModal from '@/components/admin/shared/ConfirmModal'
@@ -121,13 +121,12 @@ function EditProductInner() {
 
   return (
     <div>
-      <nav className="flex items-center gap-1 text-[12px] mb-2">
-        <Link href={backHref} className="text-(--admin-text-muted) hover:text-(--admin-text) transition-colors">
-          Products
-        </Link>
-        <BiChevronRight size={13} className="text-(--admin-text-muted)" />
-        <span className="text-(--admin-text-soft) truncate">{product.title}</span>
-      </nav>
+      <Link
+        href={backHref}
+        className="inline-flex items-center gap-1 text-[12px] text-(--admin-text-muted) hover:text-(--admin-text) transition-colors mb-2"
+      >
+        <BiChevronLeft size={13} /> Products
+      </Link>
       <PageHeader
         title={product.title}
         subtitle={`/${product.handle}`}
