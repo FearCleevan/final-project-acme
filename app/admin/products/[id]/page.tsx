@@ -2,12 +2,13 @@
 
 import { Suspense, useState, useEffect } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
-import { BiChevronRight, BiTrash, BiCheck, BiEnvelope } from 'react-icons/bi'
+import { BiTrash, BiCheck, BiEnvelope } from 'react-icons/bi'
 import Link from 'next/link'
 import ProductForm from '@/components/admin/forms/ProductForm'
 import ConfirmModal from '@/components/admin/shared/ConfirmModal'
 import Toast, { ToastType } from '@/components/admin/shared/Toast'
 import Spinner from '@/components/admin/shared/Spinner'
+import PageHeader from '@/components/admin/shared/PageHeader'
 import { AdminProduct } from '@/lib/admin/types'
 
 function EditProductInner() {
@@ -120,56 +121,49 @@ function EditProductInner() {
 
   return (
     <div>
-      <div
-        className="sticky z-30 flex items-center justify-between px-4 sm:px-5 lg:px-6 py-3 border-b border-(--admin-border) bg-(--admin-surface) -mx-4 sm:-mx-5 lg:-mx-6 -mt-4 sm:-mt-5 lg:-mt-6 mb-6"
-        style={{ top: 'var(--admin-topbar-h)' }}
-      >
-        <nav className="flex items-center gap-1 text-[13px] min-w-0">
-          <Link href={backHref} className="text-(--admin-text-muted) hover:text-(--admin-text) transition-colors shrink-0">
-            Products
-          </Link>
-          <BiChevronRight size={14} className="text-(--admin-text-muted) shrink-0" />
-          <span className="text-(--admin-text) font-medium truncate">{product.title}</span>
-        </nav>
-
-        <div className="flex items-center gap-2 shrink-0 ml-4">
-          {success && (
-            <span className="flex items-center gap-1.5 text-[12px] text-(--admin-green) font-medium">
-              <BiCheck size={15} /> Saved
-            </span>
-          )}
-          <button
-            type="button"
-            onClick={handleNotifyWaitlist}
-            disabled={waitlistCount === 0 || notifying}
-            className="flex items-center gap-1.5 h-8 px-3 text-[12px] text-(--admin-text-soft) bg-(--admin-surface-2) border border-(--admin-border) rounded-md hover:bg-(--admin-border) transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            <BiEnvelope size={13} />
-            {notifying ? 'Sending…' : `Notify ${waitlistCount} waiting`}
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowDelete(true)}
-            className="flex items-center gap-1.5 h-8 px-3 text-[12px] text-(--admin-red) bg-(--admin-red-bg) border border-(--admin-red)/20 rounded-md hover:opacity-80 transition-opacity"
-          >
-            <BiTrash size={13} /> Delete
-          </button>
-          <Link
-            href={backHref}
-            className="h-8 px-4 text-[12px] text-(--admin-text-soft) bg-(--admin-surface-2) border border-(--admin-border) rounded-md hover:bg-(--admin-border) transition-colors flex items-center"
-          >
-            Discard
-          </Link>
-          <button
-            form="edit-product-form"
-            type="submit"
-            disabled={saving || success}
-            className="h-8 px-4 text-[12px] font-medium bg-(--admin-accent) text-(--admin-accent-text) rounded-md hover:opacity-90 transition-opacity disabled:opacity-60 flex items-center gap-2"
-          >
-            {saving ? <><Spinner className="w-3 h-3 border-white/30 border-t-white" /> Saving…</> : 'Save changes'}
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title={product.title}
+        subtitle={`/${product.handle}`}
+        actions={
+          <>
+            {success && (
+              <span className="flex items-center gap-1.5 text-[12px] text-(--admin-green) font-medium">
+                <BiCheck size={15} /> Saved
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={handleNotifyWaitlist}
+              disabled={waitlistCount === 0 || notifying}
+              className="flex items-center gap-1.5 h-8 px-3 text-[12px] text-(--admin-text-soft) bg-(--admin-surface-2) border border-(--admin-border) rounded-md hover:bg-(--admin-border) transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <BiEnvelope size={13} />
+              {notifying ? 'Sending…' : `Notify ${waitlistCount} waiting`}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowDelete(true)}
+              className="flex items-center gap-1.5 h-8 px-3 text-[12px] text-(--admin-red) bg-(--admin-red-bg) border border-(--admin-red)/20 rounded-md hover:opacity-80 transition-opacity"
+            >
+              <BiTrash size={13} /> Delete
+            </button>
+            <Link
+              href={backHref}
+              className="h-8 px-4 text-[12px] text-(--admin-text-soft) bg-(--admin-surface-2) border border-(--admin-border) rounded-md hover:bg-(--admin-border) transition-colors flex items-center"
+            >
+              Discard
+            </Link>
+            <button
+              form="edit-product-form"
+              type="submit"
+              disabled={saving || success}
+              className="h-8 px-4 text-[12px] font-medium bg-(--admin-accent) text-(--admin-accent-text) rounded-md hover:opacity-90 transition-opacity disabled:opacity-60 flex items-center gap-2"
+            >
+              {saving ? <><Spinner className="w-3 h-3 border-white/30 border-t-white" /> Saving…</> : 'Save changes'}
+            </button>
+          </>
+        }
+      />
 
       <div>
         <ProductForm
