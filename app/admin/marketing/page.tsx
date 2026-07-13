@@ -266,6 +266,7 @@ interface Campaign {
   created_at:       string
   template:         TemplateType
   template_data:    Record<string, unknown> | null
+  recipient_emails: string[] | null
 }
 
 type Tab = 'subscribers' | 'campaigns' | 'templates'
@@ -286,6 +287,13 @@ export default function MarketingPage() {
   // Subscribers state
   const [subscribers, setSubscribers] = useState<Subscriber[]>([])
   const [subsLoading,  setSubsLoading]  = useState(true)
+  const [addingSubscriber, setAddingSubscriber] = useState(false)
+  const [addMode,          setAddMode]          = useState<'pick' | 'manual'>('pick')
+  const [addSearch,        setAddSearch]        = useState('')
+  const [addResults,       setAddResults]       = useState<{ id: string; name: string; email: string }[]>([])
+  const [addSearching,     setAddSearching]     = useState(false)
+  const [manualEmail,      setManualEmail]      = useState('')
+  const [addSaving,        setAddSaving]        = useState(false)
 
   // Campaigns state
   const [campaigns,     setCampaigns]     = useState<Campaign[]>([])
@@ -298,6 +306,9 @@ export default function MarketingPage() {
   const [ctaLabel,     setCtaLabel]     = useState('')
   const [ctaUrl,       setCtaUrl]       = useState('')
   const [scheduleFor,  setScheduleFor]  = useState('')
+  const [recipientMode,      setRecipientMode]      = useState<'all' | 'specific'>('all')
+  const [selectedRecipients, setSelectedRecipients] = useState<string[]>([])
+  const [recipientSearch,    setRecipientSearch]    = useState('')
   const [previewOpen,  setPreviewOpen]  = useState(false)
   const [saving,       setSaving]       = useState(false)
   const [sending,      setSending]      = useState<string | null>(null)  // campaign id being sent
@@ -375,10 +386,64 @@ export default function MarketingPage() {
     return () => clearTimeout(timer)
   }, [productSearch, selectedProducts, allProducts])
 
+  useEffect(() => {
+    if (addMode !== 'pick' || !addSearch.trim()) { setAddResults([]); return }
+    setAddSearching(true)
+    const timer = setTimeout(() => {
+      fetch(`/api/admin/search?q=${encodeURIComponent(addSearch.trim())}`)
+        .then(r => r.ok ? r.json() : { customers: [] })
+        .then(d => setAddResults(d.customers ?? []))
+        .catch(() => setAddResults([]))
+        .finally(() => setAddSearching(false))
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [addSearch, addMode])
+
   // ── Actions ────────────────────────────────────────────────────────────────
 
   function handleExportCsv() {
     window.location.href = '/api/admin/marketing/subscribers?format=csv'
+  }
+
+  async function submitAddSubscriber(email: string) {
+    setAddSaving(true)
+    try {
+      const r = await fetch('/api/admin/marketing/subscribers', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ email }),
+      })
+      const data = await r.json()
+      if (!r.ok) throw new Error(data.error ?? 'Failed to add subscriber')
+      showToast('Subscriber added.')
+      setAddingSubscriber(false)
+      setAddSearch(''); setAddResults([]); setManualEmail('')
+      await loadSubscribers()
+    } catch (e: unknown) {
+      showToast(e instanceof Error ? e.message : 'Failed to add subscriber', 'error')
+    } finally {
+      setAddSaving(false)
+    }
+  }
+
+  async function toggleSubscriberActive(email: string, currentlyActive: boolean) {
+    // Optimistic update
+    setSubscribers(prev => prev.map(s =>
+      s.email === email
+        ? { ...s, unsubscribed_at: currentlyActive ? new Date().toISOString() : null }
+        : s
+    ))
+    try {
+      const r = await fetch('/api/admin/marketing/subscribers', {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ email, active: !currentlyActive }),
+      })
+      if (!r.ok) throw new Error()
+    } catch {
+      showToast('Failed to update subscriber status.', 'error')
+      await loadSubscribers() // roll back to server truth
+    }
   }
 
   function resetCompose() {
@@ -387,6 +452,7 @@ export default function MarketingPage() {
     setTemplate('bench_notes'); setGreeting('A note from the bench.')
     setSaleHeadline(''); setDiscountCode(''); setSaleEndDate('')
     setSelectedProducts([]); setProductSearch(''); setProductResults([])
+    setRecipientMode('all'); setSelectedRecipients([]); setRecipientSearch('')
   }
 
   function handleTemplateChange(t: TemplateType) {
@@ -433,6 +499,16 @@ export default function MarketingPage() {
     setSelectedProducts(prev => prev.filter(p => p.handle !== handle))
   }
 
+  function toggleRecipient(email: string) {
+    setSelectedRecipients(prev =>
+      prev.includes(email) ? prev.filter(e => e !== email) : [...prev, email]
+    )
+  }
+
+  function recipientEmailsPayload(): string[] | null {
+    return recipientMode === 'specific' ? selectedRecipients : null
+  }
+
   function handleUseTemplate(preset: PresetTemplate) {
     setPreviewOpen(false)
     setSubject(preset.subject)
@@ -462,6 +538,9 @@ export default function MarketingPage() {
     if (template === 'seasonal_sale' && (!ctaLabel.trim() || !ctaUrl.trim())) {
       showToast('Seasonal Sale requires a CTA button label and URL.', 'error'); return
     }
+    if (recipientMode === 'specific' && selectedRecipients.length === 0) {
+      showToast('Select at least one subscriber, or switch to All active subscribers.', 'error'); return
+    }
     setSaving(true)
     try {
       const r = await fetch('/api/admin/marketing/campaigns', {
@@ -469,11 +548,12 @@ export default function MarketingPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           subject, body: getBodyForTemplate(),
-          cta_label:     ctaLabel || null,
-          cta_url:       ctaUrl   || null,
-          scheduled_for: scheduleFor || null,
+          cta_label:        ctaLabel || null,
+          cta_url:          ctaUrl   || null,
+          scheduled_for:    scheduleFor || null,
           template,
-          template_data: buildTemplateData(),
+          template_data:    buildTemplateData(),
+          recipient_emails: recipientEmailsPayload(),
         }),
       })
       if (!r.ok) throw new Error()
@@ -497,6 +577,9 @@ export default function MarketingPage() {
     if (template === 'seasonal_sale' && (!ctaLabel.trim() || !ctaUrl.trim())) {
       showToast('Seasonal Sale requires a CTA button label and URL.', 'error'); return
     }
+    if (recipientMode === 'specific' && selectedRecipients.length === 0) {
+      showToast('Select at least one subscriber, or switch to All active subscribers.', 'error'); return
+    }
     setSaving(true)
     try {
       // Save draft first to get an id
@@ -505,10 +588,11 @@ export default function MarketingPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           subject, body: getBodyForTemplate(),
-          cta_label: ctaLabel || null,
-          cta_url:   ctaUrl   || null,
+          cta_label:        ctaLabel || null,
+          cta_url:          ctaUrl   || null,
           template,
-          template_data: buildTemplateData(),
+          template_data:    buildTemplateData(),
+          recipient_emails: recipientEmailsPayload(),
         }),
       })
       if (!saveRes.ok) throw new Error('Failed to create campaign')
@@ -596,13 +680,22 @@ export default function MarketingPage() {
             <p className="text-[14px] text-(--admin-text-soft)">
               <span className="font-semibold text-(--admin-text)">{activeCount}</span> active subscriber{activeCount === 1 ? '' : 's'}
             </p>
-            <button
-              onClick={handleExportCsv}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-(--admin-border) text-[12px] text-(--admin-text-soft) hover:text-(--admin-text) hover:bg-(--admin-surface-2) transition-colors"
-            >
-              <BiDownload size={14} />
-              Export CSV
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setAddingSubscriber(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-(--admin-accent) text-(--admin-accent-text) text-[12px] font-medium hover:opacity-90 transition-opacity"
+              >
+                <BiPlus size={14} />
+                Add Subscriber
+              </button>
+              <button
+                onClick={handleExportCsv}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-(--admin-border) text-[12px] text-(--admin-text-soft) hover:text-(--admin-text) hover:bg-(--admin-surface-2) transition-colors"
+              >
+                <BiDownload size={14} />
+                Export CSV
+              </button>
+            </div>
           </div>
 
           <SectionCard noPadding>
@@ -627,10 +720,19 @@ export default function MarketingPage() {
                       <td className="px-4 py-3 text-(--admin-text)">{s.email}</td>
                       <td className="px-4 py-3 text-(--admin-text-soft)">{fmtDate(s.subscribed_at)}</td>
                       <td className="px-4 py-3">
-                        <Badge
-                          variant={s.unsubscribed_at ? 'amber' : 'green'}
-                          label={s.unsubscribed_at ? 'Unsubscribed' : 'Active'}
-                        />
+                        <div className="flex items-center gap-2">
+                          <Badge
+                            variant={s.unsubscribed_at ? 'amber' : 'green'}
+                            label={s.unsubscribed_at ? 'Unsubscribed' : 'Active'}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => toggleSubscriberActive(s.email, !s.unsubscribed_at)}
+                            className="text-[11px] text-(--admin-text-muted) hover:text-(--admin-text) underline transition-colors"
+                          >
+                            {s.unsubscribed_at ? 'Reactivate' : 'Deactivate'}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -888,6 +990,61 @@ export default function MarketingPage() {
                   />
                 </div>
 
+                <div>
+                  <label className="block text-[12px] font-medium text-(--admin-text-soft) mb-2">Recipients</label>
+                  <div className="flex gap-4 mb-3">
+                    <label className="flex items-center gap-2 text-[13px] text-(--admin-text) cursor-pointer">
+                      <input
+                        type="radio"
+                        checked={recipientMode === 'all'}
+                        onChange={() => setRecipientMode('all')}
+                      />
+                      All active subscribers ({activeCount})
+                    </label>
+                    <label className="flex items-center gap-2 text-[13px] text-(--admin-text) cursor-pointer">
+                      <input
+                        type="radio"
+                        checked={recipientMode === 'specific'}
+                        onChange={() => setRecipientMode('specific')}
+                      />
+                      Specific subscribers
+                    </label>
+                  </div>
+
+                  {recipientMode === 'specific' && (
+                    <div>
+                      <input
+                        type="text"
+                        value={recipientSearch}
+                        onChange={e => setRecipientSearch(e.target.value)}
+                        placeholder="Search subscribers…"
+                        className="w-full px-3 py-2 rounded-md border border-(--admin-border) bg-(--admin-surface) text-[13px] text-(--admin-text) placeholder:text-(--admin-text-muted) focus:outline-none focus:border-(--admin-accent) transition-colors mb-2"
+                      />
+                      <div className="rounded-md border border-(--admin-border) divide-y divide-(--admin-border) max-h-48 overflow-y-auto">
+                        {subscribers
+                          .filter(s => !s.unsubscribed_at)
+                          .filter(s => s.email.toLowerCase().includes(recipientSearch.trim().toLowerCase()))
+                          .map(s => (
+                            <label
+                              key={s.email}
+                              className="flex items-center gap-2 px-3 py-2 text-[13px] text-(--admin-text) cursor-pointer hover:bg-(--admin-surface-2) transition-colors"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedRecipients.includes(s.email)}
+                                onChange={() => toggleRecipient(s.email)}
+                              />
+                              {s.email}
+                            </label>
+                          ))}
+                      </div>
+                      <p className="text-[11px] text-(--admin-text-muted) mt-1">
+                        {selectedRecipients.length} selected
+                      </p>
+                    </div>
+                  )}
+                </div>
+
                 {/* Actions */}
                 <div className="flex items-center gap-3 pt-2">
                   <button
@@ -939,6 +1096,9 @@ export default function MarketingPage() {
                           : c.scheduled_for
                             ? `Scheduled for ${fmtDate(c.scheduled_for)}`
                             : `Draft · ${fmtDate(c.created_at)}`}
+                        {c.status !== 'sent' && c.recipient_emails && (
+                          <> · {c.recipient_emails.length} recipient{c.recipient_emails.length === 1 ? '' : 's'} selected</>
+                        )}
                       </p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
@@ -1032,6 +1192,99 @@ export default function MarketingPage() {
           onSendNow={handleSendNow}
           saving={saving}
         />
+      )}
+
+      {addingSubscriber && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.6)' }}
+          onClick={() => setAddingSubscriber(false)}
+        >
+          <div
+            className="bg-(--admin-surface) rounded-xl w-full max-w-[440px] overflow-hidden"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-5 py-4 border-b border-(--admin-border)">
+              <p className="text-[14px] font-semibold text-(--admin-text)">Add Subscriber</p>
+              <button
+                onClick={() => setAddingSubscriber(false)}
+                className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-(--admin-surface-2) text-(--admin-text-muted) transition-colors"
+              >
+                <BiX size={16} />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4">
+              <div className="flex rounded-md border border-(--admin-border) overflow-hidden">
+                {(['pick', 'manual'] as const).map(m => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setAddMode(m)}
+                    className={cn(
+                      'flex-1 py-1.5 text-[12px] transition-colors',
+                      addMode === m
+                        ? 'bg-(--admin-accent) text-(--admin-accent-text)'
+                        : 'text-(--admin-text-soft) hover:bg-(--admin-surface-2)'
+                    )}
+                  >
+                    {m === 'pick' ? 'Pick from customers' : 'Enter email manually'}
+                  </button>
+                ))}
+              </div>
+
+              {addMode === 'pick' ? (
+                <div className="relative">
+                  <div className="relative">
+                    <BiSearch size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-(--admin-text-muted)" />
+                    <input
+                      type="text"
+                      value={addSearch}
+                      onChange={e => setAddSearch(e.target.value)}
+                      placeholder="Search customers…"
+                      className="w-full pl-8 pr-3 py-2 rounded-md border border-(--admin-border) bg-(--admin-surface) text-[13px] text-(--admin-text) placeholder:text-(--admin-text-muted) focus:outline-none focus:border-(--admin-accent) transition-colors"
+                    />
+                    {addSearching && <BiLoader size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-(--admin-text-muted) animate-spin" />}
+                  </div>
+                  {addResults.length > 0 && (
+                    <div className="mt-2 rounded-md border border-(--admin-border) divide-y divide-(--admin-border) max-h-56 overflow-y-auto">
+                      {addResults.map(c => (
+                        <button
+                          key={c.id}
+                          type="button"
+                          disabled={addSaving}
+                          onClick={() => submitAddSubscriber(c.email)}
+                          className="w-full flex flex-col items-start px-3 py-2 text-left hover:bg-(--admin-surface-2) transition-colors disabled:opacity-50"
+                        >
+                          <span className="text-[13px] font-medium text-(--admin-text)">{c.name}</span>
+                          <span className="text-[11px] text-(--admin-text-muted)">{c.email}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="email"
+                    value={manualEmail}
+                    onChange={e => setManualEmail(e.target.value)}
+                    placeholder="name@example.com"
+                    className="flex-1 px-3 py-2 rounded-md border border-(--admin-border) bg-(--admin-surface) text-[13px] text-(--admin-text) placeholder:text-(--admin-text-muted) focus:outline-none focus:border-(--admin-accent) transition-colors"
+                  />
+                  <button
+                    type="button"
+                    disabled={addSaving || !manualEmail.trim()}
+                    onClick={() => submitAddSubscriber(manualEmail.trim())}
+                    className="px-4 py-2 rounded-md bg-(--admin-accent) text-(--admin-accent-text) text-[13px] font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
+                  >
+                    Add
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       )}
 
       {toast && (

@@ -17,6 +17,8 @@ async function requireAuth() {
   return session.isLoggedIn
 }
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 export async function GET(req: NextRequest) {
   if (!await requireAuth()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -44,4 +46,46 @@ export async function GET(req: NextRequest) {
   }
 
   return NextResponse.json(rows)
+}
+
+export async function POST(req: NextRequest) {
+  if (!await requireAuth()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const body = await req.json().catch(() => null) as { email?: string } | null
+  const email = body?.email?.trim().toLowerCase()
+  if (!email || !EMAIL_RE.test(email)) {
+    return NextResponse.json({ error: 'A valid email is required.' }, { status: 400 })
+  }
+
+  const { data, error } = await getSupabase()
+    .from('newsletter_subscribers')
+    .insert({ email, subscribed_at: new Date().toISOString() })
+    .select('email, subscribed_at, unsubscribed_at')
+    .single()
+
+  if (error) {
+    if (error.code === '23505') {
+      return NextResponse.json({ error: 'Already a subscriber.' }, { status: 409 })
+    }
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json(data, { status: 201 })
+}
+
+export async function PATCH(req: NextRequest) {
+  if (!await requireAuth()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const body = await req.json().catch(() => null) as { email?: string; active?: boolean } | null
+  if (!body?.email || typeof body.active !== 'boolean') {
+    return NextResponse.json({ error: 'email and active are required.' }, { status: 400 })
+  }
+
+  const { error } = await getSupabase()
+    .from('newsletter_subscribers')
+    .update({ unsubscribed_at: body.active ? null : new Date().toISOString() })
+    .eq('email', body.email)
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ ok: true })
 }
