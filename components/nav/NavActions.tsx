@@ -29,7 +29,11 @@ export default function NavActions({ onSearchOpen }: NavActionsProps) {
 
   return (
     <div className="flex items-center gap-1">
-      <CurrencySwitcher />
+      {/* Hidden below lg — competes for space with the hamburger on mobile/tablet;
+          available instead inside MobileDrawer at those widths. */}
+      <div className="hidden lg:block">
+        <CurrencySwitcher />
+      </div>
 
       <button
         onClick={onSearchOpen}
