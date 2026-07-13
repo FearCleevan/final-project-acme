@@ -9,6 +9,7 @@ import CurrencyPrice from '@/components/shared/CurrencyPrice'
 import { useCrateStore } from "@/store/crateStore";
 import FitmentBox from "./FitmentBox";
 import NotifyMeForm from "./NotifyMeForm";
+import ProductInquiryForm from "./ProductInquiryForm";
 import { getColourHex } from '@/lib/cartGrouping'
 import type { ReviewSummary } from '@/lib/reviews'
 
@@ -451,6 +452,11 @@ export default function ProductInfo({ product, reviewSummary }: ProductInfoProps
               : `Add to crate — ${fmt(lineTotal)}`}
         </button>
       )}
+
+      {/* Inquire about this item — available regardless of price/stock state */}
+      <div>
+        <ProductInquiryForm productHandle={product.slug} productTitle={product.name} />
+      </div>
 
       {/* Trust signals */}
       <div className="space-y-2.5 pt-1">

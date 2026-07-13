@@ -12,7 +12,7 @@ function getSupabase() {
 export async function POST(req: NextRequest) {
   try {
     const body    = await req.json()
-    const { name, email, subject, message } = body
+    const { name, email, subject, message, product_handle, product_title } = body
 
     if (!name?.trim() || !email?.trim() || !subject?.trim() || !message?.trim()) {
       return NextResponse.json({ success: false, error: 'All fields required' }, { status: 400 })
@@ -21,10 +21,12 @@ export async function POST(req: NextRequest) {
     const { error } = await getSupabase()
       .from('contact_messages')
       .insert({
-        name:    name.trim(),
-        email:   email.trim(),
-        subject: subject.trim(),
-        message: message.trim(),
+        name:           name.trim(),
+        email:          email.trim(),
+        subject:        subject.trim(),
+        message:        message.trim(),
+        product_handle: product_handle ?? null,
+        product_title:  product_title ?? null,
       })
 
     if (error) throw error
