@@ -6,6 +6,7 @@ import { BiX, BiUser } from 'react-icons/bi'
 import { useCustomerStore } from '@/store/customerStore'
 import NavLinks from './NavLinks'
 import Button from '@/components/shared/Button'
+import CurrencySwitcher from '@/components/shared/CurrencySwitcher'
 
 const catalogLinks = [
   { label: 'Oil Lamp Chimneys',    href: '/catalog?category=oil-lamp-chimneys'       },
@@ -69,13 +70,16 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
                   Antique Oil Lamps &amp; Signs
                 </p>
               </div>
-              <button
-                onClick={onClose}
-                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-parchment-2 active:bg-parchment-3 transition-colors"
-                aria-label="Close menu"
-              >
-                <BiX size={22} />
-              </button>
+              <div className="flex items-center gap-2 shrink-0">
+                <CurrencySwitcher />
+                <button
+                  onClick={onClose}
+                  className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-parchment-2 active:bg-parchment-3 transition-colors"
+                  aria-label="Close menu"
+                >
+                  <BiX size={22} />
+                </button>
+              </div>
             </div>
 
             {/* Main nav links */}
