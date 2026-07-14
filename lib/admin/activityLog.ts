@@ -1,6 +1,6 @@
 import supabaseAdmin from '@/lib/supabase'
 
-export type ActivityEntityType = 'review' | 'product' | 'content' | 'order'
+export type ActivityEntityType = 'review' | 'product' | 'content' | 'order' | 'collection' | 'settings'
 
 export interface ActivityLogEntry {
   id:          string

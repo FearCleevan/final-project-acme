@@ -5,6 +5,7 @@ import { sessionOptions } from '@/lib/admin/session'
 import type { AdminSession } from '@/lib/admin/auth'
 import { getAdminCollections, createAdminCollection } from '@/lib/admin/shopifyAdmin'
 import { revalidateTag } from 'next/cache'
+import { logAction } from '@/lib/admin/activityLog'
 
 export async function GET() {
   const session = await getIronSession<AdminSession>(await cookies(), sessionOptions)
@@ -41,6 +42,7 @@ export async function POST(req: NextRequest) {
     })
 
     revalidateTag('products', 'layout')
+    await logAction('collection.create', 'collection', undefined, title.trim()).catch(() => {})
     return NextResponse.json(collection, { status: 201 })
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 })

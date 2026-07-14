@@ -15,6 +15,7 @@ import {
   collectionHandlesToGids,
   getProductCollectionGids,
 } from '@/lib/admin/shopifyAdmin'
+import { logAction } from '@/lib/admin/activityLog'
 
 async function requireAuth() {
   const session = await getIronSession<AdminSession>(await cookies(), sessionOptions)
@@ -141,6 +142,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
     }
 
     revalidateTag('products', 'layout')
+    await logAction('product.update', 'product', id, title ?? id).catch(() => {})
     return NextResponse.json(product)
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 })
@@ -153,6 +155,7 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   try {
     await deleteAdminProduct(id)
     revalidateTag('products', 'layout')
+    await logAction('product.delete', 'product', id).catch(() => {})
     return NextResponse.json({ ok: true })
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 })

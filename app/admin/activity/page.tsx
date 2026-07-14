@@ -1,28 +1,38 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { BiPackage, BiStar, BiEditAlt, BiCart, BiHistory } from 'react-icons/bi'
+import { BiPackage, BiStar, BiEditAlt, BiCart, BiHistory, BiFolder, BiCog } from 'react-icons/bi'
 import type { ActivityLogEntry, ActivityEntityType } from '@/lib/admin/activityLog'
 
 type Filter = ActivityEntityType | 'all'
 
 const ENTITY_ICONS: Record<ActivityEntityType, React.ElementType> = {
-  product: BiPackage,
-  review:  BiStar,
-  content: BiEditAlt,
-  order:   BiCart,
+  product:    BiPackage,
+  review:     BiStar,
+  content:    BiEditAlt,
+  order:      BiCart,
+  collection: BiFolder,
+  settings:   BiCog,
 }
 
 const ACTION_LABELS: Record<string, string> = {
-  'review.approve':      'Approved a review',
-  'review.deactivate':   'Deactivated a review',
-  'review.activate':     'Re-activated a review',
-  'review.reject':       'Rejected a review',
-  'review.delete':       'Deleted a review',
-  'content.save':        'Saved content',
-  'product.import':      'Bulk imported products',
-  'product.bulk-status': 'Changed product status',
-  'order.fulfill':       'Updated order fulfillment',
+  'review.approve':        'Approved a review',
+  'review.deactivate':     'Deactivated a review',
+  'review.activate':       'Re-activated a review',
+  'review.reject':         'Rejected a review',
+  'review.delete':         'Deleted a review',
+  'content.save':          'Saved content',
+  'product.import':        'Bulk imported products',
+  'product.bulk-status':   'Changed product status',
+  'product.update':        'Updated a product',
+  'product.delete':        'Deleted a product',
+  'product.price-update':  'Updated product price',
+  'product.stock-update':  'Updated product stock',
+  'order.fulfill':         'Updated order fulfillment',
+  'collection.create':     'Created a collection',
+  'collection.update':     'Updated a collection',
+  'collection.delete':     'Deleted a collection',
+  'settings.update':       'Updated store settings',
 }
 
 function timeAgo(iso: string): string {
@@ -36,11 +46,13 @@ function timeAgo(iso: string): string {
 }
 
 const FILTERS: { label: string; value: Filter }[] = [
-  { label: 'All',      value: 'all'     },
-  { label: 'Products', value: 'product' },
-  { label: 'Reviews',  value: 'review'  },
-  { label: 'Content',  value: 'content' },
-  { label: 'Orders',   value: 'order'   },
+  { label: 'All',         value: 'all'        },
+  { label: 'Products',    value: 'product'    },
+  { label: 'Collections', value: 'collection' },
+  { label: 'Reviews',     value: 'review'     },
+  { label: 'Content',     value: 'content'    },
+  { label: 'Orders',      value: 'order'      },
+  { label: 'Settings',    value: 'settings'   },
 ]
 
 const PAGE = 30
