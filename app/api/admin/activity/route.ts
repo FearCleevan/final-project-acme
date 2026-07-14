@@ -6,7 +6,7 @@ import type { AdminSession } from '@/lib/admin/auth'
 import { getActivityLog } from '@/lib/admin/activityLog'
 import type { ActivityEntityType } from '@/lib/admin/activityLog'
 
-const VALID_ENTITY_TYPES: ActivityEntityType[] = ['review', 'product', 'content', 'order']
+const VALID_ENTITY_TYPES: ActivityEntityType[] = ['review', 'product', 'content', 'order', 'collection', 'settings']
 
 export async function GET(req: NextRequest) {
   const session = await getIronSession<AdminSession>(await cookies(), sessionOptions)

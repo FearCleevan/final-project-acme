@@ -5,6 +5,7 @@ import { getIronSession } from 'iron-session'
 import { sessionOptions } from '@/lib/admin/session'
 import type { AdminSession } from '@/lib/admin/auth'
 import { getInventoryItemIdForProduct, setInventoryQuantity, updateProductPrice } from '@/lib/admin/shopifyAdmin'
+import { logAction } from '@/lib/admin/activityLog'
 
 async function requireAuth() {
   const session = await getIronSession<AdminSession>(await cookies(), sessionOptions)
@@ -30,6 +31,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     try {
       await updateProductPrice(id, body.price)
       revalidateTag('products', 'layout')
+      await logAction('product.price-update', 'product', id, `Price → $${body.price}`).catch(() => {})
       return NextResponse.json({ ok: true, price: body.price })
     } catch (err) {
       return NextResponse.json({ error: String(err) }, { status: 500 })
@@ -57,6 +59,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
     await setInventoryQuantity(inventoryItemId, quantity)
     revalidateTag('products', 'layout')
+    await logAction('product.stock-update', 'product', id, `Stock → ${quantity} units`).catch(() => {})
     return NextResponse.json({ ok: true, stock: quantity })
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 })

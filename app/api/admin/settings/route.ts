@@ -5,6 +5,7 @@ import { getIronSession } from 'iron-session'
 import { sessionOptions } from '@/lib/admin/session'
 import type { AdminSession } from '@/lib/admin/auth'
 import { createClient } from '@supabase/supabase-js'
+import { logAction } from '@/lib/admin/activityLog'
 
 function getSupabase() {
   return createClient(
@@ -101,6 +102,7 @@ export async function PATCH(req: NextRequest) {
   if (Object.keys(update).length === 0) {
     return NextResponse.json({ error: 'No valid fields to update.' }, { status: 400 })
   }
+  const updatedFields = Object.keys(update)
   update.updated_at = new Date().toISOString()
 
   const { data, error } = await getSupabase()
@@ -111,5 +113,6 @@ export async function PATCH(req: NextRequest) {
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  await logAction('settings.update', 'settings', undefined, updatedFields.join(', ')).catch(() => {})
   return NextResponse.json(toClientShape(data as SettingsRow))
 }

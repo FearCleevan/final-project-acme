@@ -5,6 +5,7 @@ import { getIronSession } from 'iron-session'
 import { sessionOptions } from '@/lib/admin/session'
 import type { AdminSession } from '@/lib/admin/auth'
 import { updateAdminCollection, deleteAdminCollection } from '@/lib/admin/shopifyAdmin'
+import { logAction } from '@/lib/admin/activityLog'
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -37,6 +38,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
     })
 
     revalidateTag('products', 'layout')
+    await logAction('collection.update', 'collection', id, title.trim()).catch(() => {})
 
     return NextResponse.json(collection)
   } catch (err) {
@@ -52,6 +54,7 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   try {
     await deleteAdminCollection(id)
     revalidateTag('products', 'layout')
+    await logAction('collection.delete', 'collection', id).catch(() => {})
     return NextResponse.json({ ok: true })
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 })
