@@ -62,7 +62,7 @@ export default async function FAQPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
-      <div className="max-w-[860px] mx-auto px-6 py-14">
+      <div className="max-w-215 mx-auto px-6 py-14">
 
         <Breadcrumb
           crumbs={[{ label: 'Storefront', href: '/' }, { label: 'FAQ' }]}
