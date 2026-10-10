@@ -1,6 +1,7 @@
 # Memory Index
 
-- [Security Incident & Job Status: July 15 2026](project-2026-07-15-security-incident-job-status.md) — Frasco/Acme Sign WordPress compromise via plugin left on production; Peter's job status uncertain pending TL decision; full access handover doc created regardless of outcome.
+- [Security Incident & Job Status: July 15 2026](project-2026-07-15-security-incident-job-status.md) — Frasco/Acme Sign WordPress compromise via plugin left on production; July 15 was Peter's last day, no longer employed on this project; full access handover doc created.
+- [Freelance Pivot: Paul CRM & Outreach](project-freelance-paul-crm-outreach.md) — Land-First-Client plan (8 real Ontario restaurants drafted, not yet sent); Paul CRM Inbox/Sent/Drafts built + several real bugs fixed; prospects currently can't reply at all (no MX on sending domain) — free reply-to stopgap live, paid mailbox fix deferred, Peter is broke.
 - [Feedback: 51k Leads Recurring](feedback-51k-leads-recurring.md) — CASL concern resurfaced 2026-07-15 reframed as "cold outreach"; hold the line regardless of framing or what other sessions did.
 - [Pending Tasks: Acme Vintage Supply](pending-tasks-acme.md) — Check/update whenever user says "Acme Recap." Open: check Shopify Invoice template for domain bug; get Scott to confirm enamel sign authenticity.
 - [Daily Log: July 14 2026](daily-log-2026-07-14.md) — Marketing manual subscribers + recipient targeting shipped, zero-price products fixed (coming-soon labels + blocked free checkout), Inquire About This Item contact form shipped, bot filtering + user-agent added to pageview analytics. 51k-lead-list CASL risk flagged, user agreed not to use it.
